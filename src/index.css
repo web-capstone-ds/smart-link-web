@@ -49,72 +49,86 @@
 }
 
 :root {
-    --background: oklch(1 0 0);
-    --foreground: oklch(0.145 0 0);
-    --card: oklch(1 0 0);
-    --card-foreground: oklch(0.145 0 0);
-    --popover: oklch(1 0 0);
-    --popover-foreground: oklch(0.145 0 0);
-    --primary: oklch(0.205 0 0);
-    --primary-foreground: oklch(0.985 0 0);
-    --secondary: oklch(0.97 0 0);
-    --secondary-foreground: oklch(0.205 0 0);
-    --muted: oklch(0.97 0 0);
-    --muted-foreground: oklch(0.556 0 0);
-    --accent: oklch(0.97 0 0);
-    --accent-foreground: oklch(0.205 0 0);
-    --destructive: oklch(0.577 0.245 27.325);
-    --border: oklch(0.922 0 0);
-    --input: oklch(0.922 0 0);
-    --ring: oklch(0.708 0 0);
-    --chart-1: oklch(0.87 0 0);
-    --chart-2: oklch(0.556 0 0);
-    --chart-3: oklch(0.439 0 0);
-    --chart-4: oklch(0.371 0 0);
-    --chart-5: oklch(0.269 0 0);
-    --radius: 0.625rem;
-    --sidebar: oklch(0.985 0 0);
-    --sidebar-foreground: oklch(0.145 0 0);
-    --sidebar-primary: oklch(0.205 0 0);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.97 0 0);
-    --sidebar-accent-foreground: oklch(0.205 0 0);
-    --sidebar-border: oklch(0.922 0 0);
-    --sidebar-ring: oklch(0.708 0 0);
+    --background: oklch(0.98 0.002 250); 
+    --foreground: oklch(0.28 0.01 250);
+
+    /* 2. 카드 & 팝업: 배경보다 살짝 밝게 띄워서 구분감 확보 (완전 흰색은 지양) */
+    --card: oklch(0.995 0.001 250);
+    --card-foreground: oklch(0.28 0.01 250);
+    --popover: oklch(0.995 0.001 250);
+    --popover-foreground: oklch(0.28 0.01 250);
+
+    /* 3. 포인트(Primary): 튀지 않는 묵직하고 신뢰감 있는 딥 슬레이트 그레이 */
+    --primary: oklch(0.35 0.02 250);
+    --primary-foreground: oklch(0.98 0.002 250);
+
+    /* 4. 보조 & 비활성 영역: 눈에 띄지 않게 차분히 가라앉힘 */
+    --secondary: oklch(0.94 0.008 250);
+    --secondary-foreground: oklch(0.35 0.02 250);
+    --muted: oklch(0.95 0.005 250);
+    --muted-foreground: oklch(0.55 0.01 250);
+    --accent: oklch(0.94 0.008 250);
+    --accent-foreground: oklch(0.28 0.01 250);
+
+    /* 5. 경고/에러: 눈을 찌르는 빨간색 대신, 부드러운 코랄 빛이 도는 경고색 */
+    --destructive: oklch(0.63 0.15 25);
+    --destructive-foreground: oklch(0.98 0 0);
+
+    /* 6. 테두리 및 입력창: 너무 진하지 않게 아주 연한 회색으로 경계만 표시 */
+    --border: oklch(0.88 0.01 250);
+    --input: oklch(0.88 0.01 250);
+    --ring: oklch(0.75 0.01 250);
+
+    /* 7. 차트: 데이터 가독성을 높이기 위해 채도를 약간 낮춘 파스텔 톤 */
+    --chart-1: oklch(0.65 0.1 250);
+    --chart-2: oklch(0.65 0.08 180);
+    --chart-3: oklch(0.7 0.1 300);
+    --chart-4: oklch(0.75 0.1 70);
+    --chart-5: oklch(0.8 0.1 40);
+
+    --radius: 0.5rem; /* 둥글기도 대시보드에 맞게 살짝 단정하게 깎았습니다 */
+
+    /* 8. 사이드바: 메인 배경과 자연스럽게 어우러지는 톤 */
+    --sidebar: oklch(0.96 0.005 250);
+    --sidebar-foreground: oklch(0.28 0.01 250);
+    --sidebar-primary: oklch(0.35 0.02 250);
+    --sidebar-primary-foreground: oklch(0.98 0.002 250);
+    --sidebar-accent: oklch(0.92 0.01 250);
+    --sidebar-accent-foreground: oklch(0.28 0.01 250);
+    --sidebar-border: oklch(0.88 0.01 250);
+    --sidebar-ring: oklch(0.75 0.01 250);
 }
 
 .dark {
-    --background: oklch(0.145 0 0);
-    --foreground: oklch(0.985 0 0);
-    --card: oklch(0.205 0 0);
-    --card-foreground: oklch(0.985 0 0);
-    --popover: oklch(0.205 0 0);
-    --popover-foreground: oklch(0.985 0 0);
-    --primary: oklch(0.922 0 0);
-    --primary-foreground: oklch(0.205 0 0);
-    --secondary: oklch(0.269 0 0);
-    --secondary-foreground: oklch(0.985 0 0);
-    --muted: oklch(0.269 0 0);
-    --muted-foreground: oklch(0.708 0 0);
-    --accent: oklch(0.269 0 0);
-    --accent-foreground: oklch(0.985 0 0);
-    --destructive: oklch(0.704 0.191 22.216);
-    --border: oklch(1 0 0 / 10%);
-    --input: oklch(1 0 0 / 15%);
-    --ring: oklch(0.556 0 0);
-    --chart-1: oklch(0.87 0 0);
-    --chart-2: oklch(0.556 0 0);
-    --chart-3: oklch(0.439 0 0);
-    --chart-4: oklch(0.371 0 0);
-    --chart-5: oklch(0.269 0 0);
-    --sidebar: oklch(0.205 0 0);
-    --sidebar-foreground: oklch(0.985 0 0);
-    --sidebar-primary: oklch(0.488 0.243 264.376);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.269 0 0);
-    --sidebar-accent-foreground: oklch(0.985 0 0);
-    --sidebar-border: oklch(1 0 0 / 10%);
-    --sidebar-ring: oklch(0.556 0 0);
+  /* 극강의 눈 편안함: 칠흑색을 배제하고 무광의 부드러운 징크(아연) 톤 적용 */
+  --background: #18181B;         
+  --foreground: #D4D4D8;         
+
+  /* 배경과 아주 부드럽게 이어지는 카드/팝업 */
+  --card: #27272A;               
+  --card-foreground: #D4D4D8;
+  --popover: #27272A;
+  --popover-foreground: #D4D4D8;
+
+  /* 포인트 컬러: 눈부신 흰색 대신 차분한 연회색 */
+  --primary: #E4E4E7;            
+  --primary-foreground: #18181B; 
+
+  /* 보조/비활성: 배경과 튀지 않게 한 톤만 밝게 설정 */
+  --secondary: #3F3F46;
+  --secondary-foreground: #E4E4E7;
+  --muted: #3F3F46;
+  --muted-foreground: #A1A1AA;   
+
+  /* 호버링 효과도 아주 은은하게 */
+  --accent: #3F3F46;
+  --accent-foreground: #F4F4F5;
+
+  /* 경고색: 눈을 찌르지 않도록 채도를 확 낮춘 벽돌색 */
+  --destructive: #B91C1C;        
+  --border: #3F3F46;             
+  --input: #3F3F46;
+  --ring: #52525B;               
 }
 
 @layer base {
@@ -127,4 +141,39 @@
   html {
     @apply font-sans;
     }
+}
+
+html, body, #root {
+  margin: 0;
+  padding: 0;
+  height: 100vh;
+  overflow: hidden; /* 브라우저 자체의 스크롤바 생성 원천 차단 */
+}
+
+/* 커스텀 스크롤바 (Mac 스타일의 얇고 둥근 디자인) */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;  /* 세로 스크롤바 굵기 */
+  height: 6px; /* 가로 스크롤바 굵기 */
+}
+
+/* 스크롤바 뒷 배경 (트랙) */
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent; /* 배경을 투명하게 두어 앱처럼 보이게 함 */
+}
+
+/* 움직이는 스크롤바 막대 (썸) */
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #3F3F46; /* 기존 설정한 --muted 색상과 동일한 차분한 징크톤 */
+  border-radius: 10px; /* 위아래를 동그랗게 */
+}
+
+/* 막대에 마우스를 올렸을 때 (호버) */
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #52525B; /* 살짝 더 밝아지도록 포인트를 줌 */
+}
+
+/* (선택) 파이어폭스 브라우저 지원용 */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #3F3F46 transparent;
 }
