@@ -79,7 +79,7 @@ export function EquipmentStats({ setSelectedEquipment }: EquipmentStatsProps) {
     }, [filterLine, sortBy]);
 
     return (
-        <div className="animate-in fade-in duration-500 space-y-6 pb-10">
+        <div className="animate-in fade-in duration-500 space-y-6">
             
             {/* 🌟 1. 대시보드와 완벽히 통일된 상단 타이틀 & 글로벌 필터 영역 🌟 */}
             <div className="flex items-end justify-between">

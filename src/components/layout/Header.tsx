@@ -29,9 +29,6 @@ export function Header({ isSidebarOpen, setIsSidebarOpen }: HeaderProps) {
         </div>
         
         <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" className="text-muted-foreground hover:bg-muted/50">
-            <Search className="w-5 h-5" />
-            </Button>
             <Button variant="ghost" size="icon" className="text-muted-foreground relative hover:bg-muted/50">
             <Bell className="w-5 h-5" />
             <span className="absolute top-2 right-2 w-2 h-2 bg-destructive rounded-full"></span>
