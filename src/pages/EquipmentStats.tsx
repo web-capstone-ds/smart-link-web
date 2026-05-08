@@ -15,14 +15,14 @@ const defectStatsData = [
 
 // 장비 개별 수율 비교 데이터
 const equipmentComparisonData = [
-    { id: "SAW-EQ.01", status: "Critical", total: 24500, fail: 850, marginal: 320, yield: "95.2%", majorDefect: "C-01 (Chipping)" },
-    { id: "SAW-EQ.02", status: "Warning", total: 22100, fail: 410, marginal: 150, yield: "97.4%", majorDefect: "L-03 (Lens Contamination)" },
-    { id: "SAW-EQ.03", status: "Normal", total: 25600, fail: 120, marginal: 50, yield: "99.3%", majorDefect: "B-02 (Blade Wear)" },
-    { id: "SAW-EQ.04", status: "Normal", total: 23800, fail: 95, marginal: 30, yield: "99.4%", majorDefect: "-" },
-    { id: "SAW-EQ.01", status: "Critical", total: 24500, fail: 850, marginal: 320, yield: "95.2%", majorDefect: "C-01 (Chipping)" },
-    { id: "SAW-EQ.02", status: "Warning", total: 22100, fail: 410, marginal: 150, yield: "97.4%", majorDefect: "L-03 (Lens Contamination)" },
-    { id: "SAW-EQ.03", status: "Normal", total: 25600, fail: 120, marginal: 50, yield: "99.3%", majorDefect: "B-02 (Blade Wear)" },
-    { id: "SAW-EQ.04", status: "Normal", total: 23800, fail: 95, marginal: 30, yield: "99.4%", majorDefect: "-" },
+    { id: "SAW-EQ.01", uptime: 82.5, total: 24500, fail: 850, marginal: 320, yield: "95.2%", majorDefect: "C-01 (Chipping)" },
+    { id: "SAW-EQ.02", uptime: 91.2, total: 22100, fail: 410, marginal: 150, yield: "97.4%", majorDefect: "L-03 (Lens Contamination)" },
+    { id: "SAW-EQ.03", uptime: 98.5, total: 25600, fail: 120, marginal: 50, yield: "99.3%", majorDefect: "B-02 (Blade Wear)" },
+    { id: "SAW-EQ.04", uptime: 99.1, total: 23800, fail: 95, marginal: 30, yield: "99.4%", majorDefect: "-" },
+    { id: "SAW-EQ.01", uptime: 82.5, total: 24500, fail: 850, marginal: 320, yield: "95.2%", majorDefect: "C-01 (Chipping)" },
+    { id: "SAW-EQ.02", uptime: 91.2, total: 22100, fail: 410, marginal: 150, yield: "97.4%", majorDefect: "L-03 (Lens Contamination)" },
+    { id: "SAW-EQ.03", uptime: 98.5, total: 25600, fail: 120, marginal: 50, yield: "99.3%", majorDefect: "B-02 (Blade Wear)" },
+    { id: "SAW-EQ.04", uptime: 99.1, total: 23800, fail: 95, marginal: 30, yield: "99.4%", majorDefect: "-" },
 ];
 
 interface EquipmentStatsProps {
@@ -85,7 +85,7 @@ export function EquipmentStats({ setSelectedEquipment }: EquipmentStatsProps) {
         </Card>
 
         {/* 시각화 차트가 들어갈 예비 공간 */}
-        <Card className="flex flex-col items-center justify-center min-h-[250px] bg-muted/10 border-dashed">
+        <Card className="flex flex-col items-center justify-center min-h-62.5 bg-muted/10 border-dashed">
           <PieChart className="w-10 h-10 text-muted-foreground/50 mb-3" />
           <p className="text-sm text-muted-foreground">불량 비율 파레토 차트 영역</p>
         </Card>
@@ -102,7 +102,7 @@ export function EquipmentStats({ setSelectedEquipment }: EquipmentStatsProps) {
             <TableHeader className="bg-muted/30">
               <TableRow className="hover:bg-transparent">
                 <TableHead className="h-10 px-4 py-2">장비 ID</TableHead>
-                <TableHead className="h-10 py-2">상태</TableHead>
+                <TableHead className="h-10 py-2">가동률</TableHead>
                 <TableHead className="h-10 py-2 text-right">총 검사 수량</TableHead>
                 <TableHead className="h-10 py-2 text-right">Fail / Marginal</TableHead>
                 <TableHead className="h-10 py-2 text-right">수율</TableHead>
@@ -117,12 +117,20 @@ export function EquipmentStats({ setSelectedEquipment }: EquipmentStatsProps) {
                   onClick={() => setSelectedEquipment(eq.id)} 
                   className="cursor-pointer hover:bg-muted/50 transition-colors"
                 >
-                  <TableCell className="px-4 py-3 font-semibold text-foreground">{eq.id}</TableCell>
-                  <TableCell className="py-3">
-                    {eq.status === "Critical" && <Badge variant="destructive" className="bg-destructive/10 text-destructive border-destructive/20 hover:bg-destructive/20 gap-1"><AlertTriangle className="w-3 h-3"/> Critical</Badge>}
-                    {eq.status === "Warning" && <Badge variant="outline" className="bg-amber-500/10 text-amber-500 border-amber-500/20 gap-1"><AlertCircle className="w-3 h-3"/> Warning</Badge>}
-                    {eq.status === "Normal" && <Badge variant="outline" className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20 gap-1"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Normal</Badge>}
-                  </TableCell>
+                    <TableCell className="px-4 py-3 font-semibold text-foreground">{eq.id}</TableCell>
+                    <TableCell className="py-3">
+                        <div className="flex items-center gap-2">
+                            <div className="w-16 h-1.5 bg-muted rounded-full overflow-hidden">
+                            <div 
+                                className={`h-full ${eq.uptime < 90 ? 'bg-destructive' : eq.uptime < 95 ? 'bg-amber-500' : 'bg-emerald-500'}`} 
+                                style={{ width: `${eq.uptime}%` }}
+                            ></div>
+                            </div>
+                            <span className={`text-xs font-bold ${eq.uptime < 90 ? 'text-destructive' : 'text-foreground'}`}>
+                            {eq.uptime}%
+                            </span>
+                        </div>
+                    </TableCell>
                   <TableCell className="py-3 text-right font-medium">{eq.total.toLocaleString()}</TableCell>
                   <TableCell className="py-3 text-right">
                     <span className="text-destructive font-semibold">{eq.fail}</span> / <span className="text-amber-500 font-medium">{eq.marginal}</span>

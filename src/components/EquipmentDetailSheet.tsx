@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import { Download, Info, Settings2, Loader2 } from "lucide-react"
+import { Download, Info, Settings2, Loader2, Activity } from "lucide-react"
 
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import { Badge } from "@/components/ui/badge"
@@ -27,7 +27,7 @@ export function EquipmentDetailSheet({ selectedEquipment, setSelectedEquipment }
         <Sheet open={!!selectedEquipment} onOpenChange={(open) => !open && setSelectedEquipment(null)}>
         <SheetContent 
         side="right" 
-        className="w-[90vw] !max-w-[1400px] overflow-y-auto custom-scrollbar p-0 transform-gpu contain-paint will-change-transform"
+        className="w-[90vw] max-w-350! overflow-y-auto custom-scrollbar p-0 transform-gpu contain-paint will-change-transform"
         >
             {/* 고정 헤더 영역 */}
             <div className="sticky top-0 z-10 bg-background border-b border-border p-6 flex items-center justify-between">
@@ -47,7 +47,7 @@ export function EquipmentDetailSheet({ selectedEquipment, setSelectedEquipment }
 
             {!isReady ? (
             // 타이머가 도는 0.15초 동안 보여질 로딩 화면 (아주 부드럽게 열림)
-            <div className="w-full h-[500px] flex flex-col items-center justify-center text-muted-foreground">
+            <div className="w-full h-125 flex flex-col items-center justify-center text-muted-foreground">
                 <Loader2 className="w-8 h-8 animate-spin mb-4" />
                 <p className="text-sm">데이터를 불러오는 중입니다...</p>
             </div>
@@ -66,7 +66,48 @@ export function EquipmentDetailSheet({ selectedEquipment, setSelectedEquipment }
                 </p>
                 </div>
             </div>
-
+            {/* ========================================== */}
+            {/* 🌟 새로 추가되는 일일 가동 타임라인 영역 🌟 */}
+            {/* ========================================== */}
+            <div>
+            <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+                <Activity className="w-5 h-5 text-muted-foreground" /> 일일 가동 타임라인
+            </h3>
+            <Card className="border-border">
+                <CardContent className="p-5">
+                <div className="flex justify-between items-end mb-3">
+                    <div className="space-y-1">
+                    <p className="text-xs font-bold text-muted-foreground">총 가동률</p>
+                    {/* 실제 데이터 연동 시 선택된 장비의 uptime 값을 매핑하면 됩니다 */}
+                    <p className="text-2xl font-black text-destructive">82.5 <span className="text-sm font-normal text-muted-foreground">%</span></p>
+                    </div>
+                    <div className="flex gap-3 text-[10px] font-bold">
+                    <span className="flex items-center gap-1 text-emerald-600"><div className="w-2 h-2 bg-emerald-500 rounded-sm"></div> Run (6.6h)</span>
+                    <span className="flex items-center gap-1 text-amber-500"><div className="w-2 h-2 bg-amber-400 rounded-sm"></div> Idle (0.2h)</span>
+                    <span className="flex items-center gap-1 text-destructive"><div className="w-2 h-2 bg-destructive rounded-sm"></div> Down (1.2h)</span>
+                    </div>
+                </div>
+                
+                {/* 타임라인 바 */}
+                <div className="h-8 flex rounded-md overflow-hidden border border-border/50">
+                    <div className="bg-emerald-500 h-full w-[30%] hover:brightness-110 transition-all" title="08:00 - 10:24 (정상 가동)"></div>
+                    <div className="bg-amber-400 h-full w-[5%]" title="10:24 - 10:48 (자재 대기)"></div>
+                    <div className="bg-emerald-500 h-full w-[40%]" title="10:48 - 14:00 (정상 가동)"></div>
+                    <div className="bg-destructive h-full w-[15%] animate-pulse" title="14:00 - 15:12 (치핑 에러 정지)"></div>
+                    <div className="bg-emerald-500 h-full w-[10%]" title="15:12 - 17:00 (정상 가동)"></div>
+                </div>
+                
+                {/* 시간 눈금 */}
+                <div className="flex justify-between text-[10px] text-muted-foreground font-bold mt-2 px-1">
+                    <span>08:00</span>
+                    <span>10:00</span>
+                    <span>12:00</span>
+                    <span>14:00 (Error)</span>
+                    <span>17:00</span>
+                </div>
+                </CardContent>
+            </Card>
+            </div>
             {/* 2. 주요 파라미터 요약 */}
             <div>
                 <h3 className="text-lg font-bold mb-4 flex items-center gap-2">

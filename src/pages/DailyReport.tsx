@@ -2,10 +2,10 @@ import { Printer, Download, Cpu, Activity, AlertTriangle, Settings2 } from "luci
 import { Button } from "@/components/ui/button"
 
 const equipmentComparisonData = [
-    { id: "SAW-EQ.01", status: "Critical", total: 24500, fail: 850, marginal: 320, yield: "95.2%", majorDefect: "C-01 (Chipping)" },
-    { id: "SAW-EQ.02", status: "Warning", total: 22100, fail: 410, marginal: 150, yield: "97.4%", majorDefect: "L-03 (Lens Contamination)" },
-    { id: "SAW-EQ.03", status: "Normal", total: 25600, fail: 120, marginal: 50, yield: "99.3%", majorDefect: "B-02 (Blade Wear)" },
-    { id: "SAW-EQ.04", status: "Normal", total: 23800, fail: 95, marginal: 30, yield: "99.4%", majorDefect: "-" },
+    { id: "SAW-EQ.01", uptime: 82.5, total: 24500, fail: 850, marginal: 320, yield: "95.2%", majorDefect: "C-01 (Chipping)" },
+    { id: "SAW-EQ.02", uptime: 91.2, total: 22100, fail: 410, marginal: 150, yield: "97.4%", majorDefect: "L-03 (Lens Contamination)" },
+    { id: "SAW-EQ.03", uptime: 98.5, total: 25600, fail: 120, marginal: 50, yield: "99.3%", majorDefect: "B-02 (Blade Wear)" },
+    { id: "SAW-EQ.04", uptime: 99.1, total: 23800, fail: 95, marginal: 30, yield: "99.4%", majorDefect: "-" },
 ];
 
 const defectStatsData = [
@@ -27,7 +27,7 @@ export function DailyReport() {
         <div className="flex flex-col items-center space-y-8 animate-in fade-in duration-500 pb-20">
         
         {/* 상단 툴바 (인쇄/다운로드 버튼) */}
-        <div className="w-full max-w-[800px] flex justify-between items-center bg-card p-4 rounded-lg border border-border shadow-sm">
+        <div className="w-full max-w-200 flex justify-between items-center bg-card p-4 rounded-lg border border-border shadow-sm">
             <div>
             <h2 className="text-lg font-bold">일일 공정 분석 리포트</h2>
             <p className="text-xs text-muted-foreground">PDF 내보내기 및 인쇄 최적화 포맷</p>
@@ -45,7 +45,7 @@ export function DailyReport() {
         {/* ========================================== */}
         {/* 📄 리포트 1페이지 (A4) */}
         {/* ========================================== */}
-        <div className="w-[800px] min-h-[1132px] bg-white text-zinc-950 p-12 shadow-2xl flex flex-col font-sans border border-zinc-200">
+        <div className="w-200 min-h-283 bg-white text-zinc-950 p-12 shadow-2xl flex flex-col font-sans border border-zinc-200">
             
             {/* 1. 헤더 & 결재란 */}
             <div className="flex justify-between items-start mb-10">
@@ -82,7 +82,7 @@ export function DailyReport() {
 
             {/* 2. AI 상태 요약 (핵심 메시지) */}
             <div className="bg-zinc-900 text-white p-6 rounded-sm mb-8 relative overflow-hidden">
-            <div className="absolute right-[-10px] top-[-10px] opacity-10">
+            <div className="absolute -right-2.5 -top-2.5 opacity-10">
                 <Cpu className="w-32 h-32" />
             </div>
             <div className="relative z-10">
@@ -128,7 +128,7 @@ export function DailyReport() {
                 <thead>
                 <tr className="border-y-2 border-zinc-900 bg-zinc-50">
                     <th className="py-2 px-2 text-left">장비 ID</th>
-                    <th className="py-2 px-2 text-left">상태</th>
+                    <th className="py-2 px-2 text-left">가동률</th>
                     <th className="py-2 px-2 text-right">총 검사량</th>
                     <th className="py-2 px-2 text-right">Fail / Marginal</th>
                     <th className="py-2 px-2 text-right">수율</th>
@@ -140,10 +140,18 @@ export function DailyReport() {
                     <tr key={eq.id}>
                     <td className="py-2.5 px-2 font-bold">{eq.id}</td>
                     <td className="py-2.5 px-2">
-                        <span className={
-                        eq.status === 'Critical' ? 'text-red-600 font-bold' : 
-                        eq.status === 'Warning' ? 'text-amber-600' : 'text-zinc-600'
-                        }>{eq.status}</span>
+                        <div className="flex items-center gap-2 w-24">
+                            {/* 인쇄용이므로 배경을 옅은 회색(zinc-200)으로 처리합니다 */}
+                            <div className="flex-1 h-1.5 bg-zinc-200 rounded-full overflow-hidden">
+                                <div 
+                                    className={`h-full ${eq.uptime < 90 ? 'bg-red-500' : eq.uptime < 95 ? 'bg-amber-500' : 'bg-emerald-500'}`} 
+                                    style={{ width: `${eq.uptime}%` }}
+                                ></div>
+                            </div>
+                            <span className={`text-[10px] font-bold ${eq.uptime < 90 ? 'text-red-600' : 'text-zinc-900'}`}>
+                                {eq.uptime}%
+                            </span>
+                        </div>
                     </td>
                     <td className="py-2.5 px-2 text-right">{eq.total.toLocaleString()}</td>
                     <td className="py-2.5 px-2 text-right text-zinc-500">{eq.fail} / {eq.marginal}</td>
@@ -165,7 +173,7 @@ export function DailyReport() {
         {/* ========================================== */}
         {/* 📄 리포트 2페이지 (품질 및 치수 분석) */}
         {/* ========================================== */}
-        <div className="w-[800px] min-h-[1132px] bg-white text-zinc-950 p-12 shadow-2xl flex flex-col font-sans border border-zinc-200 shrink-0 relative overflow-hidden">
+        <div className="w-200 min-h-283 bg-white text-zinc-950 p-12 shadow-2xl flex flex-col font-sans border border-zinc-200 shrink-0 relative overflow-hidden">
             
             {/* 우측 상단 워터마크 느낌의 배경 */}
             <div className="absolute right-0 top-0 opacity-5 p-8 pointer-events-none">
@@ -201,7 +209,7 @@ export function DailyReport() {
                 </div>
 
                 {/* 우측: 정규분포(Bell Curve) 시각화 흉내내기 (Tailwind UI) */}
-                <div className="col-span-2 border border-zinc-200 p-4 flex flex-col justify-end relative h-[200px]">
+                <div className="col-span-2 border border-zinc-200 p-4 flex flex-col justify-end relative h-50">
                 {/* 타겟 및 USL/LSL 가이드라인 */}
                 <div className="absolute inset-0 flex justify-between px-8 py-4 pointer-events-none">
                     <div className="h-full w-px border-l border-dashed border-red-400 relative"><span className="absolute -top-4 -translate-x-1/2 text-[9px] text-red-500 font-bold">LSL</span></div>
@@ -290,7 +298,7 @@ export function DailyReport() {
         {/* ========================================== */}
         {/* 📄 리포트 3페이지 (가동 이력 및 Action Plan) */}
         {/* ========================================== */}
-        <div className="w-[800px] min-h-[1132px] bg-white text-zinc-950 p-12 shadow-2xl flex flex-col font-sans border border-zinc-200 shrink-0 relative overflow-hidden">
+        <div className="w-200 min-h-283 bg-white text-zinc-950 p-12 shadow-2xl flex flex-col font-sans border border-zinc-200 shrink-0 relative overflow-hidden">
             
             {/* 우측 상단 워터마크 */}
             <div className="absolute right-0 top-0 opacity-5 p-8 pointer-events-none">
