@@ -1,371 +1,316 @@
 import { useState } from "react"
-import { 
-  Calendar, Settings2, Package, AlertTriangle, Activity, Zap, 
-  BarChart3, PieChart, LineChart, Clock, Download, Search, AlertCircle, Info 
-} from "lucide-react"
-
+import { Calendar, Package, AlertTriangle, Activity, Zap, BarChart3, PieChart as PieChartIcon, LineChart as LineChartIcon, LayoutList } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
-import { Input } from "@/components/ui/input"   
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 
-const equipmentData = [
-    { id: "SAW-EQ.01", lotsProcessed: 12, runTime: "18.5", downTime: "1.2", yield: "95.2%", issue: "치핑 불량 다수 발생 (C-01)" },
-    { id: "SAW-EQ.02", lotsProcessed: 14, runTime: "20.1", downTime: "0.5", yield: "98.1%", issue: "-" },
-    { id: "SAW-EQ.03", lotsProcessed: 11, runTime: "15.2", downTime: "4.5", yield: "92.4%", issue: "오후 2시 자재 공급 지연 정지" },
-    { id: "SAW-EQ.04", lotsProcessed: 15, runTime: "21.0", downTime: "0.2", yield: "99.5%", issue: "-" },
-    { id: "SAW-EQ.01", lotsProcessed: 12, runTime: "18.5", downTime: "1.2", yield: "95.2%", issue: "치핑 불량 다수 발생 (C-01)" },
-    { id: "SAW-EQ.02", lotsProcessed: 14, runTime: "20.1", downTime: "0.5", yield: "98.1%", issue: "-" },
-    { id: "SAW-EQ.03", lotsProcessed: 11, runTime: "15.2", downTime: "4.5", yield: "92.4%", issue: "오후 2시 자재 공급 지연 정지" },
-    { id: "SAW-EQ.04", lotsProcessed: 15, runTime: "21.0", downTime: "0.2", yield: "99.5%", issue: "-" },
-    { id: "SAW-EQ.01", lotsProcessed: 12, runTime: "18.5", downTime: "1.2", yield: "95.2%", issue: "치핑 불량 다수 발생 (C-01)" },
-    { id: "SAW-EQ.02", lotsProcessed: 14, runTime: "20.1", downTime: "0.5", yield: "98.1%", issue: "-" },
-    { id: "SAW-EQ.03", lotsProcessed: 11, runTime: "15.2", downTime: "4.5", yield: "92.4%", issue: "오후 2시 자재 공급 지연 정지" },
-    { id: "SAW-EQ.04", lotsProcessed: 15, runTime: "21.0", downTime: "0.2", yield: "99.5%", issue: "-" },
-]
+// Recharts Import
+import { 
+  ResponsiveContainer, ComposedChart, LineChart, BarChart, PieChart, 
+  Line, Bar, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend 
+} from "recharts"
+
+// ==========================================
+// 📦 목업 데이터 (선택 기간 5/01 - 5/06 동기화)
+// ==========================================
+const trendData = [
+  { date: "5/01", production: 3100, yield: 95.1 },
+  { date: "5/02", production: 3400, yield: 96.2 },
+  { date: "5/03", production: 2800, yield: 93.8 },
+  { date: "5/04", production: 3500, yield: 97.1 },
+  { date: "5/05", production: 3600, yield: 98.4 },
+  { date: "5/06", production: 3900, yield: 99.1 },
+];
+
+const paretoData = [
+  { defect: "C-01 (치핑)", count: 342, cumulative: 45 },
+  { defect: "B-02 (마모)", count: 185, cumulative: 69 },
+  { defect: "L-03 (오염)", count: 89, cumulative: 81 },
+  { defect: "A-04 (정렬)", count: 45, cumulative: 87 },
+  { defect: "기타", count: 99, cumulative: 100 },
+];
+
+// 1. 전체 라인 비교 데이터
+const lineYieldData = [
+  { name: "LINE-A", yield: 96.4 },
+  { name: "LINE-B", yield: 98.1 },
+  { name: "LINE-C", yield: 94.2 },
+];
+
+// 2. 특정 라인(A) 선택 시 장비 비교 데이터
+const equipmentYieldData = [
+  { name: "EQ.01", yield: 95.2 },
+  { name: "EQ.02", yield: 97.4 },
+  { name: "EQ.03", yield: 99.3 },
+  { name: "EQ.04", yield: 99.4 },
+  { name: "EQ.05", yield: 96.1 },
+];
+
+const statusData = [
+  { name: "Run (가동)", value: 84.0, color: "#10b981" },
+  { name: "Idle (대기)", value: 11.5, color: "#f59e0b" },
+  { name: "Down (정지)", value: 4.5, color: "#ef4444" },
+];
 
 export function Dashboard() {
-  // 🎛️ App.tsx에 있던 카드 지표 변경 상태(State)들도 전부 이쪽으로 가져옵니다!
-  const [cardOneMetric, setCardOneMetric] = useState("목표달성률");
-  const [cardTwoMetric, setCardTwoMetric] = useState("종합수율");
-  const [cardThreeMetric, setCardThreeMetric] = useState("치수 합격률");
-  const [cardFourMetric, setCardFourMetric] = useState("AI 상태");
-
-  const [selectedLine, setSelectedLine] = useState("all");
-
-  return (
-    <div className="animate-in fade-in duration-500 space-y-6">
-      {/* 타이틀 영역 */}
-      <div className="flex items-end justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">종합 대시보드</h1>
-          <p className="text-muted-foreground mt-1 text-sm">종합 생산 지표 및 장비 가동 상태</p>
-        </div>
-        
-        {/* 🌟 글로벌 필터 영역 (우측 상단) 🌟 */}
-        <div className="flex items-center gap-2">
-            
-            {/* ✅ 1. 라인 선택 드롭다운 (새로 추가) */}
-            <Select value={selectedLine} onValueChange={setSelectedLine}>
-                <SelectTrigger className="w-45 bg-card border-border text-foreground font-medium h-10">
-                    <SelectValue placeholder="라인 선택" />
-                </SelectTrigger>
-                <SelectContent>
-                    <SelectItem value="all">전체 라인 종합</SelectItem>
-                    <SelectItem value="line-a">SAW-LINE A (12대)</SelectItem>
-                    <SelectItem value="line-b">SAW-LINE B (8대)</SelectItem>
-                    <SelectItem value="line-c">SAW-LINE C (10대)</SelectItem>
-                </SelectContent>
-            </Select>
-
-            {/* ✅ 2. 조회 기간 선택 캘린더 버튼 (기존 유지) */}
-            <Button variant="outline" className="gap-2.5 justify-start bg-card border-border text-foreground hover:bg-muted/50 hover:text-foreground font-normal min-w-60 h-10">
-                <Calendar className="w-4 h-4 text-muted-foreground" />
-                <span>2026. 05. 01 - 2026. 05. 06</span>
-            </Button>
-            
-            {/* ✅ 3. 조회 버튼 (기존 유지) */}
-            <Button variant="default" className="px-5 h-10">조회</Button>
-        </div>
-    </div>
+    const [selectedLine, setSelectedLine] = useState("all");
     
-      {/* 핵심 요약 지표 (KPI) 카드 영역 */}
-      <div className="grid grid-cols-4 gap-4">
-        {/* ================================== */}
-        {/* 1. 총 생산량 카드 */}
-        <Dialog>
-          <DialogTrigger asChild>
-            <Card className="cursor-pointer hover:border-primary/50 transition-colors group relative overflow-hidden">
-              <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                <Settings2 className="w-4 h-4 text-muted-foreground" />
-              </div>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">총 생산량</CardTitle>
-                <Package className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-foreground">
-                  24,563 <span className="text-sm font-normal text-muted-foreground">units</span>
-                </div>
-                <div className="flex items-center justify-between mt-3 text-xs">
-                  {cardOneMetric === "목표달성률" ? (
-                    <>
-                      <span className="text-muted-foreground">목표달성률 <span className="text-foreground font-medium">102.4%</span></span>
-                      <span className="text-emerald-500 font-medium bg-emerald-500/10 px-1.5 py-0.5 rounded">+2.1%</span>
-                    </>
-                  ) : (
-                    <>
-                      <span className="text-muted-foreground">불량률 <span className="text-destructive font-medium">1.2%</span></span>
-                      <span className="text-emerald-500 font-medium bg-emerald-500/10 px-1.5 py-0.5 rounded">-0.3%</span>
-                    </>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-125">
-            <DialogHeader>
-              <DialogTitle>총 생산량 상세 정보</DialogTitle>
-              <DialogDescription>장비별 세부 생산 현황을 확인하고, 대시보드 표시 항목을 변경합니다.</DialogDescription>
-            </DialogHeader>
-            <div className="flex items-center justify-center h-40 bg-muted/30 rounded-lg border border-dashed border-border my-4">
-              <div className="flex flex-col items-center text-muted-foreground">
-                <BarChart3 className="w-8 h-8 mb-2 opacity-50" />
-                <span className="text-sm">상세 생산량 트렌드 차트</span>
-              </div>
-            </div>
-            <div className="flex items-center justify-between p-4 bg-secondary/30 rounded-lg border border-border">
-              <div className="space-y-1">
-                <h4 className="text-sm font-medium text-foreground">대시보드 표시 항목</h4>
-                <p className="text-xs text-muted-foreground">카드 하단에 표시될 보조 지표를 선택하세요.</p>
-              </div>
-              <Select value={cardOneMetric} onValueChange={setCardOneMetric}>
-                <SelectTrigger className="w-35 h-8 text-xs"><SelectValue placeholder="지표 선택" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="목표달성률" className="text-xs">목표달성률</SelectItem>
-                  <SelectItem value="불량률" className="text-xs">불량률 (Defect Rate)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </DialogContent>
-        </Dialog>
+    // 🌟 실제 달력 컴포넌트가 연동되었다고 가정하고, 날짜 상태를 시뮬레이션합니다.
+    // (예: isSingleDay가 true면 '5월 6일 하루', false면 '5/1~5/6 기간')
+    const [isSingleDay, setIsSingleDay] = useState(false);
+    
+    // 🌟 트렌드 차트용 로컬 단위 필터
+    const [trendUnit, setTrendUnit] = useState("daily");
 
-        {/* ================================== */}
-        {/* 2. Fail 및 Marginal 카드 */}
-        <Dialog>
-          <DialogTrigger asChild>
-            <Card className="cursor-pointer hover:border-primary/50 transition-colors group relative overflow-hidden">
-              <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                <Settings2 className="w-4 h-4 text-muted-foreground" />
-              </div>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">Fail 및 Marginal</CardTitle>
-                <AlertTriangle className="h-4 w-4 text-destructive" />
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-baseline gap-3">
-                  <div className="text-2xl font-bold text-destructive">342 <span className="text-sm font-normal text-destructive/70">건 (F)</span></div>
-                  <div className="text-lg font-medium text-amber-500">128 <span className="text-sm font-normal text-amber-500/70">건 (M)</span></div>
-                </div>
-                <div className="flex items-center justify-between mt-3 text-xs">
-                  {cardTwoMetric === "종합수율" ? (
-                    <>
-                      <span className="text-muted-foreground">종합수율 <span className="text-foreground font-medium">96.4%</span></span>
-                      <span className="text-destructive font-medium bg-destructive/10 px-1.5 py-0.5 rounded">-0.8%</span>
-                    </>
-                  ) : (
-                    <>
-                      <span className="text-muted-foreground">재작업률 <span className="text-amber-500 font-medium">2.1%</span></span>
-                      <span className="text-destructive font-medium bg-destructive/10 px-1.5 py-0.5 rounded">+0.2%</span>
-                    </>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-125">
-            <DialogHeader>
-              <DialogTitle>불량 및 마진 영역 분석</DialogTitle>
-              <DialogDescription>Fail 사유별 파레토 차트 및 재작업 현황을 확인합니다.</DialogDescription>
-            </DialogHeader>
-            <div className="flex items-center justify-center h-40 bg-muted/30 rounded-lg border border-dashed border-border my-4">
-              <div className="flex flex-col items-center text-muted-foreground">
-                <PieChart className="w-8 h-8 mb-2 opacity-50" />
-                <span className="text-sm">Fail 유형별 비율 차트</span>
-              </div>
-            </div>
-            <div className="flex items-center justify-between p-4 bg-secondary/30 rounded-lg border border-border">
-              <div className="space-y-1">
-                <h4 className="text-sm font-medium text-foreground">대시보드 표시 항목</h4>
-              </div>
-              <Select value={cardTwoMetric} onValueChange={setCardTwoMetric}>
-                <SelectTrigger className="w-35 h-8 text-xs"><SelectValue placeholder="지표 선택" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="종합수율" className="text-xs">종합수율 (Yield)</SelectItem>
-                  <SelectItem value="재작업률" className="text-xs">재작업률 (Rework)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </DialogContent>
-        </Dialog>
+    // 날짜 모드에 따른 텍스트 동적 렌더링용 변수
+    const compareText = isSingleDay ? "전일 대비" : "과거 평균 대비";
 
-        {/* ================================== */}
-        {/* 3. 공정능력지수 카드 */}
-        <Dialog>
-          <DialogTrigger asChild>
-            <Card className="cursor-pointer hover:border-primary/50 transition-colors group relative overflow-hidden">
-              <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                <Settings2 className="w-4 h-4 text-muted-foreground" />
-              </div>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">공정능력지수</CardTitle>
-                <Activity className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-foreground">1.52 <span className="text-sm font-normal text-muted-foreground">Cpk</span></div>
-                <div className="flex items-center justify-between mt-3 text-xs">
-                  {cardThreeMetric === "치수 합격률" ? (
-                    <>
-                      <span className="text-muted-foreground">치수 합격률 <span className="text-foreground font-medium">98.7%</span></span>
-                      <span className="text-emerald-500 font-medium bg-emerald-500/10 px-1.5 py-0.5 rounded">+1.3%</span>
-                    </>
-                  ) : (
-                    <>
-                      <span className="text-muted-foreground">평균 편차 <span className="text-foreground font-medium">0.02μm</span></span>
-                      <span className="text-emerald-500 font-medium bg-emerald-500/10 px-1.5 py-0.5 rounded">-0.01</span>
-                    </>
-                  )}
+    return (
+        <div className="animate-in fade-in duration-500 space-y-6">
+            
+            {/* 1. 상단 타이틀 및 글로벌 필터 */}
+            <div className="flex items-end justify-between">
+                <div>
+                    <h1 className="text-2xl font-bold text-foreground">종합 대시보드</h1>
+                    <p className="text-muted-foreground mt-1 text-sm text-balance">생산 공정 지표 분석 및 AI 예측 리포트</p>
                 </div>
-              </CardContent>
-            </Card>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-125">
-            <DialogHeader>
-              <DialogTitle>공정능력 상세 분석</DialogTitle>
-              <DialogDescription>실시간 Cpk 트렌드 및 치수 산포도를 모니터링합니다.</DialogDescription>
-            </DialogHeader>
-            <div className="flex items-center justify-center h-40 bg-muted/30 rounded-lg border border-dashed border-border my-4">
-              <div className="flex flex-col items-center text-muted-foreground">
-                <LineChart className="w-8 h-8 mb-2 opacity-50" />
-                <span className="text-sm">정규분포 및 Cpk 트렌드 곡선</span>
-              </div>
-            </div>
-            <div className="flex items-center justify-between p-4 bg-secondary/30 rounded-lg border border-border">
-              <div className="space-y-1">
-                <h4 className="text-sm font-medium text-foreground">대시보드 표시 항목</h4>
-              </div>
-              <Select value={cardThreeMetric} onValueChange={setCardThreeMetric}>
-                <SelectTrigger className="w-35 h-8 text-xs"><SelectValue placeholder="지표 선택" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="치수 합격률" className="text-xs">치수 합격률</SelectItem>
-                  <SelectItem value="평균 편차" className="text-xs">평균 편차 (Deviation)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </DialogContent>
-        </Dialog>
+                
+                <div className="flex items-center gap-2">
+                    <Select value={selectedLine} onValueChange={setSelectedLine}>
+                        <SelectTrigger className="w-32 bg-card border-border text-foreground font-medium h-10">
+                            <SelectValue placeholder="라인 선택" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">전체 라인</SelectItem>
+                            <SelectItem value="line-a">SAW-LINE A</SelectItem>
+                            <SelectItem value="line-b">SAW-LINE B</SelectItem>
+                        </SelectContent>
+                    </Select>
 
-        {/* ================================== */}
-        {/* 4. 라인 장비 가동률 카드 */}
-        <Dialog>
-          <DialogTrigger asChild>
-            <Card className="cursor-pointer hover:border-primary/50 transition-colors group relative overflow-hidden">
-              <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                <Settings2 className="w-4 h-4 text-muted-foreground" />
-              </div>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">라인 장비 가동률</CardTitle>
-                <Zap className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-foreground">87.3 <span className="text-sm font-normal text-muted-foreground">%</span></div>
-                <div className="flex items-center justify-between mt-3 text-xs">
-                  {cardFourMetric === "AI 상태" ? (
-                    <>
-                      <span className="text-muted-foreground">AI 예측 상태 <span className="text-emerald-500 font-medium">양호</span></span>
-                      <span className="text-emerald-500 font-medium bg-emerald-500/10 px-1.5 py-0.5 rounded">+3.2%</span>
-                    </>
-                  ) : (
-                    <>
-                      <span className="text-muted-foreground">유휴 시간 <span className="text-destructive font-medium">45분</span></span>
-                      <span className="text-emerald-500 font-medium bg-emerald-500/10 px-1.5 py-0.5 rounded">-12분</span>
-                    </>
-                  )}
+                    {/* 🌟 캘린더 버튼: 클릭 시 하루/기간 모드가 토글되도록 임시 구현 (실제론 DatePicker가 들어갈 자리) 🌟 */}
+                    <Button 
+                        variant="outline" 
+                        onClick={() => setIsSingleDay(!isSingleDay)}
+                        className="gap-2.5 justify-start bg-card border-border text-foreground hover:bg-muted/50 font-normal min-w-56 h-10"
+                    >
+                        <Calendar className="w-4 h-4 text-muted-foreground" />
+                        <span>{isSingleDay ? '2026. 05. 06 (하루)' : '26.05.01 - 26.05.06 (기간)'}</span>
+                    </Button>
+                    <Button variant="default" className="px-5 h-10">조회</Button>
                 </div>
-              </CardContent>
-            </Card>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-125">
-            <DialogHeader>
-              <DialogTitle>설비 종합 효율 (OEE)</DialogTitle>
-              <DialogDescription>전체 라인의 가동률, 성능, 품질 지표를 통합 확인합니다.</DialogDescription>
-            </DialogHeader>
-            <div className="flex items-center justify-center h-40 bg-muted/30 rounded-lg border border-dashed border-border my-4">
-              <div className="flex flex-col items-center text-muted-foreground">
-                <Clock className="w-8 h-8 mb-2 opacity-50" />
-                <span className="text-sm">가동/비가동 타임라인 분석</span>
-              </div>
-            </div>
-            <div className="flex items-center justify-between p-4 bg-secondary/30 rounded-lg border border-border">
-              <div className="space-y-1">
-                <h4 className="text-sm font-medium text-foreground">대시보드 표시 항목</h4>
-              </div>
-              <Select value={cardFourMetric} onValueChange={setCardFourMetric}>
-                <SelectTrigger className="w-35 h-8 text-xs"><SelectValue placeholder="지표 선택" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="AI 상태" className="text-xs">AI 예측 상태</SelectItem>
-                  <SelectItem value="유휴 시간" className="text-xs">총 유휴 시간 (Idle)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </DialogContent>
-        </Dialog>
-      </div>
-
-      {/* 장비 현황 데이터 그리드 영역 */}
-      <Card className="flex flex-col overflow-hidden gap-0 shadow-sm">
-            <div className="flex items-center justify-between px-5 pb-3 pt-3 border-b border-border bg-card">
-                <div className="flex items-center gap-3">
-                    <h2 className="text-lg font-bold text-foreground">장비별 일일 가동 종합</h2>
-                    {/* 실시간 뱃지 대신 '일일 마감 데이터'임을 명시 */}
-                    <Badge variant="secondary" className="bg-muted text-muted-foreground border-border font-normal">
-                        Daily Aggregated Data
-                    </Badge>
-                </div>
-                <Button variant="outline" size="sm" className="gap-2 text-muted-foreground hover:text-foreground">
-                    <Download className="w-4 h-4" /> CSV 내보내기
-                </Button>
             </div>
 
-            <div className="overflow-auto px-4 pb-4 bg-background">
-                <Table>
-                    <TableHeader>
-                        <TableRow className="border-border hover:bg-transparent">
-                            <TableHead className="w-[150px] font-semibold text-muted-foreground">장비 ID</TableHead>
-                            <TableHead className="font-semibold text-muted-foreground text-right">처리 LOT 수</TableHead>
-                            <TableHead className="font-semibold text-muted-foreground text-right">총 가동 시간</TableHead>
-                            <TableHead className="font-semibold text-muted-foreground text-right">총 비가동 시간</TableHead>
-                            <TableHead className="font-semibold text-muted-foreground text-right">최종 수율</TableHead>
-                            <TableHead className="font-semibold text-muted-foreground pl-8">주요 특이사항</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {equipmentData.map((row) => (
-                            <TableRow key={row.id} className="border-border/50 border-b last:border-0 hover:bg-muted/30 transition-colors">
-                                <TableCell className="font-bold text-foreground">{row.id}</TableCell>
-                                <TableCell className="text-right font-medium">{row.lotsProcessed} <span className="text-xs text-muted-foreground font-normal">LOT</span></TableCell>
-                                <TableCell className="text-right">
-                                    <span className="text-emerald-600 font-medium">{row.runTime}</span> <span className="text-xs text-muted-foreground">hr</span>
-                                </TableCell>
-                                <TableCell className="text-right">
-                                    {/* 비가동 시간이 길면(1시간 이상) 붉은색 강조 */}
-                                    <span className={`font-medium ${parseFloat(row.downTime) >= 1.0 ? 'text-destructive' : 'text-amber-500'}`}>
-                                        {row.downTime}
-                                    </span> <span className="text-xs text-muted-foreground">hr</span>
-                                </TableCell>
-                                <TableCell className="text-right">
-                                    <span className={`font-bold ${parseFloat(row.yield) < 95 ? 'text-destructive' : 'text-foreground'}`}>
-                                        {row.yield}
-                                    </span>
-                                </TableCell>
-                                <TableCell className="pl-8">
-                                    {row.issue !== "-" ? (
-                                        <Badge variant="outline" className="border-amber-500/30 text-amber-600 bg-amber-500/5 font-normal">
-                                            {row.issue}
-                                        </Badge>
-                                    ) : (
-                                        <span className="text-xs text-muted-foreground">-</span>
-                                    )}
-                                </TableCell>
-                            </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
+            {/* ------------------------------------------------------------- */}
+            {/* [Section 1] 고밀도 KPI 요약 영역 (기환 님 요청 지표 100% 복구) */}
+            {/* ------------------------------------------------------------- */}
+            <div className="space-y-4 p-5 bg-muted/20 rounded-xl border border-border/50">
+                <div className="flex items-center gap-2 mb-1 px-1 pb-3">
+                    <LayoutList className="w-4 h-4 text-primary" />
+                    <h2 className="text-sm font-bold text-foreground">
+                        {isSingleDay ? '선택 일자 종합 요약' : '조회 기간 누적 요약'}
+                    </h2>
+                </div>
+                
+                <div className="grid grid-cols-4 gap-4">
+                    {/* 🌟 카드 1: 생산량 및 UPH */}
+                    <Card className="border-border shadow-sm">
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-xs font-medium text-muted-foreground">총 생산량 및 UPH</CardTitle>
+                            <Package className="h-4 w-4 text-muted-foreground" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="flex items-end gap-2">
+                                <div className="text-2xl font-bold">24,563 <span className="text-[11px] font-normal text-muted-foreground">EA</span></div>
+                                <span className="text-emerald-500 font-bold bg-emerald-500/10 px-1.5 py-0.5 rounded text-[10px] mb-1">달성률 102.4%</span>
+                            </div>
+                            <div className="flex flex-col gap-1 mt-3 pt-3 border-t border-border/50 text-[11px] font-medium text-muted-foreground">
+                                <div className="flex justify-between">
+                                    <span>시간당 생산 (UPH)</span><span className="text-foreground">2,850 EA/h</span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span>{compareText} 증감</span><span className="text-emerald-500">+2.1%</span>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* 🌟 카드 2: 품질 및 치수 합격률 */}
+                    <Card className="border-border shadow-sm">
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-xs font-medium text-muted-foreground">종합 수율 및 품질</CardTitle>
+                            <AlertTriangle className="h-4 w-4 text-destructive/70" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="flex items-end gap-2">
+                                <div className="text-2xl font-bold">96.4 <span className="text-[11px] font-normal text-muted-foreground">%</span></div>
+                                <span className="text-destructive font-bold bg-destructive/10 px-1.5 py-0.5 rounded text-[10px] mb-1">{compareText} -0.8%</span>
+                            </div>
+                            <div className="flex flex-col gap-1 mt-3 pt-3 border-t border-border/50 text-[11px] font-medium text-muted-foreground">
+                                <div className="flex justify-between">
+                                    <span>검사 / F / M</span><span className="text-foreground">25.4k / <span className="text-destructive">342</span> / <span className="text-amber-500">128</span></span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span>치수 합격률 (W/H)</span><span className="text-foreground">98.7%</span>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* 🌟 카드 3: 공정능력(Cpk) 및 불량 유형 */}
+                    <Card className="border-border shadow-sm">
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-xs font-medium text-muted-foreground">공정능력 및 주요 불량</CardTitle>
+                            <Activity className="h-4 w-4 text-muted-foreground" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="flex items-end gap-2">
+                                <div className="text-2xl font-bold">1.52 <span className="text-[11px] font-normal text-muted-foreground">Cpk</span></div>
+                                <span className="text-emerald-500 font-bold bg-emerald-500/10 px-1.5 py-0.5 rounded text-[10px] mb-1">{compareText} +0.04</span>
+                            </div>
+                            <div className="flex flex-col gap-1 mt-3 pt-3 border-t border-border/50 text-[11px] font-medium text-muted-foreground">
+                                <div className="flex justify-between">
+                                    <span>목표 대비 편차</span><span className="text-foreground">+0.02 μm</span>
+                                </div>
+                                <div className="flex justify-between items-center">
+                                    <span>최다 발생 불량</span>
+                                    <Badge variant="outline" className="h-4 text-[9px] px-1 bg-amber-500/10 text-amber-600 border-amber-500/20 rounded-sm">C-01 (치핑)</Badge>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* 🌟 카드 4: 설비 효율(OEE) 및 AI 예측 */}
+                    <Card className="border-primary/20 bg-primary/5 shadow-sm relative overflow-hidden">
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-xs font-bold text-primary flex items-center gap-1.5"><Zap className="h-3.5 w-3.5" /> 설비 효율(OEE) 및 AI</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="flex items-end gap-2 mb-2.5">
+                                <div className="text-2xl font-bold text-foreground">87.3 <span className="text-[11px] font-normal text-muted-foreground">%</span></div>
+                                <span className="text-[10px] font-bold text-muted-foreground mb-1">(라인 가동률 84%)</span>
+                            </div>
+                            <div className="flex items-start gap-1.5 pt-2 border-t border-primary/20">
+                                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-1 animate-pulse shrink-0"></div>
+                                <p className="text-[10.5px] leading-relaxed text-foreground/80 font-medium">
+                                    가동률은 안정적이나, <span className="text-amber-500 font-bold">블레이드 마모</span>로 인한 <span className="text-primary font-bold">LINE-A</span>의 치수 편차 징후가 감지됩니다.
+                                </p>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
+
+                {/* Pareto + Doughnut */}
+                <div className="grid grid-cols-3 gap-4">
+                    <Card className="col-span-2 shadow-sm border-border bg-card/50 pt-2">
+                        <CardHeader className="py-3 pb-0"><CardTitle className="text-xs font-bold">주요 불량 발생 원인 (Pareto)</CardTitle></CardHeader>
+                        <CardContent className="h-[180px] pt-2">
+                            <ResponsiveContainer width="100%" height="100%" debounce={300}>
+                                <ComposedChart data={paretoData} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
+                                    <CartesianGrid strokeDasharray="3 3" stroke="#3f3f46" vertical={false} />
+                                    <XAxis dataKey="defect" tick={{ fontSize: 9, fill: '#a1a1aa' }} tickLine={false} axisLine={false} />
+                                    <YAxis yAxisId="left" tick={{ fontSize: 9, fill: '#a1a1aa' }} tickLine={false} axisLine={false} />
+                                    <YAxis yAxisId="right" orientation="right" domain={[0, 100]} tick={{ fontSize: 9, fill: '#f59e0b' }} tickLine={false} axisLine={false} />
+                                    <Tooltip contentStyle={{ backgroundColor: '#18181b', borderColor: '#27272a', fontSize: '10px' }} />
+                                    <Bar yAxisId="left" dataKey="count" name="발생 건수" fill="#64748b" radius={[2, 2, 0, 0]} maxBarSize={40} />
+                                    <Line yAxisId="right" type="monotone" dataKey="cumulative" name="누적 비율" stroke="#f59e0b" strokeWidth={2} dot={{ r: 3 }} />
+                                </ComposedChart>
+                            </ResponsiveContainer>
+                        </CardContent>
+                    </Card>
+
+                    <Card className="col-span-1 shadow-sm border-border bg-card/50 relative pt-2">
+                        <CardHeader className="py-3 pb-0"><CardTitle className="text-xs font-bold">종합 가동 비율</CardTitle></CardHeader>
+                        <CardContent className="h-[180px] pt-0">
+                            <ResponsiveContainer width="100%" height="100%" debounce={300}>
+                                <PieChart>
+                                    <Pie data={statusData} cx="50%" cy="50%" innerRadius={45} outerRadius={65} paddingAngle={2} dataKey="value" stroke="none">
+                                        {statusData.map((entry, index) => (<Cell key={`cell-${index}`} fill={entry.color} />))}
+                                    </Pie>
+                                    <Tooltip contentStyle={{ backgroundColor: '#18181b', borderColor: '#27272a', fontSize: '10px' }} />
+                                </PieChart>
+                            </ResponsiveContainer>
+                            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none pt-4">
+                                <span className="text-xl font-black">84%</span>
+                                <span className="text-[8px] text-muted-foreground font-bold uppercase">Uptime</span>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
             </div>
-        </Card>
-    </div>
-  )
+
+            {/* ------------------------------------------------------------- */}
+            {/* [Section 2] 시계열 트렌드 및 비교 영역 */}
+            {/* ------------------------------------------------------------- */}
+            <div className="grid grid-cols-3 gap-6">
+                
+                {/* 🌟 로컬 단위 필터가 적용된 트렌드 차트 🌟 */}
+                <Card className="col-span-2 shadow-sm border-border pt-2">
+                    <CardHeader className="py-3 pb-2 border-b border-border/50 flex flex-row items-center justify-between">
+                        <CardTitle className="text-sm font-bold flex items-center gap-2">
+                            <LineChartIcon className="w-4 h-4 text-muted-foreground" /> 생산량 및 수율 트렌드
+                        </CardTitle>
+                        
+                        {/* 🌟 로컬 차트 전용 단위 변경 필터 🌟 */}
+                        <Select value={trendUnit} onValueChange={setTrendUnit}>
+                            <SelectTrigger className="w-[110px] h-8 text-xs bg-background">
+                                <SelectValue placeholder="단위 선택" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="daily" className="text-xs">일별 (Daily)</SelectItem>
+                                <SelectItem value="weekly" className="text-xs">주별 (Weekly)</SelectItem>
+                                <SelectItem value="monthly" className="text-xs">월별 (Monthly)</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </CardHeader>
+                    
+                    <CardContent className="h-[280px] pt-6">
+                        <ResponsiveContainer width="100%" height="100%" debounce={300}>
+                            <ComposedChart data={trendData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                                <CartesianGrid strokeDasharray="3 3" stroke="#3f3f46" vertical={false} />
+                                <XAxis dataKey="date" tick={{ fontSize: 10, fill: '#a1a1aa' }} tickLine={false} axisLine={false} />
+                                <YAxis yAxisId="left" tick={{ fontSize: 10, fill: '#a1a1aa' }} tickLine={false} axisLine={false} />
+                                <YAxis yAxisId="right" orientation="right" domain={[90, 100]} tick={{ fontSize: 10, fill: '#10b981' }} tickLine={false} axisLine={false} />
+                                <Tooltip contentStyle={{ backgroundColor: '#18181b', borderColor: '#27272a', fontSize: '12px' }} />
+                                <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }} />
+                                <Bar yAxisId="left" dataKey="production" name="생산량" fill="#3b82f6" radius={[2, 2, 0, 0]} maxBarSize={40} />
+                                <Line yAxisId="right" type="monotone" dataKey="yield" name="수율(%)" stroke="#10b981" strokeWidth={3} dot={{ r: 4 }} />
+                            </ComposedChart>
+                        </ResponsiveContainer>
+                    </CardContent>
+                </Card>
+
+                {/* 🌟 조건부 렌더링 수율 비교 차트 🌟 */}
+                <Card className="col-span-1 shadow-sm border-border pt-2">
+                    <CardHeader className="py-4 pb-2 border-b border-border/50">
+                        <CardTitle className="text-sm font-bold flex items-center gap-2">
+                            <LayoutList className="w-4 h-4 text-muted-foreground" />
+                            {selectedLine === "all" ? "라인별 수율 비교" : `${selectedLine.toUpperCase()} 장비별 수율`}
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="h-[280px] pt-6">
+                        <ResponsiveContainer width="100%" height="100%" debounce={300}>
+                            <BarChart 
+                                data={selectedLine === "all" ? lineYieldData : equipmentYieldData} 
+                                layout="vertical" 
+                                margin={{ top: 5, right: 30, left: 10, bottom: 5 }}
+                            >
+                                <CartesianGrid strokeDasharray="3 3" stroke="#3f3f46" horizontal={false} />
+                                <XAxis type="number" domain={[90, 100]} tick={{ fontSize: 10, fill: '#a1a1aa' }} tickLine={false} axisLine={false} />
+                                <YAxis dataKey="name" type="category" tick={{ fontSize: 10, fill: '#a1a1aa' }} tickLine={false} axisLine={false} width={60} />
+                                <Tooltip cursor={{ fill: '#27272a' }} contentStyle={{ backgroundColor: '#18181b', borderColor: '#27272a', fontSize: '12px' }} />
+                                <Bar 
+                                    dataKey="yield" 
+                                    name="수율(%)" 
+                                    fill={selectedLine === "all" ? "#8b5cf6" : "#0ea5e9"} 
+                                    radius={[0, 4, 4, 0]} 
+                                    barSize={20} 
+                                />
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </CardContent>
+                </Card>
+            </div>
+        </div>
+    )
 }

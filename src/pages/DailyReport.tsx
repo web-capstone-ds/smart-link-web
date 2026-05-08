@@ -1,11 +1,12 @@
-import { Printer, Download, Cpu, Activity, AlertTriangle, Settings2 } from "lucide-react"
+import { Printer, Download, Cpu, Activity, AlertTriangle, Settings2, CheckCircle2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 const equipmentComparisonData = [
-    { id: "SAW-EQ.01", uptime: 82.5, total: 24500, fail: 850, marginal: 320, yield: "95.2%", majorDefect: "C-01 (Chipping)" },
-    { id: "SAW-EQ.02", uptime: 91.2, total: 22100, fail: 410, marginal: 150, yield: "97.4%", majorDefect: "L-03 (Lens Contamination)" },
-    { id: "SAW-EQ.03", uptime: 98.5, total: 25600, fail: 120, marginal: 50, yield: "99.3%", majorDefect: "B-02 (Blade Wear)" },
-    { id: "SAW-EQ.04", uptime: 99.1, total: 23800, fail: 95, marginal: 30, yield: "99.4%", majorDefect: "-" },
+    { id: "SAW-EQ.01", recipe: "PKG_A12", uptime: 82.5, total: 24500, fail: 850, marginal: 320, yield: "95.2%", majorDefect: "C-01 (Chipping)", unresolvedAlert: true },
+    { id: "SAW-EQ.02", recipe: "PKG_B08", uptime: 91.2, total: 22100, fail: 410, marginal: 150, yield: "97.4%", majorDefect: "L-03 (Contamination)", unresolvedAlert: false },
+    { id: "SAW-EQ.03", recipe: "PKG_A12", uptime: 98.5, total: 25600, fail: 120, marginal: 50, yield: "99.3%", majorDefect: "B-02 (Blade Wear)", unresolvedAlert: false },
+    { id: "SAW-EQ.04", recipe: "PKG_C15", uptime: 99.1, total: 23800, fail: 95, marginal: 30, yield: "99.4%", majorDefect: "-", unresolvedAlert: false },
+    { id: "SAW-EQ.05", recipe: "PKG_A12", uptime: 78.0, total: 21500, fail: 950, marginal: 420, yield: "93.6%", majorDefect: "C-01 (Chipping)", unresolvedAlert: true },
 ];
 
 const defectStatsData = [
@@ -21,13 +22,12 @@ const alarmHistoryData = [
     { id: "A-003", severity: "Critical", eq: "SAW-EQ.02", message: "Alignment Fail (연속 3회)", time: "09:12:05", status: "조치완료", action: "자재 매거진 재정렬 및 영점 조정", worker: "이프로" },
     { id: "A-004", severity: "Warning", eq: "SAW-EQ.08", message: "Network Sync Timeout", time: "08:45:11", status: "조치완료", action: "버퍼 초기화 및 재접속", worker: "시스템" },
 ];
-
-export function DailyReport() {
+export function DailyReport() { // ***** 수정해야함 리포트.
     return (
-        <div className="flex flex-col items-center space-y-8 animate-in fade-in duration-500 pb-20">
+        <div className="flex flex-col items-center space-y-8 animate-in fade-in duration-500 pb-20 bg-muted/30 pt-8">
         
         {/* 상단 툴바 (인쇄/다운로드 버튼) */}
-        <div className="w-full max-w-200 flex justify-between items-center bg-card p-4 rounded-lg border border-border shadow-sm">
+        <div className="w-[210mm] flex justify-between items-center bg-card p-4 rounded-lg border border-border shadow-sm">
             <div>
             <h2 className="text-lg font-bold">일일 공정 분석 리포트</h2>
             <p className="text-xs text-muted-foreground">PDF 내보내기 및 인쇄 최적화 포맷</p>
@@ -43,130 +43,148 @@ export function DailyReport() {
         </div>
 
         {/* ========================================== */}
-        {/* 📄 리포트 1페이지 (A4) */}
+        {/* 📄 리포트 1페이지 (A4 비율: 210mm x 297mm) */}
         {/* ========================================== */}
-        <div className="w-200 min-h-283 bg-white text-zinc-950 p-12 shadow-2xl flex flex-col font-sans border border-zinc-200">
+        <div className="w-[210mm] min-h-[297mm] bg-white text-zinc-950 p-12 shadow-xl flex flex-col font-sans border border-zinc-200 shrink-0">
             
             {/* 1. 헤더 & 결재란 */}
             <div className="flex justify-between items-start mb-10">
-            <div className="space-y-1">
-                <h1 className="text-3xl font-black tracking-tighter text-zinc-900 mb-4">DAILY REPORT</h1>
-                <div className="grid grid-cols-2 gap-x-6 gap-y-1 text-[11px] text-zinc-600">
-                <p><span className="font-bold text-zinc-400 mr-2">발행 일시:</span> 2026. 05. 06 17:00</p>
-                <p><span className="font-bold text-zinc-400 mr-2">작성자:</span> 홍길동 선임</p>
-                <p><span className="font-bold text-zinc-400 mr-2">집계 기간:</span> 2026.05.06 08:00 ~ 17:00</p>
-                <p><span className="font-bold text-zinc-400 mr-2">대상 설비:</span> SAW-LINE A (12대)</p>
+                <div className="space-y-1">
+                    <h1 className="text-3xl font-black tracking-tighter text-zinc-900 mb-4">DAILY REPORT</h1>
+                    <div className="grid grid-cols-2 gap-x-8 gap-y-1.5 text-xs text-zinc-600">
+                        <p><span className="font-bold text-zinc-400 mr-2">발행 일시:</span> 2026. 05. 06 17:00</p>
+                        <p><span className="font-bold text-zinc-400 mr-2">작성자:</span> 홍길동 선임</p>
+                        <p><span className="font-bold text-zinc-400 mr-2">집계 기간:</span> 2026.05.06 08:00 ~ 17:00</p>
+                        <p><span className="font-bold text-zinc-400 mr-2">대상 설비:</span> SAW-LINE A (12대)</p>
+                    </div>
                 </div>
-            </div>
 
-            {/* 결재란 */}
-            <div className="flex border border-zinc-300 text-center text-[10px]">
-                <div className="w-12 border-r border-zinc-300">
-                <div className="bg-zinc-50 border-b border-zinc-300 py-1">결재</div>
-                <div className="h-16 flex items-center justify-center">작성</div>
+                {/* 결재란 */}
+                <div className="flex border border-zinc-300 text-center text-[10px]">
+                    <div className="w-12 border-r border-zinc-300">
+                        <div className="bg-zinc-100 border-b border-zinc-300 py-1 font-bold">결재</div>
+                        <div className="h-16 flex items-center justify-center">작성</div>
+                    </div>
+                    <div className="w-16 border-r border-zinc-300">
+                        <div className="bg-zinc-100 border-b border-zinc-300 py-1 font-bold">기안</div>
+                        <div className="h-16"></div>
+                    </div>
+                    <div className="w-16 border-r border-zinc-300">
+                        <div className="bg-zinc-100 border-b border-zinc-300 py-1 font-bold">검토</div>
+                        <div className="h-16"></div>
+                    </div>
+                    <div className="w-16">
+                        <div className="bg-zinc-100 border-b border-zinc-300 py-1 font-bold">승인</div>
+                        <div className="h-16"></div>
+                    </div>
                 </div>
-                <div className="w-16 border-r border-zinc-300">
-                <div className="bg-zinc-50 border-b border-zinc-300 py-1">기안</div>
-                <div className="h-16"></div>
-                </div>
-                <div className="w-16 border-r border-zinc-300">
-                <div className="bg-zinc-50 border-b border-zinc-300 py-1">검토</div>
-                <div className="h-16"></div>
-                </div>
-                <div className="w-16">
-                <div className="bg-zinc-50 border-b border-zinc-300 py-1">승인</div>
-                <div className="h-16"></div>
-                </div>
-            </div>
             </div>
 
             {/* 2. AI 상태 요약 (핵심 메시지) */}
-            <div className="bg-zinc-900 text-white p-6 rounded-sm mb-8 relative overflow-hidden">
-            <div className="absolute -right-2.5 -top-2.5 opacity-10">
-                <Cpu className="w-32 h-32" />
-            </div>
-            <div className="relative z-10">
-                <h3 className="text-xs font-bold text-zinc-400 mb-2 flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-                AI EXECUTIVE SUMMARY
-                </h3>
-                <p className="text-sm leading-relaxed font-medium">
-                금일 주간 가동 결과, 전체 생산량은 목표 대비 <span className="text-emerald-400">102.4%</span>로 초과 달성되었습니다. 
-                다만, <span className="text-amber-400 font-bold">SAW-EQ.01</span> 장비에서 패키지 치수(Width) 편차가 USL 근계치(12.04mm)에 도달하는 징후가 포착되었습니다. 
-                이는 블레이드 수명 종료(남은 수명 8%)에 따른 현상으로 판단되며, 야간 근무 조 교대 시 교체를 권고합니다.
-                </p>
-            </div>
+            <div className="bg-zinc-900 text-white p-6 rounded-md mb-8 relative overflow-hidden print:border print:border-zinc-300 print:bg-white print:text-zinc-900">
+                <div className="absolute -right-2.5 -top-2.5 opacity-10 print:opacity-5">
+                    <Cpu className="w-32 h-32" />
+                </div>
+                <div className="relative z-10">
+                    <h3 className="text-xs font-bold text-zinc-400 mb-2 flex items-center gap-2 print:text-zinc-600">
+                        <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse print:animate-none"></div>
+                        AI EXECUTIVE SUMMARY
+                    </h3>
+                    <p className="text-sm leading-relaxed font-medium">
+                        금일 주간 가동 결과, 전체 생산량은 목표 대비 <span className="text-emerald-400 print:text-emerald-600 font-bold">102.4%</span>로 초과 달성되었습니다. 
+                        다만, <span className="text-amber-400 print:text-amber-600 font-bold">SAW-EQ.01</span> 장비에서 패키지 치수(Width) 편차가 USL 한계치(12.04mm)에 도달하는 징후가 포착되었습니다. 
+                        이는 블레이드 수명 종료에 따른 현상으로 판단되며, <span className="text-red-400 print:text-red-600 font-bold">야간 조 교대 시 즉각적인 교체</span>를 권고합니다.
+                    </p>
+                </div>
             </div>
 
-            {/* 3. 핵심 요약 지표 (KPI Cards) */}
+            {/* 🌟 3. 핵심 요약 지표 (TPM & 신뢰성 지표로 업데이트) */}
             <div className="grid grid-cols-3 gap-4 mb-8">
-            {[
-                { label: "총 생산량 / 달성률", value: "24,563 EA", sub: "102.4%", trend: "+2.1%" },
-                { label: "종합 수율 (Yield)", value: "98.7%", sub: "목표 98.0%", trend: "+0.7%" },
-                { label: "설비 가동률 (OEE)", value: "87.3%", sub: "전일 85.1%", trend: "+2.2%" },
-                { label: "공정능력지수 (Cpk)", value: "1.52", sub: "Grade: Excellent", trend: "-0.04" },
-                { label: "치수 합격률", value: "99.2%", sub: "Width/Height", trend: "+0.1%" },
-                { label: "주요 불량 건수", value: "342건", sub: "Chipping 위주", trend: "-12건" },
-            ].map((kpi, idx) => (
-                <div key={idx} className="border border-zinc-200 p-4 rounded-sm">
-                <p className="text-[10px] font-bold text-zinc-500 mb-1">{kpi.label}</p>
-                <div className="flex justify-between items-end">
-                    <span className="text-xl font-black text-zinc-900">{kpi.value}</span>
-                    <span className="text-[10px] font-bold text-emerald-600">{kpi.trend}</span>
-                </div>
-                <p className="text-[10px] text-zinc-400 mt-1">{kpi.sub}</p>
-                </div>
-            ))}
-            </div>
-
-            {/* 4. 장비 개별 수율 비교 표 */}
-            <div className="mt-4">
-            <h3 className="text-xs font-bold text-zinc-900 mb-3 flex items-center gap-2">
-                <div className="w-1 h-3 bg-zinc-900"></div> 장비별 생산 현황 요약
-            </h3>
-            <table className="w-full text-[11px] border-collapse">
-                <thead>
-                <tr className="border-y-2 border-zinc-900 bg-zinc-50">
-                    <th className="py-2 px-2 text-left">장비 ID</th>
-                    <th className="py-2 px-2 text-left">가동률</th>
-                    <th className="py-2 px-2 text-right">총 검사량</th>
-                    <th className="py-2 px-2 text-right">Fail / Marginal</th>
-                    <th className="py-2 px-2 text-right">수율</th>
-                    <th className="py-2 px-2 text-left pl-6">주요 불량</th>
-                </tr>
-                </thead>
-                <tbody className="divide-y divide-zinc-200">
-                {equipmentComparisonData.map((eq) => (
-                    <tr key={eq.id}>
-                    <td className="py-2.5 px-2 font-bold">{eq.id}</td>
-                    <td className="py-2.5 px-2">
-                        <div className="flex items-center gap-2 w-24">
-                            {/* 인쇄용이므로 배경을 옅은 회색(zinc-200)으로 처리합니다 */}
-                            <div className="flex-1 h-1.5 bg-zinc-200 rounded-full overflow-hidden">
-                                <div 
-                                    className={`h-full ${eq.uptime < 90 ? 'bg-red-500' : eq.uptime < 95 ? 'bg-amber-500' : 'bg-emerald-500'}`} 
-                                    style={{ width: `${eq.uptime}%` }}
-                                ></div>
-                            </div>
-                            <span className={`text-[10px] font-bold ${eq.uptime < 90 ? 'text-red-600' : 'text-zinc-900'}`}>
-                                {eq.uptime}%
-                            </span>
+                {[
+                    { label: "총 생산량 / 달성률", value: "24,563 EA", sub: "102.4%", trend: "+2.1%", trendColor: "text-emerald-600" },
+                    { label: "종합 수율 (Yield)", value: "98.7%", sub: "목표 98.0%", trend: "+0.7%", trendColor: "text-emerald-600" },
+                    { label: "공정능력지수 (Cpk)", value: "1.52", sub: "Grade: Excellent", trend: "-0.04", trendColor: "text-red-500" },
+                    { label: "설비종합효율 (OEE)", value: "87.3%", sub: "전일 85.1%", trend: "+2.2%", trendColor: "text-emerald-600" },
+                    { label: "총 비가동 시간", value: "12.5 hr", sub: "에러 정지 및 대기", trend: "-1.2 hr", trendColor: "text-emerald-600" },
+                    { label: "평균 무고장 (MTBF)", value: "91.6 hr", sub: "라인 평균 수치", trend: "+4.5 hr", trendColor: "text-emerald-600" },
+                ].map((kpi, idx) => (
+                    <div key={idx} className="border border-zinc-200 p-4 rounded-md bg-zinc-50/50">
+                        <p className="text-[10px] font-bold text-zinc-500 mb-1">{kpi.label}</p>
+                        <div className="flex justify-between items-end">
+                            <span className="text-xl font-black text-zinc-900">{kpi.value}</span>
+                            <span className={`text-[10px] font-bold ${kpi.trendColor}`}>{kpi.trend}</span>
                         </div>
-                    </td>
-                    <td className="py-2.5 px-2 text-right">{eq.total.toLocaleString()}</td>
-                    <td className="py-2.5 px-2 text-right text-zinc-500">{eq.fail} / {eq.marginal}</td>
-                    <td className="py-2.5 px-2 text-right font-bold text-zinc-900">{eq.yield}</td>
-                    <td className="py-2.5 px-2 pl-6 text-zinc-500">{eq.majorDefect}</td>
-                    </tr>
+                        <p className="text-[10px] text-zinc-400 mt-1">{kpi.sub}</p>
+                    </div>
                 ))}
-                </tbody>
-            </table>
             </div>
 
+            {/* 🌟 4. 장비 개별 수율 비교 표 (레시피 & 조치 상태 추가) */}
+            <div className="mt-2 flex-1">
+                <h3 className="text-xs font-bold text-zinc-900 mb-3 flex items-center gap-2">
+                    <div className="w-1 h-3 bg-zinc-900"></div> 장비별 생산 및 조치 현황
+                </h3>
+                <table className="w-full text-[11px] border-collapse">
+                    <thead>
+                        <tr className="border-y-2 border-zinc-800 bg-zinc-100">
+                            <th className="py-2.5 px-3 text-left font-bold text-zinc-700">장비 ID (Recipe)</th>
+                            <th className="py-2.5 px-2 text-center font-bold text-zinc-700">상태</th>
+                            <th className="py-2.5 px-3 text-left font-bold text-zinc-700">가동률</th>
+                            <th className="py-2.5 px-3 text-right font-bold text-zinc-700">검사 / Fail</th>
+                            <th className="py-2.5 px-3 text-right font-bold text-zinc-700">수율</th>
+                            <th className="py-2.5 px-3 text-left pl-6 font-bold text-zinc-700">주요 불량</th>
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-zinc-200">
+                        {equipmentComparisonData.map((eq) => (
+                            <tr key={eq.id} className="hover:bg-zinc-50 transition-colors">
+                                <td className="py-3 px-3">
+                                    <div className="flex flex-col">
+                                        <span className="font-bold text-zinc-900">{eq.id}</span>
+                                        <span className="text-[9px] text-zinc-500 font-medium">{eq.recipe}</span>
+                                    </div>
+                                </td>
+                                <td className="py-3 px-2 text-center">
+                                    {eq.unresolvedAlert ? (
+                                        <div className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded border border-red-200 bg-red-50 text-red-600 text-[9px] font-bold">
+                                            <AlertTriangle className="w-3 h-3" /> 조치필요
+                                        </div>
+                                    ) : (
+                                        <div className="inline-flex items-center gap-1 px-1.5 py-0.5 text-zinc-400 text-[9px] font-medium">
+                                            <CheckCircle2 className="w-3 h-3" /> 정상
+                                        </div>
+                                    )}
+                                </td>
+                                <td className="py-3 px-3">
+                                    <div className="flex items-center gap-2 w-20">
+                                        <div className="flex-1 h-1.5 bg-zinc-200 rounded-full overflow-hidden">
+                                            <div 
+                                                className={`h-full ${eq.uptime < 90 ? 'bg-red-500' : eq.uptime < 95 ? 'bg-amber-500' : 'bg-emerald-500'}`} 
+                                                style={{ width: `${eq.uptime}%` }}
+                                            ></div>
+                                        </div>
+                                        <span className={`text-[10px] font-bold ${eq.uptime < 90 ? 'text-red-600' : 'text-zinc-700'}`}>
+                                            {eq.uptime}%
+                                        </span>
+                                    </div>
+                                </td>
+                                <td className="py-3 px-3 text-right">
+                                    <div className="flex flex-col">
+                                        <span className="font-medium text-zinc-900">{eq.total.toLocaleString()}</span>
+                                        <span className="text-[9px] text-red-500">{eq.fail} F</span>
+                                    </div>
+                                </td>
+                                <td className="py-3 px-3 text-right font-black text-zinc-900">{eq.yield}</td>
+                                <td className="py-3 px-3 pl-6 text-zinc-600 font-medium">{eq.majorDefect}</td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
             {/* 하단 푸터 (페이지 번호 등) */}
-            <div className="mt-auto pt-10 flex justify-between items-center text-[10px] text-zinc-400 border-t border-zinc-100">
-            <p>© 2026 SMART LINK Vision Inspection Systems</p>
-            <p>Page 01 / 03</p>
+            <div className="mt-auto pt-6 flex justify-between items-center text-[10px] text-zinc-400 border-t border-zinc-200">
+                <p>CONFIDENTIAL © 2026 SMART LINK Vision Inspection Systems</p>
+                <p className="font-bold">Page 01 / 03</p>
             </div>
         </div>
 

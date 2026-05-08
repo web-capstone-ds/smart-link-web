@@ -1,15 +1,46 @@
 import { useState, useEffect } from "react"
-import { Download, Info, Settings2, Loader2, Activity } from "lucide-react"
+import { Download, Info, Settings2, Loader2, Activity, CheckCircle2, AlertTriangle } from "lucide-react"
 
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+
+import { ResponsiveContainer, Tooltip, XAxis, Line, YAxis, CartesianGrid, Legend, ComposedChart } from "recharts"
 
 interface EquipmentDetailSheetProps {
     selectedEquipment: string | null;
     setSelectedEquipment: (id: string | null) => void;
 }
+
+// 📦 1. 수율 및 SPC 추이 목업 데이터 (최근 LOT 흐름)
+const spcTrendData = [
+    { lot: "L-01", yield: 98.5, lineAvg: 97.2, lcl: 96.0 },
+    { lot: "L-02", yield: 98.2, lineAvg: 97.4, lcl: 96.0 },
+    { lot: "L-03", yield: 97.1, lineAvg: 97.5, lcl: 96.0 },
+    { lot: "L-04", yield: 96.5, lineAvg: 97.3, lcl: 96.0 },
+    { lot: "L-05", yield: 94.2, lineAvg: 97.6, lcl: 96.0 }, // 수율 하락 시작
+    { lot: "L-06", yield: 92.1, lineAvg: 97.5, lcl: 96.0 }, // LCL(하한선) 이탈 - 에러 발생 지점
+    { lot: "L-07", yield: 98.5, lineAvg: 97.7, lcl: 96.0 }, // 조치 후 회복
+];
+
+// 📦 2. 결함 히트맵 목업 데이터 (X, Y 좌표 및 불량 강도/종류)
+const defectPoints = [
+    // 우측 하단 집중 치핑(Chipping) 데이터
+    { x: 65, y: 70, type: 'chipping', intensity: 'bg-destructive' },
+    { x: 72, y: 75, type: 'chipping', intensity: 'bg-destructive' },
+    { x: 75, y: 68, type: 'chipping', intensity: 'bg-destructive' },
+    { x: 80, y: 82, type: 'chipping', intensity: 'bg-destructive' },
+    { x: 82, y: 74, type: 'chipping', intensity: 'bg-destructive' },
+    { x: 68, y: 80, type: 'chipping', intensity: 'bg-destructive' },
+    { x: 77, y: 85, type: 'chipping', intensity: 'bg-destructive' },
+    // 간헐적 산발 데이터 (노이즈)
+    { x: 30, y: 40, type: 'other', intensity: 'bg-amber-500' },
+    { x: 45, y: 20, type: 'other', intensity: 'bg-amber-500' },
+    { x: 25, y: 65, type: 'other', intensity: 'bg-amber-500' },
+    { x: 55, y: 50, type: 'other', intensity: 'bg-amber-500' },
+];
 
 export function EquipmentDetailSheet({ selectedEquipment, setSelectedEquipment }: EquipmentDetailSheetProps) {
 
@@ -141,31 +172,201 @@ export function EquipmentDetailSheet({ selectedEquipment, setSelectedEquipment }
                 </Card>
                 </div>
             </div>
-
-            {/* 3. 시각화 데이터 (트렌드 & 히트맵) */}
+{/* 3. 시각화 데이터 (트렌드 & 히트맵) */}
             <div className="grid grid-cols-2 gap-6">
-                <Card>
-                <CardHeader className="py-4">
-                    <CardTitle className="text-sm">수율 추이 (vs 라인 평균)</CardTitle>
-                </CardHeader>
-                <CardContent className="h-48 flex items-center justify-center bg-muted/20">
-                    <p className="text-xs text-muted-foreground">Recharts 수율 비교 차트 영역</p>
-                </CardContent>
+                
+                {/* 🌟 1. 수율 및 SPC 추이 차트 🌟 */}
+                <Card className="shadow-sm border-border min-w-0">
+                    <CardHeader className="py-3 px-4 border-b border-border/50 flex flex-row items-center justify-between">
+                        <CardTitle className="text-sm font-bold">수율 및 SPC 추이</CardTitle>
+                        <Badge variant="outline" className="text-[9px] font-normal h-4 py-0 text-muted-foreground border-border">최근 7 LOT</Badge>
+                    </CardHeader>
+                    <CardContent className="h-48 pt-4 px-2 pb-0">
+                        <ResponsiveContainer width="100%" height="100%" debounce={50}>
+                            <ComposedChart data={spcTrendData} margin={{ top: 5, right: 10, left: -25, bottom: 5 }}>
+                                <CartesianGrid strokeDasharray="3 3" stroke="#3f3f46" vertical={false} />
+                                <XAxis dataKey="lot" tick={{ fontSize: 9, fill: '#a1a1aa' }} tickLine={false} axisLine={false} />
+                                <YAxis domain={[90, 100]} tick={{ fontSize: 9, fill: '#a1a1aa' }} tickLine={false} axisLine={false} />
+                                <Tooltip 
+                                    contentStyle={{ backgroundColor: '#18181b', borderColor: '#27272a', fontSize: '11px', padding: '6px' }}
+                                    itemStyle={{ padding: 0 }}
+                                />
+                                <Legend wrapperStyle={{ fontSize: '10px', paddingTop: '5px' }} iconSize={8} />
+                                
+                                {/* LCL (관리 하한선) - 붉은 점선 */}
+                                <Line type="step" dataKey="lcl" name="관리하한(LCL)" stroke="#ef4444" strokeDasharray="4 4" dot={false} strokeWidth={1.5} isAnimationActive={false} />
+                                
+                                {/* 라인 평균 수율 - 회색 선 */}
+                                <Line type="monotone" dataKey="lineAvg" name="라인 평균" stroke="#71717a" dot={false} strokeWidth={2} isAnimationActive={false} />
+                                
+                                {/* 해당 장비 수율 - 파란색 강조 선 */}
+                                <Line type="monotone" dataKey="yield" name="장비 수율" stroke="#3b82f6" dot={{ r: 3, fill: '#3b82f6', strokeWidth: 0 }} activeDot={{ r: 5 }} strokeWidth={2.5} isAnimationActive={false} />
+                            </ComposedChart>
+                        </ResponsiveContainer>
+                    </CardContent>
                 </Card>
-                <Card>
-                <CardHeader className="py-4">
-                    <CardTitle className="text-sm">결함 위치 히트맵</CardTitle>
-                </CardHeader>
-                <CardContent className="h-48 flex items-center justify-center bg-muted/20">
-                    <p className="text-xs text-muted-foreground">불량 좌표 히트맵 시각화 영역</p>
-                </CardContent>
+
+                {/* 🌟 2. 결함 위치 히트맵 (Wafer Heatmap Simulation) 🌟 */}
+                <Card className="shadow-sm border-border min-w-0">
+                    <CardHeader className="py-3 px-4 border-b border-border/50 flex flex-row items-center justify-between">
+                        <CardTitle className="text-sm font-bold flex items-center gap-2">
+                            결함 위치 히트맵
+                        </CardTitle>
+                        <Badge variant="destructive" className="bg-destructive/10 text-destructive border-destructive/20 text-[9px] font-bold h-4 py-0">패턴: 우측 하단 집중</Badge>
+                    </CardHeader>
+                    <CardContent className="h-48 flex items-center justify-center bg-background relative overflow-hidden">
+                        
+                        {/* 웨이퍼 배경 (원형) */}
+                        <div className="relative w-36 h-36 rounded-full border border-border/80 bg-muted/10 shadow-inner overflow-hidden flex items-center justify-center">
+                            
+                            {/* 다이(Die) 격자 무늬 시뮬레이션 */}
+                            <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'linear-gradient(#71717a 1px, transparent 1px), linear-gradient(90deg, #71717a 1px, transparent 1px)', backgroundSize: '8px 8px' }}></div>
+                            
+                            {/* 플랫존 (웨이퍼 하단의 깎인 부분) */}
+                            <div className="absolute bottom-0 w-16 h-1 bg-background z-10 border-t border-border/80"></div>
+
+                            {/* 🌟 집중 불량 영역 열화상 Blur 효과 (우측 하단) 🌟 */}
+                            <div className="absolute w-20 h-20 bg-destructive/40 rounded-full blur-xl" style={{ left: '60%', top: '60%' }}></div>
+
+                            {/* 개별 결함 좌표(Dots) 렌더링 */}
+                            {defectPoints.map((pt, i) => (
+                                <div
+                                    key={i}
+                                    className={`absolute w-1.5 h-1.5 rounded-full shadow-sm ${pt.intensity}`}
+                                    style={{
+                                        left: `${pt.x}%`,
+                                        top: `${pt.y}%`,
+                                        transform: 'translate(-50%, -50%)'
+                                    }}
+                                />
+                            ))}
+                        </div>
+
+                        {/* 히트맵 범례 (Legend) */}
+                        <div className="absolute right-4 bottom-4 flex flex-col gap-1.5 p-2 bg-card/80 backdrop-blur-sm border border-border rounded-md shadow-sm">
+                            <div className="flex items-center gap-1.5 text-[9px] text-muted-foreground font-medium">
+                                <div className="w-2 h-2 rounded-full bg-destructive shadow-[0_0_4px_rgba(239,68,68,0.8)]"></div>
+                                Chipping
+                            </div>
+                            <div className="flex items-center gap-1.5 text-[9px] text-muted-foreground font-medium">
+                                <div className="w-2 h-2 rounded-full bg-amber-500"></div>
+                                Others
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+
+            </div>
+
+            {/* ========================================== */}
+            {/* 🌟 4. 세부 파라미터 및 경보 수치 근거 표 🌟 */}
+            {/* ========================================== */}
+            <div>
+                <div className="flex justify-between items-end mb-4">
+                    <h3 className="text-lg font-bold flex items-center gap-2">
+                        <Settings2 className="w-5 h-5 text-muted-foreground" /> 세부 파라미터 측정 결과
+                    </h3>
+                    <span className="text-xs text-muted-foreground">단위: μm (Z-Score &gt; 3.0 시 경보)</span>
+                </div>
+                <Card className="border-border shadow-sm overflow-hidden">
+                    <Table>
+                        <TableHeader className="bg-muted/30">
+                            <TableRow className="border-border/50 hover:bg-transparent">
+                                <TableHead className="h-9 py-2 text-xs font-semibold">파라미터명</TableHead>
+                                <TableHead className="h-9 py-2 text-xs font-semibold text-right">평균값 (Avg)</TableHead>
+                                <TableHead className="h-9 py-2 text-xs font-semibold text-right">최대치 (Max)</TableHead>
+                                <TableHead className="h-9 py-2 text-xs font-semibold text-right">관리 상한 (USL)</TableHead>
+                                <TableHead className="h-9 py-2 text-xs font-semibold text-right">Z-Score</TableHead>
+                                <TableHead className="h-9 py-2 text-xs font-semibold pl-6">판정</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            <TableRow className="border-border/50 bg-destructive/5">
+                                <TableCell className="py-2.5 font-medium text-xs">Chipping_Bottom</TableCell>
+                                <TableCell className="py-2.5 text-right text-xs">12.4</TableCell>
+                                <TableCell className="py-2.5 text-right font-bold text-destructive text-xs">28.7</TableCell>
+                                <TableCell className="py-2.5 text-right text-xs text-muted-foreground">25.0</TableCell>
+                                <TableCell className="py-2.5 text-right font-bold text-destructive text-xs">3.42</TableCell>
+                                <TableCell className="py-2.5 pl-6">
+                                    <Badge variant="destructive" className="bg-destructive text-destructive-foreground text-[10px] h-4 py-0">초과 (Error)</Badge>
+                                </TableCell>
+                            </TableRow>
+                            <TableRow className="border-border/50">
+                                <TableCell className="py-2.5 font-medium text-xs">Coplanarity</TableCell>
+                                <TableCell className="py-2.5 text-right text-xs">5.2</TableCell>
+                                <TableCell className="py-2.5 text-right text-xs">7.8</TableCell>
+                                <TableCell className="py-2.5 text-right text-xs text-muted-foreground">10.0</TableCell>
+                                <TableCell className="py-2.5 text-right text-xs">1.85</TableCell>
+                                <TableCell className="py-2.5 pl-6">
+                                    <Badge variant="outline" className="text-emerald-500 border-emerald-500/30 text-[10px] h-4 py-0 font-normal">정상 (OK)</Badge>
+                                </TableCell>
+                            </TableRow>
+                            <TableRow className="border-border/50 bg-amber-500/5">
+                                <TableCell className="py-2.5 font-medium text-xs">Kerf_Width</TableCell>
+                                <TableCell className="py-2.5 text-right text-xs">42.1</TableCell>
+                                <TableCell className="py-2.5 text-right font-semibold text-amber-500 text-xs">48.9</TableCell>
+                                <TableCell className="py-2.5 text-right text-xs text-muted-foreground">50.0</TableCell>
+                                <TableCell className="py-2.5 text-right font-semibold text-amber-500 text-xs">2.88</TableCell>
+                                <TableCell className="py-2.5 pl-6">
+                                    <Badge variant="outline" className="text-amber-500 border-amber-500/30 bg-amber-500/10 text-[10px] h-4 py-0 font-normal">근접 (Warn)</Badge>
+                                </TableCell>
+                            </TableRow>
+                        </TableBody>
+                    </Table>
                 </Card>
             </div>
 
-            {/* 4. 기타 파라미터 및 조치 내역 영역 */}
-            <div className="text-center p-8 border border-dashed border-border rounded-lg text-muted-foreground text-sm">
-                스크롤을 내리면 추가적인 SPC 관리도, 세부 파라미터(Coplanarity, Burr height) 측정 표, <br/>그리고 작업자의 메모가 포함된 조치 이력(Timeline)이 이어집니다.
+            {/* ========================================== */}
+            {/* 🌟 5. 조치 내역 및 메모 (Timeline UI) 🌟 */}
+            {/* ========================================== */}
+            <div>
+                <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+                    <Info className="w-5 h-5 text-muted-foreground" /> 최근 조치 내역 및 처리 현황
+                </h3>
+                <Card className="border-border shadow-sm p-6">
+                    {/* 타임라인 컨테이너 */}
+                    <div className="space-y-6 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-border before:to-transparent">
+                        
+                        {/* 1. 미조치 경보 (최상단) */}
+                        <div className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
+                            <div className="flex items-center justify-center w-10 h-10 rounded-full border-4 border-background bg-destructive text-destructive-foreground shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 shadow">
+                                <AlertTriangle className="w-4 h-4 animate-pulse" />
+                            </div>
+                            <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-4 rounded-lg border border-destructive/30 bg-destructive/5 shadow-sm">
+                                <div className="flex items-center justify-between mb-1">
+                                    <Badge variant="destructive" className="text-[9px] h-4 py-0">미조치</Badge>
+                                    <time className="text-[11px] font-medium text-destructive">14:00 (현재)</time>
+                                </div>
+                                <div className="text-sm font-bold text-foreground mb-1">Chipping 한계치 초과 발생</div>
+                                <div className="text-xs text-muted-foreground">현재 장비 정지(Down) 상태. 블레이드 교체 대기 중.</div>
+                            </div>
+                        </div>
+
+                        {/* 2. 과거 조치 내역 */}
+                        <div className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group">
+                            <div className="flex items-center justify-center w-10 h-10 rounded-full border-4 border-background bg-muted text-muted-foreground shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2">
+                                <CheckCircle2 className="w-4 h-4" />
+                            </div>
+                            <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-4 rounded-lg border border-border bg-card shadow-sm">
+                                <div className="flex items-center justify-between mb-1">
+                                    <span className="text-[10px] font-bold text-emerald-500">조치 완료 (김엔지니어)</span>
+                                    <time className="text-[11px] font-medium text-muted-foreground">10:48</time>
+                                </div>
+                                <div className="text-sm font-bold text-foreground mb-1">Z축 얼라인먼트 재보정</div>
+                                <div className="text-xs text-muted-foreground mb-2">자재 대기 중 센서 오염 확인 후 클리닝 및 Z축 0점 세팅 완료.</div>
+                                <div className="flex items-center gap-2 text-[10px] bg-muted/50 p-1.5 rounded">
+                                    <span className="text-muted-foreground">수율 변화:</span>
+                                    <span className="line-through text-muted-foreground">92.1%</span>
+                                    <span>→</span>
+                                    <span className="text-emerald-500 font-bold">98.5%</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                    </div>
+                </Card>
             </div>
+            
             </div>)}
         </SheetContent>
         </Sheet>
