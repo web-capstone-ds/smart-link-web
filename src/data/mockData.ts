@@ -1,3 +1,29 @@
+
+export const dashboardSummary = {
+  kpi: {
+    totalProduction: 24563,       // 총 생산량
+    uph: 2850,                    // 시간당 생산량
+    productionRate: 102.4,        // 목표 대비 달성률(%)
+    productionTrend: 2.1,         // 전일(또는 평균) 대비 증감(%)
+    totalYield: 96.4,             // 종합 수율(%)
+    yieldTrend: -0.8,             // 전일(또는 평균) 대비 증감(%)
+    passRate: 98.7,               // 치수 합격률(%)
+    cpk: 1.52,                    // 공정 능력 지수
+    cpkTrend: 0.04,               // 전일(또는 평균) 대비 증감(%)
+    cpkRate:0.02,                 // 목표 대비 편차
+    topDefect: "C-01",            // 최다 발생 불량 코드
+    oee: 87.3,                    // 설비 종합 효율(%)
+    fail: 243,
+    marginal:128
+  },
+  status : {
+    run : 84.0,
+    idle: 11.5,
+    down: 4.5
+  },
+  aiMessage : "가동률은 안정적이나, 블레이드 마모로 인한 LINE-A의 치수 편차 징후가 감지됩니다.",
+};
+
 export const trendData = [
   { date: "5/01", production: 3100, yield: 95.1 },
   { date: "5/02", production: 3400, yield: 96.2 },
@@ -5,14 +31,15 @@ export const trendData = [
   { date: "5/04", production: 3500, yield: 97.1 },
   { date: "5/05", production: 3600, yield: 98.4 },
   { date: "5/06", production: 3900, yield: 99.1 },
+  { date: "5/07", production: 3400, yield: 96.1 },
 ];
 
 export const paretoData = [
-  { defect: "C-01 (치핑)", count: 342, cumulative: 45 },
-  { defect: "B-02 (마모)", count: 185, cumulative: 69 },
-  { defect: "L-03 (오염)", count: 89, cumulative: 81 },
-  { defect: "A-04 (정렬)", count: 45, cumulative: 87 },
-  { defect: "기타", count: 99, cumulative: 100 },
+  { defectCode: "C-01", defectName:"치핑", count: 342, cumulative: 45 },
+  { defectCode: "B-01", defectName:"마모", count: 185, cumulative: 69 },
+  { defectCode: "E-01", defectName:"오염", count: 89, cumulative: 81 },
+  { defectCode: "F-01", defectName:"절단", count: 45, cumulative: 87 },
+  { defectCode: "G-01", defectName:"기타", count: 99, cumulative: 100 },
 ];
 
 export const lineYieldData = [
@@ -29,17 +56,20 @@ export const equipmentYieldData = [
   { name: "EQ.05", yield: 96.1 },
 ];
 
-export const statusData = [
-  { name: "Run (가동)", value: 84.0, color: "#10b981" },
-  { name: "Idle (대기)", value: 11.5, color: "#f59e0b" },
-  { name: "Down (정지)", value: 4.5, color: "#ef4444" },
-];
-
 // equipment
-export const downtimeData = [
-    { date: "5/01", hours: 22.5 }, { date: "5/02", hours: 18.2 }, { date: "5/03", hours: 28.5 },
-    { date: "5/04", hours: 15.0 }, { date: "5/05", hours: 12.5 }, { date: "5/06", hours: 14.2 },
-];
+
+export const downtimeResponse = {
+    success: true,
+    unit: "hr" as "hr" | "min",
+    data: [
+        { label: "5/01", value: 22.5 }, 
+        { label: "5/02", value: 18.2 }, 
+        { label: "5/03", value: 28.5 },
+        { label: "5/04", value: 15.0 }, 
+        { label: "5/05", value: 12.5 }, 
+        { label: "5/06", value: 14.2 },
+    ]
+};
 
 // 2. 신규: 라인별 평균 무고장 시간 (MTBF)
 export const mtbfData = [

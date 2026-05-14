@@ -1,16 +1,17 @@
 import { useState, useMemo } from "react"
-import { useFilterStore } from "@/store/useFilterStore"
+import { useQuery } from "@tanstack/react-query"
+import { fetchDowntimeTrend } from "@/api/equipment"
 
 import type { DateRange } from "react-day-picker"
-import { isSameDay } from "date-fns"
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader"
+import { useFilterStore } from "@/store/useFilterStore"
 
 import { EquipmentKPIChart } from "@/components/chart/EquipmentKPIChart"
 import { DefectCodeTable } from "@/components/table/DefectCodeTable"
 import { DefectPieChart } from "@/components/chart/DefectPieChart"
 import { EquipmentDetailTable } from "@/components/table/EquipmentDetailTable"
 
-import { downtimeData, mtbfData, defectStatsData, paretoColors, equipmentComparisonData } from "@/data/mockData"
+import { downtimeResponse as mockDowntimeResponse, mtbfData, defectStatsData, paretoColors, equipmentComparisonData } from "@/data/mockData"
 
 interface EquipmentStatsProps {
     setSelectedEquipment: (id: string) => void;
@@ -25,12 +26,6 @@ export function EquipmentStats({ setSelectedEquipment }: EquipmentStatsProps) {
     const [tempLine, setTempLine] = useState(appliedLine);
     const [tempDate, setTempDate] = useState<DateRange | undefined>(appliedDate);
     const [isCalendarOpen, setIsCalendarOpen] = useState(false);
-
-    const isSingleDay = useMemo(() => {
-        if (!appliedDate?.from) return false;
-        if (!appliedDate.to) return true;
-        return isSameDay(appliedDate.from, appliedDate.to);
-    }, [appliedDate]);
         
     const handleCalendarOpenChange = (open: boolean) => {
         setIsCalendarOpen(open);
@@ -76,6 +71,15 @@ export function EquipmentStats({ setSelectedEquipment }: EquipmentStatsProps) {
         });
     }, [appliedLine, sortBy]);
 
+    //1 
+    const { data: downtimeRes, isFetching: isDowntimeLoading } = useQuery({
+        queryKey: ["equipmentDowntime", appliedLine, appliedDate],
+        queryFn: () => fetchDowntimeTrend(appliedLine, appliedDate),
+        enabled: !!appliedDate?.from,
+    });
+
+    const safeDowntimeRes = downtimeRes || mockDowntimeResponse;
+
     return (
         <div className="animate-in fade-in duration-500 space-y-6">
 
@@ -92,10 +96,10 @@ export function EquipmentStats({ setSelectedEquipment }: EquipmentStatsProps) {
 
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
                 
-                <EquipmentKPIChart
-                    downtimeData={downtimeData} 
+                <EquipmentKPIChart 
+                    downtimeRes={safeDowntimeRes} 
                     mtbfData={mtbfData} 
-                    className="col-span-1" 
+                    isLoading={isDowntimeLoading} 
                 />
 
                 <DefectCodeTable 

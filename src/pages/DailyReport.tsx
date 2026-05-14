@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import { useState } from "react"
 import { Printer, Download, Cpu, Activity, AlertTriangle, Settings2, CheckCircle2, Filter } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
@@ -670,7 +670,7 @@ export function DailyReport() { // ***** 수정해야함 리포트.
                     <div className="flex items-center gap-4 text-sm font-bold text-zinc-900">
                         <span className="text-zinc-400 font-normal text-[11px]">발행자</span>
                         <span>Smart Link AI</span>
-                        <span className="border border-zinc-900 text-[10px] px-2 py-0.5 rounded-full rotate-[-10deg] text-red-600 border-red-600">AUTO</span>
+                        <span className="border border-zinc-900 text-[10px] px-2 py-0.5 rounded-full rotate-[-10deg] text-red-600">AUTO</span>
                     </div>
                 </div>
             </div>
