@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react"
 import { useQuery } from "@tanstack/react-query"
-import { fetchDowntimeTrend } from "@/api/equipment"
+import { fetchDowntimeTrend, fetchMtbf } from "@/api/equipment"
 
 import type { DateRange } from "react-day-picker"
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader"
@@ -11,7 +11,7 @@ import { DefectCodeTable } from "@/components/table/DefectCodeTable"
 import { DefectPieChart } from "@/components/chart/DefectPieChart"
 import { EquipmentDetailTable } from "@/components/table/EquipmentDetailTable"
 
-import { downtimeResponse as mockDowntimeResponse, mtbfData, defectStatsData, paretoColors, equipmentComparisonData } from "@/data/mockData"
+import { downtimeResponse as mockDowntimeResponse, mockMtbfData_All, mockMtbfData_Single, defectStatsData, paretoColors, equipmentComparisonData } from "@/data/mockData"
 
 interface EquipmentStatsProps {
     setSelectedEquipment: (id: string) => void;
@@ -22,8 +22,8 @@ export function EquipmentStats({ setSelectedEquipment }: EquipmentStatsProps) {
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
 
-    const { appliedLine, appliedDate, setAppliedLine, setAppliedDate } = useFilterStore();
-    const [tempLine, setTempLine] = useState(appliedLine);
+    const { appliedEquipmentIds, appliedDate, setAppliedEquipmentIds, setAppliedDate } = useFilterStore();
+    const [tempEquipmentIds, setTempEquipmentIds] = useState(appliedEquipmentIds);
     const [tempDate, setTempDate] = useState<DateRange | undefined>(appliedDate);
     const [isCalendarOpen, setIsCalendarOpen] = useState(false);
         
@@ -43,11 +43,9 @@ export function EquipmentStats({ setSelectedEquipment }: EquipmentStatsProps) {
             return;
         }
 
-        setAppliedLine(tempLine);
+        setAppliedEquipmentIds(tempEquipmentIds);
         setAppliedDate(tempDate);
         setIsCalendarOpen(false);
-
-        // 💡 나중에 백엔드 API 호출 로직(axios.get...)도 이 안에서 실행하면 됩니다!
     };
 
     const [sortBy, setSortBy] = useState("yield-asc");
@@ -56,7 +54,7 @@ export function EquipmentStats({ setSelectedEquipment }: EquipmentStatsProps) {
     const filteredAndSortedData = useMemo(() => {
         // 1. 라인 필터링 (새로운 배열 반환)
         const filtered = equipmentComparisonData.filter(eq => 
-            appliedLine === "all" ? true : eq.line === appliedLine
+            appliedEquipmentIds === "all" ? true : eq.line === appliedEquipmentIds
         );
 
         // 2. 정렬 (원본 오염 방지를 위해 [...filtered] 로 복사 후 정렬!)
@@ -69,16 +67,31 @@ export function EquipmentStats({ setSelectedEquipment }: EquipmentStatsProps) {
                 default: return 0;
             }
         });
-    }, [appliedLine, sortBy]);
-
-    //1 
-    const { data: downtimeRes, isFetching: isDowntimeLoading } = useQuery({
-        queryKey: ["equipmentDowntime", appliedLine, appliedDate],
-        queryFn: () => fetchDowntimeTrend(appliedLine, appliedDate),
+    }, [appliedEquipmentIds, sortBy]);
+    
+    // 🌟 1. 비가동 시간 트렌드 (Downtime)
+    const { data: downtimeRes, isFetching: isDowntimeLoading, isError: isDowntimeError } = useQuery({
+        queryKey: ["equipmentDowntime", appliedEquipmentIds, appliedDate],
+        queryFn: () => fetchDowntimeTrend(appliedEquipmentIds, appliedDate),
         enabled: !!appliedDate?.from,
+        retry: false,
     });
 
-    const safeDowntimeRes = downtimeRes || mockDowntimeResponse;
+    const safeDowntimeRes = (isDowntimeError || !downtimeRes) ? mockDowntimeResponse : downtimeRes;
+
+    // 🌟 2. 평균 무고장 시간 (MTBF) 추가!
+    const { data: mtbfDataRaw, isFetching: isMtbfLoading, isError: isMtbfError } = useQuery({
+        queryKey: ["equipmentMtbf", appliedEquipmentIds, appliedDate],
+        queryFn: () => fetchMtbf(appliedEquipmentIds, appliedDate),
+        enabled: !!appliedDate?.from,
+        retry: false,
+    });
+
+    // 🌟 방어 로직: 에러 시 "all"인지 특정 장비인지에 따라 알맞은 목데이터를 꽂아줍니다!
+    const safeMtbfData = (isMtbfError || !mtbfDataRaw || mtbfDataRaw.length === 0) 
+        ? (appliedEquipmentIds === "all" ? mockMtbfData_All : mockMtbfData_Single) 
+        : mtbfDataRaw;
+
 
     return (
         <div className="animate-in fade-in duration-500 space-y-6">
@@ -86,27 +99,29 @@ export function EquipmentStats({ setSelectedEquipment }: EquipmentStatsProps) {
             <DashboardHeader 
                 title="장비 현황 통계"
                 subtitle="장비별 상세 수율 현황 및 설비 신뢰성 지표를 분석"
-                line={tempLine}
-                onLineChange={setTempLine}
+                equipment={tempEquipmentIds}
+                onEquipmentChange={setTempEquipmentIds}
                 date={tempDate}
                 onDateChange={setTempDate}
-                onSearch={handleSearch}isCalendarOpen={isCalendarOpen}
+                onSearch={handleSearch}
+                isCalendarOpen={isCalendarOpen}
                 onCalendarOpenChange={handleCalendarOpenChange}
             />
 
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
                 
+                {/* 🌟 3. 두 가지 데이터와 두 가지 로딩 상태를 각각 분리해서 주입 */}
                 <EquipmentKPIChart 
                     downtimeRes={safeDowntimeRes} 
-                    mtbfData={mtbfData} 
-                    isLoading={isDowntimeLoading} 
+                    mtbfData={safeMtbfData} 
+                    isDowntimeLoading={isDowntimeLoading} 
+                    isMtbfLoading={isMtbfLoading} 
                 />
 
                 <DefectCodeTable 
-                    data={defectStatsData} 
+                    data={defectStatsData} // <- 다음 단계에서 수정할 녀석!
                     className="col-span-1 lg:col-span-2" 
                 />
-
                 <DefectPieChart 
                     data={defectStatsData} 
                     colors={paretoColors} 

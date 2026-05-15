@@ -28,11 +28,13 @@ export function Dashboard() {
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
 
-    const { appliedLine, appliedDate, setAppliedLine, setAppliedDate } = useFilterStore();
-    const [tempLine, setTempLine] = useState(appliedLine);
+    const { appliedEquipmentIds, appliedDate, setAppliedEquipmentIds, setAppliedDate } = useFilterStore();
+    const [tempEquipmentIds, setTempEquipmentIds] = useState(appliedEquipmentIds);
     const [tempDate, setTempDate] = useState<DateRange | undefined>(appliedDate);
     const [isCalendarOpen, setIsCalendarOpen] = useState(false);
     
+    const [trendUnit, setTrendUnit] = useState<"daily" | "weekly">("daily");
+
     const isSingleDay = useMemo(() => {
         if (!appliedDate?.from) return false;
         if (!appliedDate.to) return true;
@@ -56,17 +58,16 @@ export function Dashboard() {
             return;
         }
 
-        setAppliedLine(tempLine);
+        setAppliedEquipmentIds(tempEquipmentIds);
         setAppliedDate(tempDate);
         setIsCalendarOpen(false);
     };
     
-    const [trendUnit, setTrendUnit] = useState<"daily" | "weekly" | "monthly">("daily");
 
     // 1 KPI
     const { data: summaryData, isLoading: isSummaryLoading, isError: isSummaryError } = useQuery({
-        queryKey: ["dashboardSummary", appliedLine, appliedDate],
-        queryFn: () => fetchDashboardSummary(appliedLine, appliedDate),
+        queryKey: ["dashboardSummary", appliedEquipmentIds, appliedDate],
+        queryFn: () => fetchDashboardSummary(appliedEquipmentIds, appliedDate),
         enabled: !!appliedDate?.from,
         retry: false,
     });
@@ -86,14 +87,11 @@ export function Dashboard() {
     ];
 
     // 2 TrendChart
-    const trendAnchorDate = appliedDate?.to || appliedDate?.from || new Date();
 
-    const { data: trendDataRaw, isFetching: isTrendLoading, isError: isTrendError } = useQuery({
-        // queryKey에도 범위를 빼고 기준일만 넣어서 캐싱을 최적화합니다.
-        queryKey: ["dashboardTrend", appliedLine, format(trendAnchorDate, 'yyyy-MM-dd'), trendUnit], 
-        queryFn: () => fetchDashboardTrend(appliedLine, trendAnchorDate, trendUnit),
-        enabled: !!trendAnchorDate,
-        retry: false,
+   const { data: trendDataRaw, isFetching: isTrendLoading, isError: isTrendError} = useQuery({
+        queryKey: ["dashboardTrend", appliedEquipmentIds, appliedDate, trendUnit], 
+        queryFn: () => fetchDashboardTrend(appliedEquipmentIds, appliedDate, trendUnit),
+        enabled: !!appliedDate?.from,
     });
 
     // 🌟 방어 로직: 에러가 났거나 배열이 텅 비어있다면 목데이터를 쓴다!
@@ -104,23 +102,23 @@ export function Dashboard() {
     // 3 Yield Chart
 
     const { data: yieldDataRaw, isLoading: isYieldLoading, isError: isYieldError } = useQuery({
-        queryKey: ["yieldComparison", appliedLine, appliedDate],
-        queryFn: () => fetchYieldComparison(appliedLine, appliedDate),
+        queryKey: ["yieldComparison", appliedEquipmentIds, appliedDate],
+        queryFn: () => fetchYieldComparison(appliedEquipmentIds, appliedDate),
         enabled: !!appliedDate?.from,
         retry: false,
     });
 
     // 🌟 방어 로직: 에러 시 appliedLine 상태에 따라 알맞은 목데이터를 꽂아줍니다!
     const safeYieldData = (isYieldError || !yieldDataRaw || yieldDataRaw.length === 0)
-        ? (appliedLine === "all" ? mockLineYieldData : mockEquipmentYieldData)
+        ? (appliedEquipmentIds === "all" ? mockLineYieldData : mockEquipmentYieldData)
         : yieldDataRaw;
     
     
 
     // 4  Pareto Chart
     const { data: paretoDataRaw, isLoading: isParetoLoading, isError: isParetoError } = useQuery({
-        queryKey: ["defectPareto", appliedLine, appliedDate],
-        queryFn: () => fetchDefectPareto(appliedLine, appliedDate),
+        queryKey: ["defectPareto", appliedEquipmentIds, appliedDate],
+        queryFn: () => fetchDefectPareto(appliedEquipmentIds, appliedDate),
         enabled: !!appliedDate?.from,
         retry: false,
     });
@@ -145,11 +143,12 @@ export function Dashboard() {
             <DashboardHeader 
                 title="종합 대시보드"
                 subtitle="생산 공정 지표 분석 및 AI 예측 리포트"
-                line={tempLine}
-                onLineChange={setTempLine}
+                equipment={tempEquipmentIds}
+                onEquipmentChange={setTempEquipmentIds}
                 date={tempDate}
                 onDateChange={setTempDate}
-                onSearch={handleSearch}isCalendarOpen={isCalendarOpen}
+                onSearch={handleSearch}
+                isCalendarOpen={isCalendarOpen}
                 onCalendarOpenChange={handleCalendarOpenChange}
             />
 
@@ -171,7 +170,7 @@ export function Dashboard() {
 
                     <UptimePieChart 
                         data={safeStatusData}
-                        uptimePercent={safeStatusData[0]?.value ?? 84} // 정중앙 퍼센트 숫자
+                        uptimePercent={safeSummaryData.kpi.availability}
                         isLoading={isSummaryLoading} 
                         className="col-span-1" 
                     />
@@ -190,7 +189,7 @@ export function Dashboard() {
 
                 <YieldComparisonChart 
                     data={safeYieldData} 
-                    line={appliedLine} 
+                    equipmentIds={appliedEquipmentIds} 
                     isLoading={isYieldLoading}
                     className="col-span-1" 
                 />

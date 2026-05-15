@@ -1,37 +1,36 @@
+import type { MtbfDataPoint } from "@/api/equipment"
 
 export const dashboardSummary = {
   kpi: {
-    totalProduction: 24563,       // 총 생산량
-    uph: 2850,                    // 시간당 생산량
-    productionRate: 102.4,        // 목표 대비 달성률(%)
-    productionTrend: 2.1,         // 전일(또는 평균) 대비 증감(%)
-    totalYield: 96.4,             // 종합 수율(%)
-    yieldTrend: -0.8,             // 전일(또는 평균) 대비 증감(%)
-    passRate: 98.7,               // 치수 합격률(%)
-    cpk: 1.52,                    // 공정 능력 지수
-    cpkTrend: 0.04,               // 전일(또는 평균) 대비 증감(%)
-    cpkRate:0.02,                 // 목표 대비 편차
-    topDefect: "C-01",            // 최다 발생 불량 코드
-    oee: 87.3,                    // 설비 종합 효율(%)
-    fail: 243,
-    marginal:128
+    totalProduction: 24563,
+    uph: 2850,
+    totalYield: 96.4,
+    yieldTrend: -0.8,
+    passRate: 98.7,
+    cpk: 1.52,
+    cpkTrend: 0.04,
+    topDefect: "C-01",
+    availability: 87.3,
+    totalDowntimeMin: 257,
+    mtbfHours: 12.5,
+    activeEquipment: 4,
+    totalEquipment: 5
   },
   status : {
     run : 84.0,
     idle: 11.5,
     down: 4.5
-  },
-  aiMessage : "가동률은 안정적이나, 블레이드 마모로 인한 LINE-A의 치수 편차 징후가 감지됩니다.",
+  }
 };
 
 export const trendData = [
-  { date: "5/01", production: 3100, yield: 95.1 },
-  { date: "5/02", production: 3400, yield: 96.2 },
-  { date: "5/03", production: 2800, yield: 93.8 },
-  { date: "5/04", production: 3500, yield: 97.1 },
-  { date: "5/05", production: 3600, yield: 98.4 },
-  { date: "5/06", production: 3900, yield: 99.1 },
-  { date: "5/07", production: 3400, yield: 96.1 },
+  { date: "05-01", production: 3100, yield: 95.1 },
+  { date: "05-02", production: 3400, yield: 96.2 },
+  { date: "05-03", production: 2800, yield: 93.8 },
+  { date: "05-04", production: 3500, yield: 97.1 },
+  { date: "05-05", production: 3600, yield: 98.4 },
+  { date: "05-06", production: 3900, yield: 99.1 },
+  { date: "05-07", production: 3400, yield: 96.1 }
 ];
 
 export const paretoData = [
@@ -43,21 +42,21 @@ export const paretoData = [
 ];
 
 export const lineYieldData = [
-  { name: "LINE-A", yield: 96.4 },
-  { name: "LINE-B", yield: 98.1 },
-  { name: "LINE-C", yield: 94.2 },
+  { name: "DS-VIS-001", yield: 96.4 },
+  { name: "DS-VIS-002", yield: 98.1 },
+  { name: "DS-VIS-003", yield: 94.2 },
 ];
 
 export const equipmentYieldData = [
-  { name: "EQ.01", yield: 95.2 },
-  { name: "EQ.02", yield: 97.4 },
-  { name: "EQ.03", yield: 99.3 },
-  { name: "EQ.04", yield: 99.4 },
-  { name: "EQ.05", yield: 96.1 },
+  { name: "LOT#1", yield: 95.2 },
+  { name: "LOT#2", yield: 97.4 },
+  { name: "LOT#3", yield: 99.3 },
+  { name: "LOT#4", yield: 99.4 },
+  { name: "LOT#5", yield: 96.1 },
 ];
 
-// equipment
 
+// equipment
 export const downtimeResponse = {
     success: true,
     unit: "hr" as "hr" | "min",
@@ -71,11 +70,21 @@ export const downtimeResponse = {
     ]
 };
 
-// 2. 신규: 라인별 평균 무고장 시간 (MTBF)
-export const mtbfData = [
-    { line: "LINE-A", hours: 82 },
-    { line: "LINE-B", hours: 115 },
-    { line: "LINE-C", hours: 78 },
+// 🌟 1. 전체 장비 조회 시 목데이터 (name = 장비명)
+export const mockMtbfData_All: MtbfDataPoint[] = [
+    { name: "DS-VIS-001", hours: 82 },
+    { name: "DS-VIS-002", hours: 115 },
+    { name: "DS-VIS-003", hours: 76 },
+    { name: "DS-VIS-004", hours: 94 },
+];
+
+// 🌟 2. 특정 장비 조회 시 목데이터 (name = 날짜)
+export const mockMtbfData_Single: MtbfDataPoint[] = [
+    { name: "05/01", hours: 45 },
+    { name: "05/02", hours: 52 },
+    { name: "05/03", hours: 48 },
+    { name: "05/04", hours: 61 },
+    { name: "05/05", hours: 55 },
 ];
 
 // 3. 주요 불량 코드

@@ -13,9 +13,11 @@ interface DashboardHeaderProps {
     // 제목 및 부제목
     title: string;
     subtitle: string;
-    // 라인 필터 상태 및 핸들러
-    line: string;
-    onLineChange: (value: string) => void;
+    
+    // 🌟 라인(line) -> 장비(equipment) 필터 상태 및 핸들러로 변경
+    equipment: string;
+    onEquipmentChange: (value: string) => void;
+    
     // 날짜 필터 상태 및 핸들러
     date: DateRange | undefined;
     onDateChange: (date: DateRange | undefined) => void;
@@ -28,7 +30,7 @@ interface DashboardHeaderProps {
 
 export function DashboardHeader({
     title, subtitle,
-    line, onLineChange,
+    equipment, onEquipmentChange, // 🌟 이름 변경
     date, onDateChange,
     onSearch,
     isCalendarOpen, onCalendarOpenChange,
@@ -45,20 +47,22 @@ export function DashboardHeader({
             </div>
 
             <div className="flex items-center gap-2">
-                {/* 라인 선택기 */}
-                <Select value={line} onValueChange={onLineChange}>
-                <SelectTrigger className="w-40 bg-card border-border text-foreground font-medium h-10">
-                    <SelectValue placeholder="라인 선택" />
+                {/* 🌟 장비 선택기 (기존 라인 선택기 대체) */}
+                <Select value={equipment} onValueChange={onEquipmentChange}>
+                {/* 장비 ID가 길어질 수 있으므로 너비를 w-40에서 w-44 정도로 살짝 늘려줍니다 */}
+                <SelectTrigger className="w-44 bg-card border-border text-foreground font-medium h-10">
+                    <SelectValue placeholder="장비 선택" />
                 </SelectTrigger>
                 <SelectContent>
-                    <SelectItem value="all">전체 라인</SelectItem>
-                    <SelectItem value="line-a">SAW-LINE A</SelectItem>
-                    <SelectItem value="line-b">SAW-LINE B</SelectItem>
-                    <SelectItem value="line-c">SAW-LINE C</SelectItem>
+                    {/* API 명세서에 맞춘 value 값 지정 ("all", "DS-VIS-001" 등) */}
+                    <SelectItem value="all">전체 장비</SelectItem>
+                    <SelectItem value="DS-VIS-001">DS-VIS-001</SelectItem>
+                    <SelectItem value="DS-VIS-002">DS-VIS-002</SelectItem>
+                    <SelectItem value="DS-VIS-003">DS-VIS-003</SelectItem>
                 </SelectContent>
                 </Select>
 
-                {/* 캘린더 (D-1 기본, 미래 날짜 비활성화 로직 포함) */}
+                {/* 캘린더 영역 (변경 없음) */}
                 <Popover open={isCalendarOpen} onOpenChange={onCalendarOpenChange}>
                     <PopoverTrigger asChild>
                     <Button

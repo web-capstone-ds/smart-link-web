@@ -19,19 +19,22 @@ export interface YieldData {
 
 interface YieldComparisonChartProps {
     data: YieldData[];
-    line: string; // 현재 선택된 라인 정보 (제목과 색상 변경에 사용)
+    // 🌟 line -> equipmentIds로 프롭스 이름 변경
+    equipmentIds: string; 
     className?: string;
     isLoading?: boolean;
 }
 
-export function YieldComparisonChart({ data, line, className, isLoading }: YieldComparisonChartProps) {
-    const isAllLines = line === "all";
-    const formattedLineName = line.toUpperCase();
-    const chartTitle = isAllLines ? "라인별 수율 비교" : `${formattedLineName} 장비별 수율`;
+export function YieldComparisonChart({ data, equipmentIds, className, isLoading }: YieldComparisonChartProps) {
+    // 🌟 로직 변경: "all"이면 전체 장비 비교, 아니면 특정 장비의 LOT 비교
+    const isAllEquipments = equipmentIds === "all";
+    const formattedName = equipmentIds.toUpperCase();
     
-    // 차트의 막대 색상은 기존의 포인트 컬러(보라/파랑)를 유지합니다.
-    // 만약 이 색상도 테마에 맞추고 싶으시다면 'var(--primary)' 로 변경하시면 됩니다!
-    const barColor = isAllLines ? "#8b5cf6" : "#0ea5e9";
+    // 명세서 3-3에 맞춘 다이내믹 타이틀 생성
+    const chartTitle = isAllEquipments ? "전체 장비별 수율 비교" : `${formattedName} LOT별 수율`;
+    
+    // 차트의 막대 색상 (전체는 보라색, 특정 장비/LOT는 파란색)
+    const barColor = isAllEquipments ? "#8b5cf6" : "#0ea5e9";
 
     const minYield = data && data.length > 0 
         ? Math.floor(Math.min(...data.map(d => d.yield))) - 1
@@ -58,7 +61,6 @@ export function YieldComparisonChart({ data, line, className, isLoading }: Yield
                         layout="vertical" 
                         margin={{ top: 5, right: 30, left: 10, bottom: 5 }}
                     >
-                        {/* 🌟 수정됨: 기환님의 순수 Hex CSS 변수를 직접 호출합니다 */}
                         <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" horizontal={false} />
                         
                         <XAxis 
@@ -77,7 +79,6 @@ export function YieldComparisonChart({ data, line, className, isLoading }: Yield
                             width={60} 
                         />
                         <Tooltip 
-                            // 🌟 수정됨: 툴팁 배경을 --card 컬러(#27272A)로 부드럽게 매칭
                             cursor={{ fill: 'var(--muted)', opacity: 0.4 }} 
                             contentStyle={{ 
                                 backgroundColor: 'var(--card)', 

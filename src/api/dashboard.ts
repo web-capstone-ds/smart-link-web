@@ -1,48 +1,47 @@
 import axios from "axios";
-import { format } from "date-fns"; // 날짜 포맷팅을 위한 라이브러리 (npm install date-fns)
+import { format, subDays, subWeeks, isSameDay } from 'date-fns'; // 날짜 포맷팅을 위한 라이브러리 (npm install date-fns)
 import type { DateRange } from "react-day-picker";
 
-// 1번 API 응답 타입 정의 (명세서 기준)
+// 🌟 1. 최종 명세서(3-1) 기준 응답 타입 수정
 export interface DashboardSummaryResponse {
   kpi: {
     totalProduction: number;
     uph: number;
-    productionRate: number;
-    productionTrend: number;
     totalYield: number;
     yieldTrend: number;
     passRate: number;
     cpk: number;
     cpkTrend: number;
-    cpkRate: number;
     topDefect: string;
-    oee: number;
-    fail: number;
-    marginal: number;
+    // 신규 추가 및 대체 항목
+    availability: number;      // 기존 oee 대체
+    totalDowntimeMin: number;  // 기존 productionRate 대체
+    mtbfHours: number;         // 신규
+    activeEquipment: number;   // 신규
+    totalEquipment: number;    // 신규
   };
   status: {
     run: number;
     idle: number;
     down: number;
   };
-  aiMessage: string;
 }
 
-type TrendUnitType = "daily" | "weekly" | "monthly";
-
-// 🌟 요약 데이터 가져오기 API 함수
 export const fetchDashboardSummary = async (
-    lineId: string, 
+    // 명세서 2-2에 따라 lineId를 equipmentIds로 변경
+    equipmentIds: string, 
     date: DateRange | undefined
 ): Promise<DashboardSummaryResponse> => {
+    
     await new Promise(resolve => setTimeout(resolve, 1000));
-    // 날짜 포맷팅 (YYYY-MM-DD). 하루만 선택된 경우 to가 없으므로 from과 동일하게 세팅
-    const startDate = date?.from ? format(date?.from, 'yyyy-MM-dd') : '';
-    const endDate = date?.to ? format(date?.to, 'yyyy-MM-dd') : startDate;
+
+    // 날짜 포맷팅
+    const startDate = date?.from ? format(date.from, 'yyyy-MM-dd') : '';
+    const endDate = date?.to ? format(date.to, 'yyyy-MM-dd') : startDate;
 
     const response = await axios.get('/api/v1/dashboard/summary', {
         params: {
-            lineId,
+            equipmentIds, // lineId 대신 사용
             startDate,
             endDate
         }
@@ -52,9 +51,10 @@ export const fetchDashboardSummary = async (
         throw new Error("서버에서 올바른 데이터를 받지 못했습니다.");
     }
     
-    // axios는 기본적으로 data 객체 안에 응답을 담으므로, 명세서의 "data" 객체만 꺼내서 반환
     return response.data.data; 
 };
+
+type TrendUnitType = "daily" | "weekly";
 
 // 2번 API 응답 타입 정의
 export interface TrendData {
@@ -62,26 +62,44 @@ export interface TrendData {
   production: number;
   yield: number;
 }
-
-// 🌟 트렌드 차트 데이터 가져오기 API 함수
 export const fetchDashboardTrend = async (
-    lineId: string, 
-    // DateRange가 아니라 단일 Date(기준일)를 받도록 수정합니다.
-    anchorDate: Date | undefined, 
+    equipmentIds: string, 
+    date: DateRange | undefined, 
     unit: TrendUnitType
 ): Promise<TrendData[]> => {
     
     await new Promise(resolve => setTimeout(resolve, 1000));
 
-    // 기준일이 없으면 오늘 날짜를 사용
-    const targetDate = anchorDate ? format(anchorDate, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd');
+    // 1. 기준이 되는 마지막 날짜(endDate) 확정
+    const anchorDate = date?.to || date?.from || new Date();
+    const endDate = format(anchorDate, 'yyyy-MM-dd');
+
+    // 2. 단일 일자(하루) 선택 여부 판별
+    // to가 아예 없거나, from과 to가 같은 날짜면 "하루 선택"으로 간주합니다.
+    const isSingleDay = date?.from && (!date.to || isSameDay(date.from, date.to));
+
+    let startDate: string;
+
+    if (isSingleDay) {
+        // 🌟 [하루 선택 시] 강제로 과거 7개 데이터 범위를 잡아줍니다.
+        let calculatedStartDate: Date;
+        if (unit === "daily") {
+            calculatedStartDate = subDays(anchorDate, 6);
+        } else {
+            calculatedStartDate = subWeeks(anchorDate, 6);
+        }
+        startDate = format(calculatedStartDate, 'yyyy-MM-dd');
+    } else {
+        // 🌟 [기간 선택 시] 사용자가 지정한 시작일을 그대로 존중합니다.
+        startDate = date?.from ? format(date.from, 'yyyy-MM-dd') : endDate;
+    }
 
     const response = await axios.get('/api/v1/dashboard/trend', {
         params: { 
-            lineId, 
-            endDate: targetDate, // 🌟 시작일 없이 종료일(기준일)만 보냅니다.
-            unit, 
-            limit: 7             // 🌟 백엔드에게 7개만 달라고 명시합니다! (백엔드에서 처리)
+            equipmentIds, 
+            startDate, // 분기 처리된 시작일
+            endDate,   
+            unit       
         }
     });
 
@@ -94,24 +112,27 @@ export const fetchDashboardTrend = async (
 
 // 🌟 3번 API 응답 타입 정의
 export interface YieldComparisonData {
-  name: string;
+  name: string; // equipmentIds="all"이면 장비명, 특정 ID면 LOT#
   yield: number;
 }
 
-// 🌟 수율 비교 차트 데이터 가져오기 API 함수
 export const fetchYieldComparison = async (
-    lineId: string, 
+    equipmentIds: string, // 🌟 lineId에서 명칭 변경
     date: DateRange | undefined
 ): Promise<YieldComparisonData[]> => {
     
-    // 로딩 UI 확인을 위한 1초 지연 
     await new Promise(resolve => setTimeout(resolve, 1000));
 
+    // 🌟 공통 쿼리 파라미터 규격(2-2)에 따른 날짜 포맷팅
     const startDate = date?.from ? format(date.from, 'yyyy-MM-dd') : '';
     const endDate = date?.to ? format(date.to, 'yyyy-MM-dd') : startDate;
 
     const response = await axios.get('/api/v1/dashboard/yield-comparison', {
-        params: { lineId, startDate, endDate }
+        params: { 
+            equipmentIds, // 🌟 파라미터 키 명칭 변경
+            startDate, 
+            endDate 
+        }
     });
     
     if (!response.data || !response.data.data) {
@@ -131,7 +152,7 @@ export interface ParetoData {
 
 // 🌟 불량 파레토 차트 데이터 가져오기 API 함수
 export const fetchDefectPareto = async (
-    lineId: string, 
+    equipmentIds: string, 
     date: DateRange | undefined
 ): Promise<ParetoData[]> => {
     
@@ -142,7 +163,7 @@ export const fetchDefectPareto = async (
     const endDate = date?.to ? format(date.to, 'yyyy-MM-dd') : startDate;
 
     const response = await axios.get('/api/v1/dashboard/defects/pareto', {
-        params: { lineId, startDate, endDate }
+        params: { equipmentIds, startDate, endDate }
     });
     
     if (!response.data || !response.data.data) {
