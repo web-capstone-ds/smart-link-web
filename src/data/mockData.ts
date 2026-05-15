@@ -93,18 +93,245 @@ export const defectStatsData = [
     { code: "B-02", name: "Blade Wear (블레이드 마모)", type: "공통 불량", count: 185, ratio: "24%", impact: "절단면 품질 저하 및 부하" },
     { code: "L-03", name: "Lens Contamination", type: "개별 불량", count: 89, ratio: "12%", impact: "비전 인식 오류" },
     { code: "A-04", name: "Alignment Fail", type: "개별 불량", count: 45, ratio: "6%", impact: "자재 정렬 틀어짐" },
+    { code: "L-03", name: "Lens Contamination", type: "개별 불량", count: 89, ratio: "12%", impact: "비전 인식 오류" },
+    { code: "A-04", name: "Alignment Fail", type: "개별 불량", count: 45, ratio: "6%", impact: "자재 정렬 틀어짐" },
 ];
 
-export const paretoColors = ["#f59e0b", "#f97316", "#3b82f6", "#0ea5e9"]; // 파레토 파이 차트 색상
+export const DEFECT_COLORS = ["#f59e0b", "#f97316", "#3b82f6", "#0ea5e9"]; // 파레토 파이 차트 색상
 
 // 4. 장비 개별 데이터
-export const equipmentComparisonData = [
-    { id: "SAW-EQ.01", line: "line-a", recipe: "PKG_A12", uptime: 82.5, total: 24500, fail: 850, marginal: 320, yield: 95.2, majorDefect: "C-01 (Chipping)", unresolvedAlert: true, yieldTrend: [97, 96, 95, 93, 91, 95.2] },
-    { id: "SAW-EQ.02", line: "line-a", recipe: "PKG_B08", uptime: 91.2, total: 22100, fail: 410, marginal: 150, yield: 97.4, majorDefect: "L-03 (Lens Contamination)", unresolvedAlert: false, yieldTrend: [96, 97, 97.5, 98, 97.2, 97.4] },
-    { id: "SAW-EQ.03", line: "line-b", recipe: "PKG_A12", uptime: 98.5, total: 25600, fail: 120, marginal: 50, yield: 99.3, majorDefect: "B-02 (Blade Wear)", unresolvedAlert: false, yieldTrend: [99, 99.1, 99.2, 99.5, 99.3, 99.3] },
-    { id: "SAW-EQ.04", line: "line-b", recipe: "PKG_C15", uptime: 99.1, total: 23800, fail: 95, marginal: 30, yield: 99.4, majorDefect: "-", unresolvedAlert: false, yieldTrend: [98.5, 99, 99.2, 99.4, 99.5, 99.4] },
-    { id: "SAW-EQ.05", line: "line-a", recipe: "PKG_A12", uptime: 78.0, total: 21500, fail: 950, marginal: 420, yield: 93.6, majorDefect: "C-01 (Chipping)", unresolvedAlert: true, yieldTrend: [98, 96, 94, 92, 91, 93.6] },
-    { id: "SAW-EQ.06", line: "line-c", recipe: "PKG_B08", uptime: 94.2, total: 23100, fail: 310, marginal: 110, yield: 98.1, majorDefect: "A-04 (Alignment Fail)", unresolvedAlert: false, yieldTrend: [97, 97.5, 98, 98.1, 97.9, 98.1] },
-    { id: "SAW-EQ.07", line: "line-c", recipe: "PKG_C15", uptime: 97.5, total: 24600, fail: 150, marginal: 60, yield: 99.1, majorDefect: "B-02 (Blade Wear)", unresolvedAlert: false, yieldTrend: [98, 98.5, 99, 99.2, 99.1, 99.1] },
-    { id: "SAW-EQ.08", line: "line-b", recipe: "PKG_A12", uptime: 99.5, total: 24800, fail: 80, marginal: 20, yield: 99.6, majorDefect: "-", unresolvedAlert: false, yieldTrend: [99, 99.2, 99.4, 99.5, 99.6, 99.6] },
+import type { EquipmentStatus } from "@/api/equipment";
+
+// 🌟 장비 상세 리스트 목데이터 (다양한 UI 상태 테스트용)
+export const equipmentComparisonData: EquipmentStatus[] = [
+    { 
+        id: "DS-VIS-001", 
+        recipe: "PKG_A12", 
+        uptime: 82.5,          // 가동률 90 미만 (빨간색)
+        total: 24500, 
+        fail: 850, 
+        marginal: 320, 
+        yield: 95.2,           // 수율 97 미만 (빨간색)
+        majorDefect: "C-01 (Chipping)", 
+        unresolvedAlert: true, // 미조치 경보 발생
+        yieldTrend: [97, 96, 95, 93, 91, 95.2] 
+    },
+    { 
+        id: "DS-VIS-002", 
+        recipe: "PKG_B05", 
+        uptime: 98.2,          // 가동률 우수 (초록색)
+        total: 31200, 
+        fail: 120, 
+        marginal: 85, 
+        yield: 99.3,           // 수율 우수 (초록색)
+        majorDefect: "-", 
+        unresolvedAlert: false, // 정상
+        yieldTrend: [99.0, 99.1, 99.5, 99.2, 99.4, 99.3] 
+    },
+    { 
+        id: "DS-VIS-003", 
+        recipe: "PKG_A12", 
+        uptime: 92.5,          // 가동률 경고 (주황색)
+        total: 18400, 
+        fail: 450, 
+        marginal: 210, 
+        yield: 96.4,           // 수율 저하 (빨간색)
+        majorDefect: "L-03 (Lens Contamination)", 
+        unresolvedAlert: true, 
+        yieldTrend: [98.5, 98.0, 97.2, 96.8, 96.0, 96.4] 
+    },
+    { 
+        id: "DS-VIS-004", 
+        recipe: "PKG_C01", 
+        uptime: 96.5, 
+        total: 42000, 
+        fail: 310, 
+        marginal: 150, 
+        yield: 98.9, 
+        majorDefect: "B-02 (Blade Wear)", 
+        unresolvedAlert: false, 
+        yieldTrend: [98.2, 98.5, 98.7, 99.0, 98.8, 98.9] 
+    },
+    { 
+        id: "DS-VIS-005", 
+        recipe: "PKG_B05", 
+        uptime: 88.0,          // 가동률 90 미만 (빨간색)
+        total: 15600, 
+        fail: 180, 
+        marginal: 95, 
+        yield: 98.2, 
+        majorDefect: "A-04 (Alignment Fail)", 
+        unresolvedAlert: false, 
+        yieldTrend: [98.0, 97.5, 98.1, 98.3, 98.0, 98.2] 
+    },
+    
+    { 
+        id: "DS-VIS-001", 
+        recipe: "PKG_A12", 
+        uptime: 82.5,          // 가동률 90 미만 (빨간색)
+        total: 24500, 
+        fail: 850, 
+        marginal: 320, 
+        yield: 95.2,           // 수율 97 미만 (빨간색)
+        majorDefect: "C-01 (Chipping)", 
+        unresolvedAlert: true, // 미조치 경보 발생
+        yieldTrend: [97, 96, 95, 93, 91, 95.2] 
+    },
+    { 
+        id: "DS-VIS-002", 
+        recipe: "PKG_B05", 
+        uptime: 98.2,          // 가동률 우수 (초록색)
+        total: 31200, 
+        fail: 120, 
+        marginal: 85, 
+        yield: 99.3,           // 수율 우수 (초록색)
+        majorDefect: "-", 
+        unresolvedAlert: false, // 정상
+        yieldTrend: [99.0, 99.1, 99.5, 99.2, 99.4, 99.3] 
+    },
+    { 
+        id: "DS-VIS-003", 
+        recipe: "PKG_A12", 
+        uptime: 92.5,          // 가동률 경고 (주황색)
+        total: 18400, 
+        fail: 450, 
+        marginal: 210, 
+        yield: 96.4,           // 수율 저하 (빨간색)
+        majorDefect: "L-03 (Lens Contamination)", 
+        unresolvedAlert: true, 
+        yieldTrend: [98.5, 98.0, 97.2, 96.8, 96.0, 96.4] 
+    },
+    { 
+        id: "DS-VIS-004", 
+        recipe: "PKG_C01", 
+        uptime: 96.5, 
+        total: 42000, 
+        fail: 310, 
+        marginal: 150, 
+        yield: 98.9, 
+        majorDefect: "B-02 (Blade Wear)", 
+        unresolvedAlert: false, 
+        yieldTrend: [98.2, 98.5, 98.7, 99.0, 98.8, 98.9] 
+    },
+    { 
+        id: "DS-VIS-005", 
+        recipe: "PKG_B05", 
+        uptime: 88.0,          // 가동률 90 미만 (빨간색)
+        total: 15600, 
+        fail: 180, 
+        marginal: 95, 
+        yield: 98.2, 
+        majorDefect: "A-04 (Alignment Fail)", 
+        unresolvedAlert: false, 
+        yieldTrend: [98.0, 97.5, 98.1, 98.3, 98.0, 98.2] 
+    },
+    
+    { 
+        id: "DS-VIS-003", 
+        recipe: "PKG_A12", 
+        uptime: 92.5,          // 가동률 경고 (주황색)
+        total: 18400, 
+        fail: 450, 
+        marginal: 210, 
+        yield: 96.4,           // 수율 저하 (빨간색)
+        majorDefect: "L-03 (Lens Contamination)", 
+        unresolvedAlert: true, 
+        yieldTrend: [98.5, 98.0, 97.2, 96.8, 96.0, 96.4] 
+    },
+    { 
+        id: "DS-VIS-004", 
+        recipe: "PKG_C01", 
+        uptime: 96.5, 
+        total: 42000, 
+        fail: 310, 
+        marginal: 150, 
+        yield: 98.9, 
+        majorDefect: "B-02 (Blade Wear)", 
+        unresolvedAlert: false, 
+        yieldTrend: [98.2, 98.5, 98.7, 99.0, 98.8, 98.9] 
+    },
+    { 
+        id: "DS-VIS-005", 
+        recipe: "PKG_B05", 
+        uptime: 88.0,          // 가동률 90 미만 (빨간색)
+        total: 15600, 
+        fail: 180, 
+        marginal: 95, 
+        yield: 98.2, 
+        majorDefect: "A-04 (Alignment Fail)", 
+        unresolvedAlert: false, 
+        yieldTrend: [98.0, 97.5, 98.1, 98.3, 98.0, 98.2] 
+    },
+    { 
+        id: "DS-VIS-003", 
+        recipe: "PKG_A12", 
+        uptime: 92.5,          // 가동률 경고 (주황색)
+        total: 18400, 
+        fail: 450, 
+        marginal: 210, 
+        yield: 96.4,           // 수율 저하 (빨간색)
+        majorDefect: "L-03 (Lens Contamination)", 
+        unresolvedAlert: true, 
+        yieldTrend: [98.5, 98.0, 97.2, 96.8, 96.0, 96.4] 
+    },
+    { 
+        id: "DS-VIS-004", 
+        recipe: "PKG_C01", 
+        uptime: 96.5, 
+        total: 42000, 
+        fail: 310, 
+        marginal: 150, 
+        yield: 98.9, 
+        majorDefect: "B-02 (Blade Wear)", 
+        unresolvedAlert: false, 
+        yieldTrend: [98.2, 98.5, 98.7, 99.0, 98.8, 98.9] 
+    },
+    { 
+        id: "DS-VIS-005", 
+        recipe: "PKG_B05", 
+        uptime: 88.0,          // 가동률 90 미만 (빨간색)
+        total: 15600, 
+        fail: 180, 
+        marginal: 95, 
+        yield: 98.2, 
+        majorDefect: "A-04 (Alignment Fail)", 
+        unresolvedAlert: false, 
+        yieldTrend: [98.0, 97.5, 98.1, 98.3, 98.0, 98.2] 
+    },
+    { 
+        id: "DS-VIS-003", 
+        recipe: "PKG_A12", 
+        uptime: 92.5,          // 가동률 경고 (주황색)
+        total: 18400, 
+        fail: 450, 
+        marginal: 210, 
+        yield: 96.4,           // 수율 저하 (빨간색)
+        majorDefect: "L-03 (Lens Contamination)", 
+        unresolvedAlert: true, 
+        yieldTrend: [98.5, 98.0, 97.2, 96.8, 96.0, 96.4] 
+    },
+    { 
+        id: "DS-VIS-004", 
+        recipe: "PKG_C01", 
+        uptime: 96.5, 
+        total: 42000, 
+        fail: 310, 
+        marginal: 150, 
+        yield: 98.9, 
+        majorDefect: "B-02 (Blade Wear)", 
+        unresolvedAlert: false, 
+        yieldTrend: [98.2, 98.5, 98.7, 99.0, 98.8, 98.9] 
+    },
+    { 
+        id: "DS-VIS-005", 
+        recipe: "PKG_B05", 
+        uptime: 88.0,          // 가동률 90 미만 (빨간색)
+        total: 15600, 
+        fail: 180, 
+        marginal: 95, 
+        yield: 98.2, 
+        majorDefect: "A-04 (Alignment Fail)", 
+        unresolvedAlert: false, 
+        yieldTrend: [98.0, 97.5, 98.1, 98.3, 98.0, 98.2] 
+    }
 ];

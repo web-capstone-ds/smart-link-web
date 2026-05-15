@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react"
 import { useQuery } from "@tanstack/react-query"
-import { fetchDowntimeTrend, fetchMtbf } from "@/api/equipment"
+import { fetchDowntimeTrend, fetchMtbf, fetchDefects, fetchEquipmentStatusList } from "@/api/equipment"
 
 import type { DateRange } from "react-day-picker"
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader"
@@ -11,7 +11,8 @@ import { DefectCodeTable } from "@/components/table/DefectCodeTable"
 import { DefectPieChart } from "@/components/chart/DefectPieChart"
 import { EquipmentDetailTable } from "@/components/table/EquipmentDetailTable"
 
-import { downtimeResponse as mockDowntimeResponse, mockMtbfData_All, mockMtbfData_Single, defectStatsData, paretoColors, equipmentComparisonData } from "@/data/mockData"
+import { downtimeResponse as mockDowntimeResponse, mockMtbfData_All, mockMtbfData_Single, defectStatsData as mockDefectStatsData,
+     DEFECT_COLORS, equipmentComparisonData as mockEquipmentComparisonData } from "@/data/mockData"
 
 interface EquipmentStatsProps {
     setSelectedEquipment: (id: string) => void;
@@ -49,36 +50,24 @@ export function EquipmentStats({ setSelectedEquipment }: EquipmentStatsProps) {
     };
 
     const [sortBy, setSortBy] = useState("yield-asc");
-
-    // 나중에 Zustand나 React Context API 같은 상태 관리 라이브러리를 사용해서 "이 라인/날짜 상태를 App.tsx 최상단에 하나만 두고 모든 페이지가 공유하게 묶기
-    const filteredAndSortedData = useMemo(() => {
-        // 1. 라인 필터링 (새로운 배열 반환)
-        const filtered = equipmentComparisonData.filter(eq => 
-            appliedEquipmentIds === "all" ? true : eq.line === appliedEquipmentIds
-        );
-
-        // 2. 정렬 (원본 오염 방지를 위해 [...filtered] 로 복사 후 정렬!)
-        return [...filtered].sort((a, b) => {
-            switch (sortBy) {
-                case "yield-asc": return a.yield - b.yield;
-                case "yield-desc": return b.yield - a.yield;
-                case "uptime-asc": return a.uptime - b.uptime;
-                case "uptime-desc": return b.uptime - a.uptime;
-                default: return 0;
-            }
-        });
-    }, [appliedEquipmentIds, sortBy]);
     
     // 🌟 1. 비가동 시간 트렌드 (Downtime)
     const { data: downtimeRes, isFetching: isDowntimeLoading, isError: isDowntimeError } = useQuery({
         queryKey: ["equipmentDowntime", appliedEquipmentIds, appliedDate],
         queryFn: () => fetchDowntimeTrend(appliedEquipmentIds, appliedDate),
         enabled: !!appliedDate?.from,
-        retry: false,
     });
 
-    const safeDowntimeRes = (isDowntimeError || !downtimeRes) ? mockDowntimeResponse : downtimeRes;
-
+    // 🌟 수정: 서버에서 받은 data 배열이 텅 비어있을 때도 목데이터를 쓰도록 조건을 추가합니다!
+    const safeDowntimeRes = (
+        isDowntimeError ||                 // 통신 에러가 났거나
+        !downtimeRes ||                    // 아예 데이터가 없거나
+        !downtimeRes.data                  // data 속성이 없거나
+        //||downtimeRes.data.length === 0      
+    ) 
+        ? mockDowntimeResponse 
+        : downtimeRes;
+        
     // 🌟 2. 평균 무고장 시간 (MTBF) 추가!
     const { data: mtbfDataRaw, isFetching: isMtbfLoading, isError: isMtbfError } = useQuery({
         queryKey: ["equipmentMtbf", appliedEquipmentIds, appliedDate],
@@ -92,9 +81,70 @@ export function EquipmentStats({ setSelectedEquipment }: EquipmentStatsProps) {
         ? (appliedEquipmentIds === "all" ? mockMtbfData_All : mockMtbfData_Single) 
         : mtbfDataRaw;
 
+    console.log("safeDowntimeRes", safeDowntimeRes);
+    
+    const { 
+        data: defectsRes, 
+        isFetching: isDefectsLoading, 
+        isError: isDefectsError 
+    } = useQuery({
+        queryKey: ["equipmentDefects", appliedEquipmentIds, appliedDate],
+        queryFn: () => fetchDefects(appliedEquipmentIds, appliedDate),
+        enabled: !!appliedDate?.from,
+        retry: false,
+    });
+
+    // 🌟 2. 강력한 방어 로직: 에러, null, 빈 배열일 경우 모두 목데이터로 대체!
+    const safeDefectsData = (
+        isDefectsError || 
+        !defectsRes || 
+        defectsRes.length === 0
+    ) 
+        ? mockDefectStatsData // 기환님이 작성하신 목데이터
+        : defectsRes;
+
+    const { 
+        data: equipmentListRes, 
+        isFetching: isEquipmentListLoading, 
+        isError: isEquipmentListError 
+    } = useQuery({
+        queryKey: ["equipmentList", appliedEquipmentIds, appliedDate],
+        queryFn: () => fetchEquipmentStatusList(appliedEquipmentIds, appliedDate),
+        enabled: !!appliedDate?.from,
+        retry: false, // 개발/디버깅 편의를 위해 일단 false
+    });
+
+    // 🌟 2. 강력한 방어 로직: 에러, null, 빈 배열 시 목데이터 스위칭
+    const safeEquipmentList = (
+        isEquipmentListError || 
+        !equipmentListRes || 
+        equipmentListRes.length === 0
+    ) 
+        ? mockEquipmentComparisonData // 기환님이 data/mockData.ts 에 준비해두신 목데이터
+        : equipmentListRes;
+        
+        // 🌟 서버에서 받은(혹은 목데이터로 대체된) 데이터를 기반으로 필터링 및 정렬 수행
+    const filteredAndSortedData = useMemo(() => {
+        
+        // 1. 장비 필터링 (명세 변경 반영: eq.line -> eq.id)
+        const filtered = safeEquipmentList.filter(eq => 
+            appliedEquipmentIds === "all" ? true : eq.id === appliedEquipmentIds
+        );
+
+        // 2. 정렬 (기존의 훌륭한 얕은 복사 정렬 로직 유지!)
+        return [...filtered].sort((a, b) => {
+            switch (sortBy) {
+                case "yield-asc": return a.yield - b.yield;
+                case "yield-desc": return b.yield - a.yield;
+                case "uptime-asc": return a.uptime - b.uptime;
+                case "uptime-desc": return b.uptime - a.uptime;
+                default: return 0;
+            }
+        });
+    }, [safeEquipmentList, appliedEquipmentIds, sortBy]); 
 
     return (
-        <div className="animate-in fade-in duration-500 space-y-6">
+        <div className="animate-in fade-in duration-500 space-y-6 ">
 
             <DashboardHeader 
                 title="장비 현황 통계"
@@ -119,24 +169,29 @@ export function EquipmentStats({ setSelectedEquipment }: EquipmentStatsProps) {
                 />
 
                 <DefectCodeTable 
-                    data={defectStatsData} // <- 다음 단계에서 수정할 녀석!
+                    data={safeDefectsData}
+                    isLoading={isDefectsLoading}
                     className="col-span-1 lg:col-span-2" 
                 />
+
                 <DefectPieChart 
-                    data={defectStatsData} 
-                    colors={paretoColors} 
-                    className="col-span-1" 
+                    data={safeDefectsData} 
+                    colors={DEFECT_COLORS} 
+                    isLoading={isDefectsLoading}
+                    className="col-span-1"
                 />
 
             </div>
-
+            
             <EquipmentDetailTable 
                 data={filteredAndSortedData} 
-                sortBy={sortBy} 
-                onSortChange={setSortBy} 
-                onRowClick={setSelectedEquipment} 
+                isLoading={isEquipmentListLoading}
+                sortBy={sortBy}
+                onSortChange={setSortBy}
+                onRowClick={setSelectedEquipment}
             />
 
         </div>
+        
     )
 }
