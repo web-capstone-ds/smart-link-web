@@ -4,7 +4,7 @@ import { fetchDashboardSummary, fetchDashboardTrend, fetchYieldComparison, fetch
 
 // Header
 import type { DateRange } from "react-day-picker"
-import { isSameDay, format } from "date-fns"
+import { isSameDay } from "date-fns"
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader"
 import { useFilterStore } from "@/store/useFilterStore"
 

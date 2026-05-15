@@ -22,7 +22,7 @@ export function DefectPieChart({ data = [], colors, className, isLoading }: Defe
                 
                 {/* 🌟 로딩 중일 때 보여줄 UI */}
                 {isLoading ? (
-                    <div className="w-full h-full min-h-[160px] flex flex-col items-center justify-center text-muted-foreground">
+                    <div className="w-full h-full min-h-40 flex flex-col items-center justify-center text-muted-foreground">
                         <Loader2 className="w-6 h-6 mb-2 animate-spin text-primary/50" />
                         <span className="text-[10px]">차트 렌더링 중...</span>
                     </div>

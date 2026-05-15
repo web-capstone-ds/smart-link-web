@@ -1,5 +1,3 @@
-import type { MtbfDataPoint } from "@/api/equipment"
-
 export const dashboardSummary = {
   kpi: {
     totalProduction: 24563,
@@ -71,6 +69,8 @@ export const downtimeResponse = {
 };
 
 // 🌟 1. 전체 장비 조회 시 목데이터 (name = 장비명)
+import type { MtbfDataPoint } from "@/api/equipment"
+
 export const mockMtbfData_All: MtbfDataPoint[] = [
     { name: "DS-VIS-001", hours: 82 },
     { name: "DS-VIS-002", hours: 115 },
@@ -333,5 +333,98 @@ export const equipmentComparisonData: EquipmentStatus[] = [
         majorDefect: "A-04 (Alignment Fail)", 
         unresolvedAlert: false, 
         yieldTrend: [98.0, 97.5, 98.1, 98.3, 98.0, 98.2] 
+    }
+];
+
+// 장비 세부
+import type { EquipmentSummary } from "@/api/equipmentDetail";
+export const mockEquipmentSummary: EquipmentSummary = {
+    info: {
+        recipe: "PKG_DICE_C15",
+        currentLot: "a3f2b1c8", // 8자리 해시 적용
+        status: "Critical"
+    },
+    aiInsight: {
+        title: "AI 징후 예측 (Pattern Detected)",
+        description: "비전 검사 히트맵 분석 결과, 슬롯 6~7에 ET=12 집중 패턴이 발견되었습니다. 해당 구간의 절단 압력 정밀 점검을 권장합니다."
+    },
+    uptime: {
+        totalRate: 82.5,
+        runHour: 6.6,
+        idleHour: 0.2,
+        downHour: 1.2,
+        timeline: [
+            { status: "run", start: "08:00", end: "10:24", ratio: 30 },
+            { status: "idle", start: "10:24", end: "10:48", ratio: 5 },
+            { status: "run", start: "10:48", end: "14:00", ratio: 40 },
+            { status: "error", start: "14:00", end: "15:12", ratio: 15 },
+            { status: "run", start: "15:12", end: "16:00", ratio: 10 }
+        ]
+    },
+    parameters: [
+        {
+            name: "Chipping_Bottom",
+            avg: 12.4,
+            max: 28.7,
+            usl: 25.0,
+            zScore: 3.42,
+            isError: true
+        },
+        {
+            name: "Blade_Vibration",
+            avg: 0.42,
+            max: 0.85,
+            usl: 1.20,
+            zScore: 1.15,
+            isError: false
+        }
+    ]
+};
+
+export const mockEquipmentSPCTrend = [
+    { lot: "a3f2b1c8", yield: 98.5, equipAvg: 97.2, lcl: 95.0 },
+    { lot: "b7e4d2a1", yield: 98.2, equipAvg: 97.4, lcl: 95.0 },
+    { lot: "c9f1a5d3", yield: 97.1, equipAvg: 97.5, lcl: 95.0 },
+    { lot: "d2c8b4e6", yield: 96.5, equipAvg: 97.3, lcl: 95.0 },
+    { lot: "e5f3a1b7", yield: 94.2, equipAvg: 97.6, lcl: 95.0 }, // 수율 하락 시작
+    { lot: "f8d2e4c1", yield: 92.1, equipAvg: 97.5, lcl: 95.0 }, // LCL(하한선) 이탈 - 에러 발생 지점
+    { lot: "g1b7a3f2", yield: 98.5, equipAvg: 97.7, lcl: 95.0 }, // 조치 후 회복
+];
+
+import type { EquipmentHeatmap } from "@/api/equipmentDetail";
+export const mockEquipmentHeatmap: EquipmentHeatmap = {
+    patternName: "슬롯 6~7 ET=12 집중",
+    slots: [
+        { zAxisNum: 0, passCount: 245, failCount: 3,   dominantError: null, severity: "normal" },
+        { zAxisNum: 1, passCount: 240, failCount: 8,   dominantError: "ET=52", severity: "warning" },
+        { zAxisNum: 2, passCount: 252, failCount: 0,   dominantError: null, severity: "normal" },
+        { zAxisNum: 3, passCount: 249, failCount: 1,   dominantError: null, severity: "normal" },
+        { zAxisNum: 4, passCount: 241, failCount: 4,   dominantError: "ET=05", severity: "normal" },
+        { zAxisNum: 5, passCount: 238, failCount: 7,   dominantError: "ET=05", severity: "normal" },
+        { zAxisNum: 6, passCount: 120, failCount: 128, dominantError: "ET=12", severity: "critical" }, // 명세서 불량 슬롯
+        { zAxisNum: 7, passCount: 115, failCount: 133, dominantError: "ET=12", severity: "critical" }  // 명세서 불량 슬롯
+    ]
+};
+
+// 📦 5-4. 최근 조치 내역 목업 데이터
+import type { EquipmentHistory } from "@/api/equipmentDetail";
+export const mockEquipmentHistory: EquipmentHistory[] = [
+    {
+        id: "H-001",
+        status: "unresolved",
+        time: "14:00",
+        title: "Chipping 한계치 초과 발생",
+        description: "현재 장비 정지(Down) 상태. 블레이드 교체 대기 중.",
+        worker: null,
+        yieldChange: null
+    },
+    {
+        id: "H-002",
+        status: "resolved",
+        time: "10:48",
+        title: "Z축 얼라인먼트 재보정",
+        description: "센서 오염 확인 후 클리닝 및 Z축 0점 세팅 완료.",
+        worker: "김엔지니어",
+        yieldChange: { before: 92.1, after: 98.5 }
     }
 ];
