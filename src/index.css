@@ -177,3 +177,24 @@ html, body, #root {
   scrollbar-width: thin;
   scrollbar-color: #3F3F46 transparent;
 }
+
+@media print {
+  /* 1. A4 세로 규격 강제 지정 및 기본 여백 완벽 제거 */
+  @page {
+    size: A4 portrait;
+    margin: 0;
+  }
+  
+  /* 2. 바디 여백 제거 및 배경색 강제 인쇄(크롬/에지 필수) */
+  body {
+    margin: 0 !important;
+    padding: 0 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* 3. 스크롤바 숨기기 (가끔 미리보기에 스크롤바가 찍히는 현상 방지) */
+  ::-webkit-scrollbar {
+    display: none;
+  }
+}

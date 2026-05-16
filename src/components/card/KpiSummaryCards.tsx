@@ -1,6 +1,6 @@
 import { LayoutList, Package, AlertTriangle, Activity, Zap, Loader2, Clock } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
-import { BaseKpiCard } from "@/components/dashboard/BaseKpiCard"
+import { BaseKpiCard } from "@/components/card/BaseKpiCard"
 
 import type { DashboardSummaryResponse } from "@/api/dashboard" // 타입 임포트
 

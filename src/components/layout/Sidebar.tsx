@@ -14,7 +14,7 @@ export function Sidebar({ isSidebarOpen, activeMenu, setActiveMenu }: SidebarPro
         className={`
             ${isSidebarOpen ? "w-64" : "w-0 border-r-0"} 
             transition-[width,border] duration-300 ease-in-out 
-            border-r border-border bg-card flex flex-col overflow-hidden shrink-0
+            border-r border-border bg-card flex flex-col overflow-hidden shrink-0 print:hidden
         `}
         >
         <div className="w-64 flex flex-col h-full">

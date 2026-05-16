@@ -3,8 +3,9 @@ import { useQuery } from "@tanstack/react-query"
 import { fetchDowntimeTrend, fetchMtbf, fetchDefects, fetchEquipmentStatusList } from "@/api/equipment"
 
 import type { DateRange } from "react-day-picker"
-import { DashboardHeader } from "@/components/dashboard/DashboardHeader"
+import { DashboardHeader } from "@/components/layout/DashboardHeader"
 import { useFilterStore } from "@/store/useFilterStore"
+import { format } from "date-fns";
 
 import { EquipmentKPIChart } from "@/components/chart/EquipmentKPIChart"
 import { DefectCodeTable } from "@/components/table/DefectCodeTable"
@@ -23,7 +24,7 @@ export function EquipmentStats({ setSelectedEquipment }: EquipmentStatsProps) {
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
 
-    const { appliedEquipmentIds, appliedDate, setAppliedEquipmentIds, setAppliedDate } = useFilterStore();
+    const { appliedEquipmentIds, appliedDate, setAppliedEquipmentIds, setAppliedDate, setLastUpdated } = useFilterStore();
     const [tempEquipmentIds, setTempEquipmentIds] = useState(appliedEquipmentIds);
     const [tempDate, setTempDate] = useState<DateRange | undefined>(appliedDate);
     const [isCalendarOpen, setIsCalendarOpen] = useState(false);
@@ -44,6 +45,7 @@ export function EquipmentStats({ setSelectedEquipment }: EquipmentStatsProps) {
             return;
         }
 
+        setLastUpdated(format(new Date(), "yyyy-MM-dd HH:mm 'KST'"));
         setAppliedEquipmentIds(tempEquipmentIds);
         setAppliedDate(tempDate);
         setIsCalendarOpen(false);
@@ -143,6 +145,11 @@ export function EquipmentStats({ setSelectedEquipment }: EquipmentStatsProps) {
         });
     }, [safeEquipmentList, appliedEquipmentIds, sortBy]); 
 
+    const availableEquipmentIds = useMemo(() => {
+        // 현재 리스트에 존재하는 장비 ID만 중복 없이 혹은 순서대로 추출
+        return safeEquipmentList.map(eq => eq.id);
+    }, [safeEquipmentList]);
+
     return (
         <div className="animate-in fade-in duration-500 space-y-6 ">
 
@@ -151,6 +158,7 @@ export function EquipmentStats({ setSelectedEquipment }: EquipmentStatsProps) {
                 subtitle="장비별 상세 수율 현황 및 설비 신뢰성 지표를 분석"
                 equipment={tempEquipmentIds}
                 onEquipmentChange={setTempEquipmentIds}
+                equipmentOptions={availableEquipmentIds}
                 date={tempDate}
                 onDateChange={setTempDate}
                 onSearch={handleSearch}

@@ -428,3 +428,118 @@ export const mockEquipmentHistory: EquipmentHistory[] = [
         yieldChange: { before: 92.1, after: 98.5 }
     }
 ];
+
+// 리포트 목업
+import type { ReportSummary } from "@/api/report";
+export const mockReportSummary: ReportSummary = {
+    kpi: {
+        totalProduction: 24563,
+        yield: 98.7,
+        cpk: 1.52,
+        availability: 87.3,
+        activeAlerts: 4,
+        mtbf: 91.6
+    },
+    aiMessage: "금일 가동 결과, 전체 생산량 24,563 유닛 중 수율 98.7%로 안정적입니다. 다만 DS-VIS-001에서 chipping_bottom 경고가 지속되고 있어 선제적 블레이드 교체를 권장합니다. 전반적인 라인 가동률은 전일 대비 2.1% 상승했습니다.",
+    operationTimeline: {
+        runHour: 102.5,
+        downHour: 3.2,
+        mtbf: 42.5,
+        uph: 2850,
+        timeline: [
+            { status: "run", start: "08:00", end: "10:24", ratio: 20 },
+            { status: "run", start: "10:24", end: "14:00", ratio: 30 },
+            { status: "error", start: "14:00", end: "15:12", ratio: 8 },
+            { status: "run", start: "15:12", end: "17:00", ratio: 15 }
+        ]
+    },
+    actionPlans: [
+        {
+            priority: 1,
+            title: "DS-VIS-001 블레이드 상태 점검",
+            description: "chipping_bottom 경고 지속. Rule R14 WARNING 구간 진입.",
+            isCritical: true
+        },
+        {
+            priority: 2,
+            title: "라인 B 세정액 필터 교체",
+            description: "수압 저하 징후 포착. 익일 예방 정비 스케줄에 추가 요망.",
+            isCritical: false
+        }
+    ]
+};
+
+export const alarmHistoryData = [
+    { id: "A-001", severity: "Critical", eq: "SAW-EQ.01", message: "Package Width USL 초과 위험", time: "14:23:10", status: "미조치", action: "-", worker: "-" },
+    { id: "A-002", severity: "Warning", eq: "SAW-EQ.05", message: "Vision Sensor 조명 광도 저하", time: "11:05:42", status: "조치완료", action: "광원 캘리브레이션 재수행", worker: "김엔지" },
+    { id: "A-003", severity: "Critical", eq: "SAW-EQ.02", message: "Alignment Fail (연속 3회)", time: "09:12:05", status: "조치완료", action: "자재 매거진 재정렬 및 영점 조정", worker: "이프로" },
+    { id: "A-004", severity: "Warning", eq: "SAW-EQ.08", message: "Network Sync Timeout", time: "08:45:11", status: "조치완료", action: "버퍼 초기화 및 재접속", worker: "시스템" },
+];
+
+import type { QualityDistribution } from "@/api/report";
+export const mockQualityDistribution: QualityDistribution = {
+    summary: {
+        passRate: 99.2,
+        passRateSub: "목표 99.0% (초과 달성)",
+        cpk: 1.38,
+        cpkSub: "상한계(USL) 방향 편차 발생 중",
+        status: "warning"
+    },
+    distributionChart: {
+        guidelines: { lsl: 11.96, target: 12.00, usl: 12.04 },
+        histogram: [
+            { range: "11.96 미만", count: 10, isWarning: false },
+            { range: "11.96-11.99", count: 45, isWarning: false },
+            { range: "11.99-12.00", count: 75, isWarning: false },
+            { range: "12.00-12.04", count: 150, isWarning: false },
+            { range: "12.04-12.05", count: 15, isWarning: true }
+        ]
+    },
+    aiInference: {
+        hasAlert: true,
+        title: "AI 치수 이상 원인 추론",
+        description: "분석 결과, 절단 폭(Width)이 USL 방향으로 지속 이동 중입니다. Rule R13 chipping_top WARNING 구간 진입. 블레이드 장력 저하가 의심되므로 점검을 요합니다."
+    }
+};
+
+import type { ReportAlarm } from "@/api/report";
+export const mockReportAlarms: ReportAlarm[] = [
+    {
+        id: "A-001",
+        severity: "critical",
+        eq: "DS-VIS-001",
+        message: "chipping_bottom 50μm 초과 (Rule R14 CRITICAL)",
+        time: "14:23:10",
+        status: "미조치",
+        action: "-",
+        worker: "-"
+    },
+    {
+        id: "A-002",
+        severity: "warning",
+        eq: "DS-VIS-002",
+        message: "Vision 검사 조명 조도 저하 (Rule R02 WARNING)",
+        time: "11:05:22",
+        status: "조치완료",
+        action: "조명 캘리브레이션",
+        worker: "이엔지니어"
+    }
+];
+
+import type { ReportHeatmap } from "@/api/report";
+export const mockReportHeatmap: ReportHeatmap = {
+    aiAnalysis: {
+        title: "슬롯 6~7 ET=12 집중 패턴 감지",
+        description: "비전 검사 데이터 분석 결과, ZAxisNum 6~7에 ET=12(Chipping) 결함이 집중되어 있습니다. 해당 슬롯의 척(Chuck) 진공 흡착 불량 또는 블레이드 수평 틀어짐을 점검하십시오."
+    },
+    slots: [
+        { zAxisNum: 0, passCount: 245, failCount: 3, dominantError: null, severity: "info" },
+        { zAxisNum: 1, passCount: 240, failCount: 8, dominantError: "ET=52", severity: "warning" },
+        { zAxisNum: 2, passCount: 250, failCount: 1, dominantError: null, severity: "info" },
+        { zAxisNum: 3, passCount: 248, failCount: 2, dominantError: null, severity: "info" },
+        { zAxisNum: 4, passCount: 242, failCount: 5, dominantError: "ET=05", severity: "info" },
+        { zAxisNum: 5, passCount: 239, failCount: 7, dominantError: "ET=05", severity: "info" },
+        { zAxisNum: 6, passCount: 120, failCount: 128, dominantError: "ET=12", severity: "critical" },
+        { zAxisNum: 7, passCount: 115, failCount: 133, dominantError: "ET=12", severity: "critical" }
+    ]
+};

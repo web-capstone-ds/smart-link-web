@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button"
 import { Cpu, PanelLeft, Search, Bell, User } from "lucide-react"
+import { useFilterStore } from "@/store/useFilterStore"
 
 interface HeaderProps {
   isSidebarOpen: boolean;
@@ -7,8 +8,11 @@ interface HeaderProps {
 }
 
 export function Header({ isSidebarOpen, setIsSidebarOpen }: HeaderProps) {
+
+    const { lastUpdated } = useFilterStore();
+    
     return (
-        <header className="h-16 border-b border-border bg-card flex items-center justify-between px-6 shrink-0">
+        <header className="h-16 border-b border-border bg-card flex items-center justify-between px-6 shrink-0 print:hidden">
         <div className="flex items-center gap-4 text-muted-foreground text-sm">
             <Button 
             variant="ghost" 
@@ -25,7 +29,9 @@ export function Header({ isSidebarOpen, setIsSidebarOpen }: HeaderProps) {
                 </>
             )}
             </Button>
-            <span>최종 업데이트: 2026-05-06 11:06 KST</span>
+            <span className="min-w-[200px]">
+                    최종 업데이트: {lastUpdated}
+                </span>
         </div>
         
         <div className="flex items-center gap-4">

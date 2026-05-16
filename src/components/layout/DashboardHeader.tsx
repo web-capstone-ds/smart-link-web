@@ -18,6 +18,8 @@ interface DashboardHeaderProps {
     equipment: string;
     onEquipmentChange: (value: string) => void;
     
+    equipmentOptions: string[];
+
     // 날짜 필터 상태 및 핸들러
     date: DateRange | undefined;
     onDateChange: (date: DateRange | undefined) => void;
@@ -31,6 +33,7 @@ interface DashboardHeaderProps {
 export function DashboardHeader({
     title, subtitle,
     equipment, onEquipmentChange, // 🌟 이름 변경
+    equipmentOptions,
     date, onDateChange,
     onSearch,
     isCalendarOpen, onCalendarOpenChange,
@@ -56,9 +59,11 @@ export function DashboardHeader({
                 <SelectContent>
                     {/* API 명세서에 맞춘 value 값 지정 ("all", "DS-VIS-001" 등) */}
                     <SelectItem value="all">전체 장비</SelectItem>
-                    <SelectItem value="DS-VIS-001">DS-VIS-001</SelectItem>
-                    <SelectItem value="DS-VIS-002">DS-VIS-002</SelectItem>
-                    <SelectItem value="DS-VIS-003">DS-VIS-003</SelectItem>
+                    {equipmentOptions.map((id) => (
+                        <SelectItem key={id} value={id}>
+                            {id}
+                        </SelectItem>
+                    ))}
                 </SelectContent>
                 </Select>
 

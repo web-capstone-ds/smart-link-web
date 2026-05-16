@@ -2,29 +2,9 @@ import { useState } from "react"
 import { Printer, Download, Cpu, Activity, AlertTriangle, Settings2, CheckCircle2, Filter } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
-const equipmentComparisonData = [
-    { id: "SAW-EQ.01", recipe: "PKG_A12", uptime: 82.5, total: 24500, fail: 850, marginal: 320, yield: "95.2%", majorDefect: "C-01 (Chipping)", unresolvedAlert: true },
-    { id: "SAW-EQ.02", recipe: "PKG_B08", uptime: 91.2, total: 22100, fail: 410, marginal: 150, yield: "97.4%", majorDefect: "L-03 (Contamination)", unresolvedAlert: false },
-    { id: "SAW-EQ.03", recipe: "PKG_A12", uptime: 98.5, total: 25600, fail: 120, marginal: 50, yield: "99.3%", majorDefect: "B-02 (Blade Wear)", unresolvedAlert: false },
-    { id: "SAW-EQ.04", recipe: "PKG_C15", uptime: 99.1, total: 23800, fail: 95, marginal: 30, yield: "99.4%", majorDefect: "-", unresolvedAlert: false },
-    { id: "SAW-EQ.05", recipe: "PKG_A12", uptime: 78.0, total: 21500, fail: 950, marginal: 420, yield: "93.6%", majorDefect: "C-01 (Chipping)", unresolvedAlert: true },
-];
+import { equipmentComparisonData, alarmHistoryData, defectStatsData } from "@/data/mockData";
 
-const defectStatsData = [
-    { code: "C-01", name: "Chipping (치핑)", type: "공통 불량", count: 342, ratio: "45%", impact: "Package Size (Width/Height) 이상치 발생" },
-    { code: "B-02", name: "Blade Wear (블레이드 마모)", type: "공통 불량", count: 185, ratio: "24%", impact: "절단면 품질 저하 및 부하 증가" },
-    { code: "L-03", name: "Lens Contamination", type: "개별 불량", count: 89, ratio: "12%", impact: "비전 인식 오류 (False Alarm)" },
-    { code: "A-04", name: "Alignment Fail", type: "개별 불량", count: 45, ratio: "6%", impact: "자재 정렬 틀어짐" },
-];
-
-const alarmHistoryData = [
-    { id: "A-001", severity: "Critical", eq: "SAW-EQ.01", message: "Package Width USL 초과 위험", time: "14:23:10", status: "미조치", action: "-", worker: "-" },
-    { id: "A-002", severity: "Warning", eq: "SAW-EQ.05", message: "Vision Sensor 조명 광도 저하", time: "11:05:42", status: "조치완료", action: "광원 캘리브레이션 재수행", worker: "김엔지" },
-    { id: "A-003", severity: "Critical", eq: "SAW-EQ.02", message: "Alignment Fail (연속 3회)", time: "09:12:05", status: "조치완료", action: "자재 매거진 재정렬 및 영점 조정", worker: "이프로" },
-    { id: "A-004", severity: "Warning", eq: "SAW-EQ.08", message: "Network Sync Timeout", time: "08:45:11", status: "조치완료", action: "버퍼 초기화 및 재접속", worker: "시스템" },
-];
-
-export function DailyReport() { // ***** 수정해야함 리포트.
+export function DailyReport() {
     const [reportMode, setReportMode] = useState<"daily" | "weekly" | "equipment">("daily");
     const [targetEq, setTargetEq] = useState("SAW-EQ.01")
 

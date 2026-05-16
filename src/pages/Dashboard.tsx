@@ -1,15 +1,16 @@
 import { useState, useMemo } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { fetchDashboardSummary, fetchDashboardTrend, fetchYieldComparison, fetchDefectPareto } from "@/api/dashboard"
+import { fetchEquipmentStatusList } from "@/api/equipment"
 
 // Header
 import type { DateRange } from "react-day-picker"
-import { isSameDay } from "date-fns"
-import { DashboardHeader } from "@/components/dashboard/DashboardHeader"
+import { isSameDay, format } from "date-fns"
+import { DashboardHeader } from "@/components/layout/DashboardHeader"
 import { useFilterStore } from "@/store/useFilterStore"
 
 // Component
-import { KpiSummaryCards } from "@/components/dashboard/KpiSummaryCards"
+import { KpiSummaryCards } from "@/components/card/KpiSummaryCards"
 import { ParetoChart } from "@/components/chart/ParetoChart"
 import { UptimePieChart } from "@/components/chart/UptimePieChart"
 import { TrendChart } from "@/components/chart/TrendChart"
@@ -19,7 +20,7 @@ import { YieldComparisonChart } from "@/components/chart/YieldComparisonChart"
 import { 
     trendData as mockTrendData, paretoData as mockParetoData, 
     lineYieldData as mockLineYieldData, equipmentYieldData as mockEquipmentYieldData,
-    dashboardSummary as mockDashboardSummary,
+    dashboardSummary as mockDashboardSummary, equipmentComparisonData as mockEquipmentComparisonData
 } from "@/data/mockData";
 
 
@@ -28,7 +29,7 @@ export function Dashboard() {
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
 
-    const { appliedEquipmentIds, appliedDate, setAppliedEquipmentIds, setAppliedDate } = useFilterStore();
+    const { appliedEquipmentIds, appliedDate, setAppliedEquipmentIds, setAppliedDate, setLastUpdated } = useFilterStore();
     const [tempEquipmentIds, setTempEquipmentIds] = useState(appliedEquipmentIds);
     const [tempDate, setTempDate] = useState<DateRange | undefined>(appliedDate);
     const [isCalendarOpen, setIsCalendarOpen] = useState(false);
@@ -58,11 +59,29 @@ export function Dashboard() {
             return;
         }
 
+        setLastUpdated(format(new Date(), "yyyy-MM-dd HH:mm 'KST'"));
         setAppliedEquipmentIds(tempEquipmentIds);
         setAppliedDate(tempDate);
         setIsCalendarOpen(false);
     };
     
+    // 🌟 0. 헤더 장비 선택기(Select) 옵션용 장비 목록 호출
+    // 화면에 표를 그리진 않더라도, 셀렉트 박스에 띄워줄 ID 목록이 필요하므로 "all"로 호출합니다.
+    const { data: eqListForSelect } = useQuery({
+        queryKey: ["equipmentListForSelect", appliedDate],
+        queryFn: () => fetchEquipmentStatusList("all", appliedDate),
+        enabled: !!appliedDate?.from,
+    });
+
+    // 받아온 전체 장비 데이터에서 ID만 쏙쏙 뽑아내서 배열로 만듭니다.
+    const availableEquipmentIds = useMemo(() => {
+        // 서버에서 아직 안 왔거나 에러가 났다면 빈 배열(또는 기본 목업 배열) 반환
+        if (!eqListForSelect || eqListForSelect.length === 0) {
+            // 방어를 위해 기본 장비 ID 몇 개를 임시로 넣어둘 수도 있습니다.
+            return mockEquipmentComparisonData.map(eq => eq.id);
+        }
+        return eqListForSelect.map(eq => eq.id);
+    }, [eqListForSelect]);
 
     // 1 KPI
     const { data: summaryData, isLoading: isSummaryLoading, isError: isSummaryError } = useQuery({
@@ -145,6 +164,7 @@ export function Dashboard() {
                 subtitle="생산 공정 지표 분석 및 AI 예측 리포트"
                 equipment={tempEquipmentIds}
                 onEquipmentChange={setTempEquipmentIds}
+                equipmentOptions={availableEquipmentIds}
                 date={tempDate}
                 onDateChange={setTempDate}
                 onSearch={handleSearch}
