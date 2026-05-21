@@ -1,6 +1,5 @@
-import * as React from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
 interface BaseKpiCardProps {
     title: string;
@@ -22,7 +21,6 @@ export function BaseKpiCard({
                 <CardTitle className="text-xs font-medium text-muted-foreground line-clamp-1">
                     {title}
                 </CardTitle>
-                {/* 밖에서 넘겨준 아이콘(lucide-react)을 그대로 출력 */}
                 <div className="shrink-0">{icon}</div> 
             </CardHeader>
             <CardContent>

@@ -1,54 +1,23 @@
 import axios from "axios";
+import { format, subDays } from "date-fns";
 
-// 🌟 5-1. 장비 요약 정보 타입 정의
-export interface EquipmentSummaryInfo {
-    recipe: string;
-    currentLot: string;
-    status: "Normal" | "Warning" | "Critical" | string;
-}
+import type { DowntimeTrendResponse } from "@/type/equipmentType";
+import type { EquipmentSummary, EquipmentSPCTrend, EquipmentHeatmap, EquipmentHistory } from "@/type/equipmentDetailType";
 
-export interface AIInsight {
-    title: string;
-    description: string;
-}
-
-export interface UptimeTimeline {
-    status: "run" | "idle" | "error";
-    start: string;
-    end: string;
-    ratio: number;
-}
-
-export interface EquipmentUptime {
-    totalRate: number;
-    runHour: number;
-    idleHour: number;
-    downHour: number;
-    timeline: UptimeTimeline[];
-}
-
-export interface EquipmentParameter {
-    name: string;
-    avg: number;
-    max: number;
-    usl: number;
-    zScore: number;
-    isError: boolean;
-}
-
-export interface EquipmentSummary {
-    info: EquipmentSummaryInfo;
-    aiInsight: AIInsight;
-    uptime: EquipmentUptime;
-    parameters: EquipmentParameter[];
-}
-
-export const fetchEquipmentSummary = async (equipmentId: string): Promise<EquipmentSummary> => {
-    // 빠른 응답(200ms 이내) 명세 반영 (목데이터용 딜레이를 짧게 줍니다)
+// 1. Equipment Summary Data
+export const fetchEquipmentSummary = async (
+    equipmentId: string,
+    targetDate: Date | string
+): Promise<EquipmentSummary> => {
+    
     await new Promise(resolve => setTimeout(resolve, 1000));
 
-    const response = await axios.get(`/api/v1/equipments/${equipmentId}/summary`);
-    
+    const formattedDate = typeof targetDate === 'string' ? targetDate : format(targetDate, 'yyyy-MM-dd');
+
+    const response = await axios.get(`/api/v1/equipments/${equipmentId}/summary`, {
+        params: { targetDate: formattedDate }
+    });
+
     if (!response.data || !response.data.data) {
         throw new Error("장비 상세 데이터를 불러오지 못했습니다.");
     }
@@ -56,34 +25,58 @@ export const fetchEquipmentSummary = async (equipmentId: string): Promise<Equipm
     return response.data.data;
 };
 
-export interface EquipmentSPCTrend {
-    lot: string;         // LOT 해시 약칭 (8자리)
-    yield: number;       // 해당 LOT의 장비 수율
-    equipAvg: number;    // 🌟 변경: 라인 평균 대신 해당 장비의 누적 평균 수율
-    lcl: number;         // 관리 하한선 (Lower Control Limit)
-}
-
-/**
- * 특정 장비의 최근 수율 및 SPC 트렌드 목록을 조회합니다.
- * @param equipmentId 장비 고유 ID
- * @param limit 조회할 LOT 개수 (기본값 7)
- */
-export const fetchEquipmentSPCTrend = async (
+// 2. Equipment Down Time Trend Data
+export const fetchEquipmentDowntimeTrend = async (
     equipmentId: string,
-    limit: number = 7
-): Promise<EquipmentSPCTrend[]> => {
+    targetDate: Date | string
+): Promise<DowntimeTrendResponse> => {
     
-    // UI 로딩 스켈레톤 테스트를 위한 0.5초 대기 딜레이
     await new Promise(resolve => setTimeout(resolve, 1000));
 
-    // 명세서 규격 반영: /api/v1/equipments/{equipmentId}/spc-trend?limit=7
+    // 1. targetDate를 Date 객체로 확실하게 변환 (endDate 기준일)
+    const endDateObj = typeof targetDate === 'string' ? new Date(targetDate) : targetDate;
+    
+    // 2. 기준일로부터 6일 전을 시작일로 계산 (오늘 포함 총 7일치)
+    const startDateObj = subDays(endDateObj, 6);
+
+    // 3. 서버가 좋아하는 'YYYY-MM-DD' 문자열로 포맷팅
+    const endDate = format(endDateObj, 'yyyy-MM-dd');
+    const startDate = format(startDateObj, 'yyyy-MM-dd');
+
+    // 4. 대시보드용 엔드포인트(/api/v1/equipments/downtime-trend) 호출!
+    const response = await axios.get('/api/v1/equipments/downtime-trend', {
+        params: { 
+            equipmentIds: equipmentId, // 백엔드는 복수형(equipmentIds)을 원하므로 이름 맞춰주기
+            startDate,
+            endDate
+        }
+    });
+
+    // 주의: downtime-trend 명세는 response.data 자체를 반환했었으므로 분기 처리
+    if (!response.data) {
+        throw new Error("비가동 시간 트렌드 데이터를 불러오지 못했습니다.");
+    }
+
+    return response.data;
+};
+
+// 3. SPC Trend Data
+export const fetchEquipmentSPCTrend = async (
+    equipmentId: string,
+    targetDate: Date | string,
+    limit: number = 7
+): Promise<EquipmentSPCTrend[]> => {
+
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    const formattedDate = typeof targetDate === 'string' ? targetDate : format(targetDate, 'yyyy-MM-dd');
+
     const response = await axios.get(`/api/v1/equipments/${equipmentId}/spc-trend`, {
         params: { 
-            limit 
+            limit,
+            targetDate: formattedDate // 🌟 쿼리 추가 (limit과 함께 전달)
         }
     });
     
-    // 예외 처리 및 방어 로직 (기환 님의 형식을 그대로 유지)
     if (!response.data || !response.data.data) {
         throw new Error("서버에서 수율 및 SPC 추이 데이터를 받지 못했습니다.");
     }
@@ -91,31 +84,18 @@ export const fetchEquipmentSPCTrend = async (
     return response.data.data; 
 };
 
-// 🌟 5-3. 결함 히트맵 슬롯 상세 인터페이스
-export interface HeatmapSlot {
-    zAxisNum: number;          // 0 ~ 7 슬롯 번호
-    passCount: number;         // 양품 수
-    failCount: number;         // 불량 수
-    dominantError: string | null; // 가장 많이 발생한 에러 코드 (예: "ET=12")
-    severity?: "critical" | "warning" | "normal" | string; // 위험도 등급
-}
+// 4. Heatmap Data
+export const fetchEquipmentHeatmap = async (
+    equipmentId: string,
+    targetDate: Date | string
+): Promise<EquipmentHeatmap> => {
 
-// 결함 히트맵 전체 데이터 인터페이스
-export interface EquipmentHeatmap {
-    patternName: string;       // AI가 분석한 패턴명
-    slots: HeatmapSlot[];      // 8개 슬롯 데이터 배열
-}
-
-/**
- * 특정 장비의 슬롯별 결함 히트맵 데이터를 조회합니다.
- */
-export const fetchEquipmentHeatmap = async (equipmentId: string): Promise<EquipmentHeatmap> => {
-    // 로딩 상태 체감을 위한 가짜 딜레이 (0.4초)
     await new Promise(resolve => setTimeout(resolve, 1000));
+    const formattedDate = typeof targetDate === 'string' ? targetDate : format(targetDate, 'yyyy-MM-dd');
 
-    // 명세서 규격: /api/v1/equipments/{equipmentId}/heatmap
-    const response = await axios.get(`/api/v1/equipments/${equipmentId}/heatmap`);
-    
+    const response = await axios.get(`/api/v1/equipments/${equipmentId}/heatmap`, {
+        params: { targetDate: formattedDate } // 🌟 쿼리 추가
+    });
     if (!response.data || !response.data.data) {
         throw new Error("서버에서 히트맵 데이터를 받지 못했습니다.");
     }
@@ -123,31 +103,19 @@ export const fetchEquipmentHeatmap = async (equipmentId: string): Promise<Equipm
     return response.data.data;
 };
 
-// 🌟 5-4. 최근 조치 내역 인터페이스
-export interface YieldChange {
-    before: number;
-    after: number;
-}
+// 5. History Data
+export const fetchEquipmentHistory = async (
+    equipmentId: string,
+    targetDate: Date | string
+): Promise<EquipmentHistory[]> => {
 
-export interface EquipmentHistory {
-    id: string;
-    status: "unresolved" | "resolved" | string;
-    time: string;
-    title: string;
-    description: string;
-    worker: string | null;
-    yieldChange: YieldChange | null;
-}
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    const formattedDate = typeof targetDate === 'string' ? targetDate : format(targetDate, 'yyyy-MM-dd');
 
-/**
- * 특정 장비의 최근 설비 조치 및 알람 히스토리 내역을 조회합니다.
- */
-export const fetchEquipmentHistory = async (equipmentId: string): Promise<EquipmentHistory[]> => {
-    // 스켈레톤 UI 확인용 0.4초 딜레이
-    await new Promise(resolve => setTimeout(resolve, 400));
+    const response = await axios.get(`/api/v1/equipments/${equipmentId}/history`, {
+        params: { targetDate: formattedDate } // 🌟 쿼리 추가
+    });
 
-    const response = await axios.get(`/api/v1/equipments/${equipmentId}/history`);
-    
     if (!response.data || !response.data.data) {
         throw new Error("서버에서 조치 내역 히스토리를 받지 못했습니다.");
     }

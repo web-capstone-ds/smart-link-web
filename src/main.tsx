@@ -11,7 +11,7 @@ const queryClient = new QueryClient({
       // 창을 벗어났다가 다시 돌아왔을 때 자동으로 API를 재호출하는 기능 끄기 (권장)
       refetchOnWindowFocus: false,
       // 실패 시 재시도 횟수 설정
-      retry: 1,
+      retry: 0,
     },
   },
 })

@@ -6,7 +6,6 @@ import { EquipmentDetailSheet } from "@/components/EquipmentDetailSheet"
 
 import { Dashboard } from "@/pages/Dashboard"
 import { EquipmentStats } from "@/pages/EquipmentStats"
-import { DailyReport } from "@/pages/DailyReport"
 import { ReportPage } from "@/pages/ReportPage"
 
 function App() {

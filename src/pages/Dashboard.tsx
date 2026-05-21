@@ -83,12 +83,18 @@ export function Dashboard() {
         return eqListForSelect.map(eq => eq.id);
     }, [eqListForSelect]);
 
+    const equipmentParams = appliedEquipmentIds.length > 0 ? appliedEquipmentIds.join(',') : "all";
+
     // 1 KPI
     const { data: summaryData, isLoading: isSummaryLoading, isError: isSummaryError } = useQuery({
-        queryKey: ["dashboardSummary", appliedEquipmentIds, appliedDate],
-        queryFn: () => fetchDashboardSummary(appliedEquipmentIds, appliedDate),
+        queryKey: ["dashboardSummary", equipmentParams, appliedDate], // 👈 equipmentParams 적용
+        queryFn: () => fetchDashboardSummary(equipmentParams, appliedDate),
         enabled: !!appliedDate?.from,
         retry: false,
+
+        staleTime: 1000 * 60 * 10, // 10분 동안 캐시 유지
+        refetchOnMount: false,     // 컴포넌트 마운트 시(메뉴 이동 시) 재조회 금지
+        refetchOnWindowFocus: false, // 브라우저 창 활성화 시 재조회 금지
     });
 
     const safeSummaryData = (isSummaryError || !summaryData)
@@ -108,9 +114,14 @@ export function Dashboard() {
     // 2 TrendChart
 
    const { data: trendDataRaw, isFetching: isTrendLoading, isError: isTrendError} = useQuery({
-        queryKey: ["dashboardTrend", appliedEquipmentIds, appliedDate, trendUnit], 
-        queryFn: () => fetchDashboardTrend(appliedEquipmentIds, appliedDate, trendUnit),
+        queryKey: ["dashboardTrend", equipmentParams, appliedDate, trendUnit], 
+        queryFn: () => fetchDashboardTrend(equipmentParams, appliedDate, trendUnit),
         enabled: !!appliedDate?.from,
+        retry: false,
+
+        staleTime: 1000 * 60 * 10, // 10분 동안 캐시 유지
+        refetchOnMount: false,     // 컴포넌트 마운트 시(메뉴 이동 시) 재조회 금지
+        refetchOnWindowFocus: false, // 브라우저 창 활성화 시 재조회 금지
     });
 
     // 🌟 방어 로직: 에러가 났거나 배열이 텅 비어있다면 목데이터를 쓴다!
@@ -121,25 +132,33 @@ export function Dashboard() {
     // 3 Yield Chart
 
     const { data: yieldDataRaw, isLoading: isYieldLoading, isError: isYieldError } = useQuery({
-        queryKey: ["yieldComparison", appliedEquipmentIds, appliedDate],
-        queryFn: () => fetchYieldComparison(appliedEquipmentIds, appliedDate),
+        queryKey: ["yieldComparison", equipmentParams, appliedDate],
+        queryFn: () => fetchYieldComparison(equipmentParams, appliedDate),
         enabled: !!appliedDate?.from,
         retry: false,
+
+        staleTime: 1000 * 60 * 10, // 10분 동안 캐시 유지
+        refetchOnMount: false,     // 컴포넌트 마운트 시(메뉴 이동 시) 재조회 금지
+        refetchOnWindowFocus: false, // 브라우저 창 활성화 시 재조회 금지
     });
 
     // 🌟 방어 로직: 에러 시 appliedLine 상태에 따라 알맞은 목데이터를 꽂아줍니다!
     const safeYieldData = (isYieldError || !yieldDataRaw || yieldDataRaw.length === 0)
-        ? (appliedEquipmentIds === "all" ? mockLineYieldData : mockEquipmentYieldData)
+        ? (equipmentParams === "all" ? mockLineYieldData : mockEquipmentYieldData)
         : yieldDataRaw;
     
     
 
     // 4  Pareto Chart
     const { data: paretoDataRaw, isLoading: isParetoLoading, isError: isParetoError } = useQuery({
-        queryKey: ["defectPareto", appliedEquipmentIds, appliedDate],
-        queryFn: () => fetchDefectPareto(appliedEquipmentIds, appliedDate),
+        queryKey: ["defectPareto", equipmentParams, appliedDate],
+        queryFn: () => fetchDefectPareto(equipmentParams, appliedDate),
         enabled: !!appliedDate?.from,
         retry: false,
+
+        staleTime: 1000 * 60 * 10, // 10분 동안 캐시 유지
+        refetchOnMount: false,     // 컴포넌트 마운트 시(메뉴 이동 시) 재조회 금지
+        refetchOnWindowFocus: false, // 브라우저 창 활성화 시 재조회 금지
     });
 
     // 🌟 방어 로직
@@ -148,7 +167,6 @@ export function Dashboard() {
         : paretoDataRaw;
 
     //const isUsingMockData = isSummaryError || !summaryData?.kpi || isTrendError || !trendDataRaw;
-    //const isLoading = isSummaryLoading || isTrendLoading;
 
     return (
         <div className="animate-in fade-in duration-500 space-y-6">

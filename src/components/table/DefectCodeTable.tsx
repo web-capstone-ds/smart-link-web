@@ -1,23 +1,26 @@
+import { Loader2 } from "lucide-react"
+
+import { cn } from "@/lib/utils"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
-import { Loader2 } from "lucide-react" // 🌟 로딩 아이콘 추가
-import { cn } from "@/lib/utils"
 
-import type { DefectStat } from "@/api/equipment" // 🌟 API 파일에서 타입 가져오기
+import type { DefectStat } from "@/type/equipmentType"
 
 interface DefectCodeTableProps {
     data: DefectStat[];
     className?: string;
-    isLoading?: boolean; // 🌟 로딩 상태 프롭스 추가
+    isLoading?: boolean;
 }
 
 export function DefectCodeTable({ data = [], className, isLoading }: DefectCodeTableProps) {
     return (
         <Card className={cn("flex flex-col gap-0 shadow-sm border-border min-w-0", className)}>
+
             <CardHeader className="py-3 px-4 pt-2 border-b border-border">
                 <CardTitle className="text-sm font-bold">주요 불량 코드 분석</CardTitle>
             </CardHeader>
+
             <CardContent className="p-0 overflow-x-auto">
                 <Table>
                     <TableHeader className="bg-muted/30">
@@ -29,7 +32,6 @@ export function DefectCodeTable({ data = [], className, isLoading }: DefectCodeT
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {/* 🌟 로딩 중 처리 */}
                         {isLoading ? (
                             <TableRow>
                                 <TableCell colSpan={4} className="h-70 text-center">
@@ -40,7 +42,6 @@ export function DefectCodeTable({ data = [], className, isLoading }: DefectCodeT
                                 </TableCell>
                             </TableRow>
                         ) : (
-                            /* 🌟 정상 데이터 렌더링 */
                             data.map((defect) => (
                                 <TableRow key={defect.code} className="border-border/50">
                                     <TableCell className="px-4 py-2 font-medium">

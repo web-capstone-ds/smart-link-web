@@ -53,14 +53,21 @@ export function EquipmentStats({ setSelectedEquipment }: EquipmentStatsProps) {
 
     const [sortBy, setSortBy] = useState("yield-asc");
     
+    const equipmentParams = appliedEquipmentIds.length > 0 ? appliedEquipmentIds.join(',') : "all";
+    
     // 🌟 1. 비가동 시간 트렌드 (Downtime)
-    const { data: downtimeRes, isFetching: isDowntimeLoading, isError: isDowntimeError } = useQuery({
-        queryKey: ["equipmentDowntime", appliedEquipmentIds, appliedDate],
-        queryFn: () => fetchDowntimeTrend(appliedEquipmentIds, appliedDate),
+    const { data: downtimeRes, isLoading: isDowntimeLoading, isError: isDowntimeError, } = useQuery({
+        queryKey: ["equipmentDowntime", equipmentParams, appliedDate],
+        queryFn: () => fetchDowntimeTrend(equipmentParams, appliedDate),
         enabled: !!appliedDate?.from,
+        retry: false,
+
+        staleTime: 1000 * 60 * 10, // 10분 동안 캐시 유지
+        refetchOnMount: false,     // 컴포넌트 마운트 시(메뉴 이동 시) 재조회 금지
+        refetchOnWindowFocus: false, // 브라우저 창 활성화 시 재조회 금지
     });
 
-    // 🌟 수정: 서버에서 받은 data 배열이 텅 비어있을 때도 목데이터를 쓰도록 조건을 추가합니다!
+    // 수정: 서버에서 받은 data 배열이 텅 비어있을 때도 목데이터를 쓰도록 조건을 추가합니다!
     const safeDowntimeRes = (
         isDowntimeError ||                 // 통신 에러가 났거나
         !downtimeRes ||                    // 아예 데이터가 없거나
@@ -71,29 +78,37 @@ export function EquipmentStats({ setSelectedEquipment }: EquipmentStatsProps) {
         : downtimeRes;
         
     // 🌟 2. 평균 무고장 시간 (MTBF) 추가!
-    const { data: mtbfDataRaw, isFetching: isMtbfLoading, isError: isMtbfError } = useQuery({
-        queryKey: ["equipmentMtbf", appliedEquipmentIds, appliedDate],
-        queryFn: () => fetchMtbf(appliedEquipmentIds, appliedDate),
+    const { data: mtbfDataRaw, isLoading: isMtbfLoading, isError: isMtbfError, error: downtimeError, } = useQuery({
+        queryKey: ["equipmentMtbf", equipmentParams, appliedDate],
+        queryFn: () => fetchMtbf(equipmentParams, appliedDate),
         enabled: !!appliedDate?.from,
         retry: false,
+
+        staleTime: 1000 * 60 * 10, // 10분 동안 캐시 유지
+        
+        refetchOnMount: false,     // 컴포넌트 마운트 시(메뉴 이동 시) 재조회 금지
+        refetchOnWindowFocus: false, // 브라우저 창 활성화 시 재조회 금지
     });
 
     // 🌟 방어 로직: 에러 시 "all"인지 특정 장비인지에 따라 알맞은 목데이터를 꽂아줍니다!
     const safeMtbfData = (isMtbfError || !mtbfDataRaw || mtbfDataRaw.length === 0) 
-        ? (appliedEquipmentIds === "all" ? mockMtbfData_All : mockMtbfData_Single) 
+        ? (appliedEquipmentIds.length === 0 ? mockMtbfData_All : mockMtbfData_Single) // 👈 length === 0 으로 수정
         : mtbfDataRaw;
 
-    console.log("safeDowntimeRes", safeDowntimeRes);
-    
+    // 3 defect
     const { 
         data: defectsRes, 
-        isFetching: isDefectsLoading, 
+        isLoading: isDefectsLoading, 
         isError: isDefectsError 
     } = useQuery({
-        queryKey: ["equipmentDefects", appliedEquipmentIds, appliedDate],
-        queryFn: () => fetchDefects(appliedEquipmentIds, appliedDate),
+        queryKey: ["equipmentDefects", equipmentParams, appliedDate],
+        queryFn: () => fetchDefects(equipmentParams, appliedDate),
         enabled: !!appliedDate?.from,
         retry: false,
+        
+        staleTime: 1000 * 60 * 10, // 10분 동안 캐시 유지
+        refetchOnMount: false,     // 컴포넌트 마운트 시(메뉴 이동 시) 재조회 금지
+        refetchOnWindowFocus: false, // 브라우저 창 활성화 시 재조회 금지
     });
 
     // 🌟 2. 강력한 방어 로직: 에러, null, 빈 배열일 경우 모두 목데이터로 대체!
@@ -105,15 +120,20 @@ export function EquipmentStats({ setSelectedEquipment }: EquipmentStatsProps) {
         ? mockDefectStatsData // 기환님이 작성하신 목데이터
         : defectsRes;
 
+    // 4 equipment
     const { 
         data: equipmentListRes, 
-        isFetching: isEquipmentListLoading, 
+        isLoading: isEquipmentListLoading, 
         isError: isEquipmentListError 
     } = useQuery({
-        queryKey: ["equipmentList", appliedEquipmentIds, appliedDate],
-        queryFn: () => fetchEquipmentStatusList(appliedEquipmentIds, appliedDate),
+        queryKey: ["equipmentList", equipmentParams, appliedDate],
+        queryFn: () => fetchEquipmentStatusList(equipmentParams, appliedDate),
         enabled: !!appliedDate?.from,
         retry: false, // 개발/디버깅 편의를 위해 일단 false
+
+        staleTime: 1000 * 60 * 10, // 10분 동안 캐시 유지
+        refetchOnMount: false,     // 컴포넌트 마운트 시(메뉴 이동 시) 재조회 금지
+        refetchOnWindowFocus: false, // 브라우저 창 활성화 시 재조회 금지
     });
 
     // 🌟 2. 강력한 방어 로직: 에러, null, 빈 배열 시 목데이터 스위칭
@@ -130,7 +150,7 @@ export function EquipmentStats({ setSelectedEquipment }: EquipmentStatsProps) {
         
         // 1. 장비 필터링 (명세 변경 반영: eq.line -> eq.id)
         const filtered = safeEquipmentList.filter(eq => 
-            appliedEquipmentIds === "all" ? true : eq.id === appliedEquipmentIds
+            appliedEquipmentIds.length === 0 ? true : appliedEquipmentIds.includes(eq.id)
         );
 
         // 2. 정렬 (기존의 훌륭한 얕은 복사 정렬 로직 유지!)

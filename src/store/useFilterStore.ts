@@ -4,11 +4,11 @@ import { format } from "date-fns";
 
 interface FilterState {
     // 전역 적용 상태 (조회 버튼을 눌렀을 때 확정되는 값)
-    appliedEquipmentIds: string;
+    appliedEquipmentIds: string[];
     appliedDate: DateRange | undefined;
     
     // 상태 업데이트 함수
-    setAppliedEquipmentIds: (line: string) => void;
+    setAppliedEquipmentIds: (ids: string[]) => void;
     setAppliedDate: (date: DateRange | undefined) => void;
 
     lastUpdated: string;
@@ -20,10 +20,10 @@ const yesterday = new Date();
 yesterday.setDate(yesterday.getDate() - 1);
 
 export const useFilterStore = create<FilterState>((set) => ({
-    appliedEquipmentIds: "all",
+    appliedEquipmentIds: [],
     appliedDate: { from: yesterday, to: yesterday },
     
-    setAppliedEquipmentIds: (line) => set({ appliedEquipmentIds: line }),
+    setAppliedEquipmentIds: (ids) => set({ appliedEquipmentIds: ids }),
     setAppliedDate: (date) => set({ appliedDate: date }),
 
     lastUpdated: format(new Date(), "yyyy-MM-dd HH:mm 'KST'"), 

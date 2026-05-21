@@ -15,7 +15,7 @@ import { useFilterStore } from "@/store/useFilterStore";
 
 export function ReportPage() {
     // 🌟 1. 리포트 전용 필터 상태 관리
-    const [targetEq, setTargetEq] = useState("DS-VIS-001");
+    const [targetEq, setTargetEq] = useState<string>("");
     
     const { appliedDate, setAppliedDate, setLastUpdated } = useFilterStore();
     const [tempDate, setTempDate] = useState<DateRange | undefined>(appliedDate);
@@ -71,7 +71,12 @@ export function ReportPage() {
             reportMode,
             targetEq
         ),
-        enabled: !!appliedDate?.from,
+        retry: false,
+        enabled: !!appliedDate?.from && (reportMode !== "equipment" || targetEq.length > 0),
+
+        staleTime: 1000 * 60 * 10, // 10분 동안은 데이터를 '신선한(Fresh)' 상태로 유지하여 재조회 안 함
+        refetchOnMount: false, // 다른 화면(대시보드)에 갔다가 돌아와도 재조회 안 함
+        refetchOnWindowFocus: false, // 다른 창 띄웠다가 돌아와도 재조회 안 함
     });
 
     const safeReportData = (isReportError || !reportData) ? mockReportSummary : reportData;
@@ -89,7 +94,12 @@ export function ReportPage() {
             reportMode,
             targetEq
         ),
-        enabled: !!appliedDate?.from,
+        retry: false,
+        enabled: !!appliedDate?.from && (reportMode !== "equipment" || targetEq.length > 0),
+
+        staleTime: 1000 * 60 * 10, // 10분 동안은 데이터를 '신선한(Fresh)' 상태로 유지하여 재조회 안 함
+        refetchOnMount: false, // 다른 화면(대시보드)에 갔다가 돌아와도 재조회 안 함
+        refetchOnWindowFocus: false, // 다른 창 띄웠다가 돌아와도 재조회 안 함
     });
 
     const safeQualityData = (isQualityError || !qualityData) ? mockQualityDistribution : qualityData;
@@ -107,8 +117,12 @@ export function ReportPage() {
             reportMode,
             targetEq
         ),
-        // 💡 최적화: 히트맵은 '장비별 리포트(equipment)' 모드일 때만 화면에 그리므로 조건부 호출
-        enabled: !!appliedDate?.from && reportMode === "equipment",
+        retry: false,
+        enabled: !!appliedDate?.from && reportMode === "equipment" && targetEq.length > 0,
+
+        staleTime: 1000 * 60 * 10, // 10분 동안은 데이터를 '신선한(Fresh)' 상태로 유지하여 재조회 안 함
+        refetchOnMount: false, // 다른 화면(대시보드)에 갔다가 돌아와도 재조회 안 함
+        refetchOnWindowFocus: false, // 다른 창 띄웠다가 돌아와도 재조회 안 함
     });
 
     const safeHeatmapData = (isHeatmapError || !heatmapData) ? mockReportHeatmap : heatmapData;
@@ -125,7 +139,12 @@ export function ReportPage() {
             reportMode === "equipment" ? targetEq : "all", 
             appliedDate
         ),
-        enabled: !!appliedDate?.from,
+        retry: false,
+        enabled: !!appliedDate?.from && (reportMode !== "equipment" || targetEq.length > 0),
+
+        staleTime: 1000 * 60 * 10, // 10분 동안은 데이터를 '신선한(Fresh)' 상태로 유지하여 재조회 안 함
+        refetchOnMount: false, // 다른 화면(대시보드)에 갔다가 돌아와도 재조회 안 함
+        refetchOnWindowFocus: false, // 다른 창 띄웠다가 돌아와도 재조회 안 함
     });
 
     // 방어 로직: 기존 UI에서 사용하던 defectStatsData(또는 mockParetoData)를 기본값으로 사용
@@ -147,7 +166,12 @@ export function ReportPage() {
             reportMode,
             targetEq
         ),
-        enabled: !!appliedDate?.from,
+        retry: false,
+        enabled: !!appliedDate?.from && (reportMode !== "equipment" || targetEq.length > 0),
+
+        staleTime: 1000 * 60 * 10, // 10분 동안은 데이터를 '신선한(Fresh)' 상태로 유지하여 재조회 안 함
+        refetchOnMount: false, // 다른 화면(대시보드)에 갔다가 돌아와도 재조회 안 함
+        refetchOnWindowFocus: false, // 다른 창 띄웠다가 돌아와도 재조회 안 함
     });
 
     // 방어 로직 (데이터 없으면 목데이터 바인딩)
@@ -164,7 +188,12 @@ export function ReportPage() {
             appliedDate?.to ? format(appliedDate.to, 'yyyy-MM-dd') : "",
             reportMode, targetEq
         ),
-        enabled: !!appliedDate?.from,
+        retry: false,
+        enabled: !!appliedDate?.from && (reportMode !== "equipment" || targetEq.length > 0),
+
+        staleTime: 1000 * 60 * 10, // 10분 동안은 데이터를 '신선한(Fresh)' 상태로 유지하여 재조회 안 함
+        refetchOnMount: false, // 다른 화면(대시보드)에 갔다가 돌아와도 재조회 안 함
+        refetchOnWindowFocus: false, // 다른 창 띄웠다가 돌아와도 재조회 안 함
     });
 
     // 💡 방어 로직: 에러 시 기존에 쓰던 mockData 활용!
@@ -197,7 +226,20 @@ export function ReportPage() {
                 onSearch={handleSearch}
             />
 
-            {/* 🌟 2. 실제 A4 리포트 문서 영역 분리 적용 */}
+            <div className="flex flex-col items-center gap-8 print:block print:gap-0 print:m-0">
+                    {reportMode === "equipment" && (!targetEq || targetEq.length === 0) ? (
+                        
+                        // [안내 화면] A4 사이즈의 예쁜 빈 껍데기
+                        <div className="w-[210mm] h-[297mm] bg-white border border-dashed border-zinc-300 flex flex-col items-center justify-center shadow-sm shrink-0">
+                            <div className="w-16 h-16 mb-4 rounded-full bg-zinc-100 flex items-center justify-center">
+                                <span className="text-2xl">⚙️</span>
+                            </div>
+                            <h3 className="text-lg font-bold text-zinc-700 mb-2">대상 장비 미선택</h3>
+                            <p className="text-sm font-medium text-zinc-400">상단 컨트롤 패널에서 분석할 장비를 선택하시면 리포트가 생성됩니다.</p>
+                        </div>
+                        
+                    ) : (
+           
             <ReportDocument 
                 reportMode={reportMode}
                 targetEq={targetEq}
@@ -212,7 +254,8 @@ export function ReportPage() {
                 appliedDate={appliedDate}
                 isLoading={isAnyLoading}
             />
-            
+            )}
+            </div>
         </div>
     );
 }
