@@ -36,7 +36,7 @@ export function DefectPieChart({ data = [], colors, className, isLoading }: Defe
                 ) : (
                     <>
                         <div className="w-full h-35">
-                            <ResponsiveContainer width="100%" height="100%" debounce={50}>
+                            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0} debounce={50}>
                                 <PieChart>
                                     <Pie 
                                         data={chartData} 

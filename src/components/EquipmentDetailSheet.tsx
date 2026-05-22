@@ -19,6 +19,8 @@ import { useFilterStore } from "@/store/useFilterStore"
 import { format } from "date-fns"
 import type { HeatmapSlot } from "@/type/equipmentDetailType";
 import type { EquipmentHistory } from "@/type/equipmentDetailType";
+import { useDetailEquipmentQueries } from "@/hooks/useDetailEquipmentQueries" // 🌟 커스텀 훅 바인딩
+
 
 interface EquipmentDetailSheetProps {
     selectedEquipment: string | null;
@@ -26,14 +28,14 @@ interface EquipmentDetailSheetProps {
 }
 
 export function EquipmentDetailSheet({ selectedEquipment, setSelectedEquipment }: EquipmentDetailSheetProps) {
+
     const [isReady, setIsReady] = useState(false);
 
-    // 🌟 0. 전역 스토어에서 사용자가 대시보드에서 바꾼 날짜(appliedDate)를 꺼내옵니다.
+    // 글로벌 전역 날짜 필터 조회
     const { appliedDate } = useFilterStore();
-
-    // 🌟 기준이 될 targetDate 확정 (종료일 -> 시작일 -> 오늘날짜 순으로 방어막 구축)
     const targetDate = appliedDate?.to || appliedDate?.from || new Date();
 
+    // 장비 선택 스위칭 시 슬라이드 애니메이션 지연용 사이드 이펙트
     useEffect(() => {
         if (selectedEquipment) {
             setIsReady(false);
@@ -42,88 +44,21 @@ export function EquipmentDetailSheet({ selectedEquipment, setSelectedEquipment }
         }
     }, [selectedEquipment]);
 
-    // =========================================================
-    // 1. API 데이터 페칭 (Summary) - targetDate 반영
-    // =========================================================
-    const { data: summaryData, isLoading, isError } = useQuery({
-        queryKey: ["equipmentSummary", selectedEquipment, targetDate], // 👈 이름표에 targetDate 추가
-        queryFn: async () => {
-            try { return await fetchEquipmentSummary(selectedEquipment!, targetDate); }
-            catch (e) { return null; }
-        },
-        enabled: !!selectedEquipment,
-        retry: false,
-    });
+    // 🌟 커스텀 훅 호출 (각 파트별 개별 로딩 상태를 구조분해로 추출)
+    const {
+        summaryData,
+        spcData,
+        heatmapData,
+        historyData,
+        downtimeTrendData,
+        isSummaryLoading,
+        isSpcLoading,
+        isHeatmapLoading,
+        isHistoryLoading,
+        isDowntimeLoading
+    } = useDetailEquipmentQueries({ selectedEquipment, targetDate, isReady });
 
-    const safeData = (isError || !summaryData) ? mockEquipmentSummary : summaryData;
-    const info = safeData.info;
-
-    // =========================================================
-    // 2. SPC Trend - targetDate 반영
-    // =========================================================
-    const { data: spcData, isLoading: isSpcLoading, isError: isSpcError } = useQuery({
-        queryKey: ["equipmentSPCTrend", selectedEquipment, targetDate],
-        queryFn: async () => {
-            try { return await fetchEquipmentSPCTrend(selectedEquipment!, targetDate); }
-            catch (e) { return []; }
-        },
-        enabled: !!selectedEquipment,
-        retry: false,
-    });
-
-    const safeSpcData = (isSpcError || !spcData || spcData.length === 0) ? mockEquipmentSPCTrend : spcData;
-
-    // =========================================================
-    // 3. Heatmap - targetDate 반영
-    // =========================================================
-    const { data: heatmapData, isLoading: isHeatmapLoading, isError: isHeatmapError } = useQuery({
-        queryKey: ["equipmentHeatmap", selectedEquipment, targetDate],
-        queryFn: async () => {
-            try { return await fetchEquipmentHeatmap(selectedEquipment!, targetDate); }
-            catch (e) { return null; }
-        },
-        enabled: !!selectedEquipment,
-        retry: false,
-    });
-
-    const safeHeatmapData = (isHeatmapError || !heatmapData) ? mockEquipmentHeatmap : heatmapData;
-
-    // =========================================================
-    // 4. 최근 조치 내역 히스토리 - targetDate 반영
-    // =========================================================
-    const { data: historyData, isLoading: isHistoryLoading, isError: isHistoryError } = useQuery({
-        queryKey: ["equipmentHistory", selectedEquipment, targetDate],
-        queryFn: async () => {
-            try { return await fetchEquipmentHistory(selectedEquipment!, targetDate); }
-            catch (e) { return []; }
-        },
-        enabled: !!selectedEquipment,
-        retry: false,
-    });
-
-    const safeHistoryData = (isHistoryError || !historyData || historyData.length === 0) 
-    ? mockEquipmentHistory 
-    : historyData;
-
-    // =========================================================
-    // 🌟 5. [신규 추가] 비가동 시간 트렌드 (과거 7일 자동 계산 API)
-    // =========================================================
-    const { data: downtimeTrendData, isLoading: isDowntimeLoading, isError: isDowntimeError } = useQuery({
-        queryKey: ["equipmentDetailDowntime", selectedEquipment, targetDate],
-        queryFn: async () => {
-            try { return await fetchEquipmentDowntimeTrend(selectedEquipment!, targetDate); }
-            catch (e) { return null; }
-        },
-        enabled: !!selectedEquipment,
-        retry: false,
-    });
-
-    // 에러나 데이터가 없을 때 꽂아줄 목데이터 (준비해두신 mock이 있다면 이름 매칭!)
-    const safeDowntimeTrendData = (isDowntimeError || !downtimeTrendData || !downtimeTrendData.data || 
-    downtimeTrendData.data.length === 0
-)
-        ? mockEquipmentDowntimeTrend 
-        : downtimeTrendData;
+    const info = summaryData?.info;
 
     return (
         <Sheet open={!!selectedEquipment} onOpenChange={(open) => !open && setSelectedEquipment(null)}>
@@ -138,7 +73,7 @@ export function EquipmentDetailSheet({ selectedEquipment, setSelectedEquipment }
                             <SheetTitle className="text-2xl font-bold">{selectedEquipment}</SheetTitle>
                             
                             {/* 로딩 중일 때는 스켈레톤, 아니면 safeData의 상태 표시 */}
-                            {isLoading ? (
+                            {isSummaryLoading ? (
                                 <div className="h-5 w-24 bg-muted/20 animate-pulse rounded-full" />
                             ) : (
                                 <Badge 
@@ -157,7 +92,7 @@ export function EquipmentDetailSheet({ selectedEquipment, setSelectedEquipment }
                         </div>
                         
                         <SheetDescription className="flex items-center gap-2">
-                            {isLoading ? (
+                            {isSummaryLoading ? (
                                 <div className="h-4 w-48 bg-muted/10 animate-pulse rounded mt-1" />
                             ) : (
                                 <>
@@ -183,7 +118,7 @@ export function EquipmentDetailSheet({ selectedEquipment, setSelectedEquipment }
                     {/* ========================================== */}
                     {/* 1. AI 예측 및 권고 */}
                     {/* ========================================== */}
-                    {(!isReady || isLoading) ? (
+                    {(!isReady || isSummaryLoading) ? (
                         /* 🌟 로딩 스켈레톤 */
                         <div className="bg-blue-500/5 border border-blue-500/10 rounded-lg p-5 flex gap-4 animate-pulse">
                             <div className="w-5 h-5 rounded-full bg-blue-500/20 shrink-0 mt-0.5" />
@@ -202,10 +137,10 @@ export function EquipmentDetailSheet({ selectedEquipment, setSelectedEquipment }
                             <Sparkles className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" /> 
                             <div>
                                 <h4 className="text-sm font-bold text-blue-500 mb-1.5">
-                                    {safeData.aiInsight.title}
+                                    {summaryData.aiInsight.title}
                                 </h4>
                                 <p className="text-sm text-foreground/80 leading-relaxed whitespace-pre-wrap">
-                                    {safeData.aiInsight.description}
+                                    {summaryData.aiInsight.description}
                                 </p>
                             </div>
                         </div>
@@ -222,7 +157,7 @@ export function EquipmentDetailSheet({ selectedEquipment, setSelectedEquipment }
                             <Activity className="w-5 h-5 text-muted-foreground" /> 일일 가동 타임라인
                         </h3>
                         
-                        {(!isReady || isLoading) ? (
+                        {(!isReady || isSummaryLoading) ? (
                             /* 🌟 로딩 스켈레톤 */
                             <Card className="border-border animate-pulse bg-muted/5">
                                 <CardContent className="p-5">
@@ -254,27 +189,27 @@ export function EquipmentDetailSheet({ selectedEquipment, setSelectedEquipment }
                                             <p className="text-xs font-bold text-muted-foreground">총 가동률</p>
                                             <p className={cn(
                                                 "text-2xl font-black",
-                                                safeData.uptime.totalRate < 90 ? "text-destructive" : 
-                                                safeData.uptime.totalRate < 95 ? "text-amber-500" : "text-emerald-500"
+                                                summaryData.uptime.totalRate < 90 ? "text-destructive" : 
+                                                summaryData.uptime.totalRate < 95 ? "text-amber-500" : "text-emerald-500"
                                             )}>
-                                                {safeData.uptime.totalRate} <span className="text-sm font-normal text-muted-foreground">%</span>
+                                                {summaryData.uptime.totalRate} <span className="text-sm font-normal text-muted-foreground">%</span>
                                             </p>
                                         </div>
                                         <div className="flex gap-3 text-[10px] font-bold">
                                             <span className="flex items-center gap-1 text-emerald-600">
-                                                <div className="w-2 h-2 bg-emerald-500 rounded-sm"></div> Run ({safeData.uptime.runHour}h)
+                                                <div className="w-2 h-2 bg-emerald-500 rounded-sm"></div> Run ({summaryData.uptime.runHour}h)
                                             </span>
                                             <span className="flex items-center gap-1 text-amber-500">
-                                                <div className="w-2 h-2 bg-amber-400 rounded-sm"></div> Idle ({safeData.uptime.idleHour}h)
+                                                <div className="w-2 h-2 bg-amber-400 rounded-sm"></div> Idle ({summaryData.uptime.idleHour}h)
                                             </span>
                                             <span className="flex items-center gap-1 text-destructive">
-                                                <div className="w-2 h-2 bg-destructive rounded-sm"></div> Down ({safeData.uptime.downHour}h)
+                                                <div className="w-2 h-2 bg-destructive rounded-sm"></div> Down ({summaryData.uptime.downHour}h)
                                             </span>
                                         </div>
                                     </div>
                                     
                                     <div className="h-8 flex rounded-md overflow-hidden border border-border/50 relative group">
-                                        {safeData.uptime.timeline.map((
+                                        {summaryData.uptime.timeline.map((
                                             segment: { status: string; start: string; end: string; ratio: number }, 
                                             index: number
                                         ) => {
@@ -302,11 +237,11 @@ export function EquipmentDetailSheet({ selectedEquipment, setSelectedEquipment }
                                     
                                     {/* 🌟 하단 시간 라벨 */}
                                         <div className="flex justify-between text-[10px] text-muted-foreground font-bold mt-2 px-1">
-                                            <span>{safeData.uptime.timeline[0]?.start}</span>
+                                            <span>{summaryData.uptime.timeline[0]?.start}</span>
                                             
                                             {/* 🌟 에러가 있다면 (중앙 고정 대신) 총 에러 발생 횟수를 가이드로 띄워줍니다 */}
                                             {(() => {
-                                                const downSegments = safeData.uptime.timeline.filter(
+                                                const downSegments = summaryData.uptime.timeline.filter(
                                                     (t: { status: string; start: string; end: string; ratio: number }) => t.status === "down"
                                                 );if (downSegments.length > 0) {
                                                     return (
@@ -318,7 +253,7 @@ export function EquipmentDetailSheet({ selectedEquipment, setSelectedEquipment }
                                                 return <span></span>; // 에러가 없을 때 간격 유지를 위한 빈 span
                                             })()}
 
-                                            <span>{safeData.uptime.timeline[safeData.uptime.timeline.length - 1]?.end}</span>
+                                            <span>{summaryData.uptime.timeline[summaryData.uptime.timeline.length - 1]?.end}</span>
                                         </div>
                                 </CardContent>
                             </Card>
@@ -331,7 +266,7 @@ export function EquipmentDetailSheet({ selectedEquipment, setSelectedEquipment }
                             <BarChart3 className="w-5 h-5 text-muted-foreground" /> 비가동 추이
                         </h3>
                         <span className="text-xs text-muted-foreground">
-                            (단위: {safeDowntimeTrendData?.unit === "hr" ? "시간" : "분"})
+                            (단위: {downtimeTrendData?.unit === "hr" ? "시간" : "분"})
                         </span>
                     </div>
                     
@@ -348,7 +283,7 @@ export function EquipmentDetailSheet({ selectedEquipment, setSelectedEquipment }
                             /* 실제 트렌드 바 차트 렌더링 */
                             <CardContent className="p-4 h-full animate-in fade-in duration-500">
                                 <ResponsiveContainer width="100%" height="100%" debounce={50}>
-                                    <BarChart data={safeDowntimeTrendData?.data || []} margin={{ top: 10, right: 0, left: -25, bottom: 0 }}>
+                                    <BarChart data={downtimeTrendData?.data || []} margin={{ top: 10, right: 0, left: -25, bottom: 0 }}>
                                         <CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} />
                                         <XAxis 
                                             dataKey="label" 
@@ -413,7 +348,7 @@ export function EquipmentDetailSheet({ selectedEquipment, setSelectedEquipment }
                         /* 실제 차트 데이터 렌더링 */
                         <CardContent className="h-48 pt-4 px-2 pb-0 animate-in fade-in duration-500">
                             <ResponsiveContainer width="100%" height="100%" debounce={50}>
-                                <ComposedChart data={safeSpcData} margin={{ top: 5, right: 10, left: -25, bottom: 5 }}>
+                                <ComposedChart data={spcData} margin={{ top: 5, right: 10, left: -25, bottom: 5 }}>
                                     <CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} />
                                     <XAxis dataKey="lot" tick={{ fontSize: 9, fill: '#a1a1aa' }} tickLine={false} axisLine={false} />
                                     
@@ -449,12 +384,12 @@ export function EquipmentDetailSheet({ selectedEquipment, setSelectedEquipment }
                         </CardTitle>
                         
                         {/* 🌟 수정: patternName이 존재할 때만 includes를 검사하도록 옵셔널 체이닝(?) 추가 */}
-                        {!(!isReady || isHeatmapLoading) && safeHeatmapData?.patternName && (
+                        {!(!isReady || isHeatmapLoading) && heatmapData?.patternName && (
                             <Badge 
-                                variant={safeHeatmapData.patternName?.includes("집중") ? "destructive" : "outline"} 
+                                variant={heatmapData.patternName?.includes("집중") ? "destructive" : "outline"} 
                                 className="text-[9px] font-bold h-4 py-0"
                             >
-                                패턴: {safeHeatmapData.patternName}
+                                패턴: {heatmapData.patternName}
                             </Badge>
                         )}
                     </CardHeader>
@@ -473,7 +408,7 @@ export function EquipmentDetailSheet({ selectedEquipment, setSelectedEquipment }
                             <div className="grid grid-cols-4 gap-2 w-full h-full max-h-32">
                                 {Array.from({ length: 8 }).map((_, i) => {
                                    
-                                   const slot = (safeHeatmapData?.slots || []).find(
+                                   const slot = (heatmapData?.slots || []).find(
                                         // 🌟 복잡한 인라인 타입 대신, 이미 정의된 HeatmapSlot 타입을 그대로 매핑합니다!
                                         (s: HeatmapSlot) => s.zAxisNum === i
                                     ) || {
@@ -533,7 +468,7 @@ export function EquipmentDetailSheet({ selectedEquipment, setSelectedEquipment }
                     <span className="text-xs text-muted-foreground">단위: μm (Z-Score &gt; 3.0 시 경보)</span>
                 </div>
                 
-                {(!isReady || isLoading) ? (
+                {(!isReady || isSummaryLoading) ? (
                     /* 🌟 1. 로딩 상태 (Skeleton) - 기존 코드 완벽함 */
                     <Card className="border-border shadow-sm overflow-hidden animate-pulse bg-muted/5">
                         <div className="h-9 bg-muted/20 border-b border-border/50 flex items-center px-4 justify-between">
@@ -573,7 +508,7 @@ export function EquipmentDetailSheet({ selectedEquipment, setSelectedEquipment }
                             </TableHeader>
                             <TableBody>
                                 {/* 🌟 추가: 파라미터 데이터가 아예 없을 때의 빈 화면 처리 */}
-                                {(!safeData.parameters || safeData.parameters.length === 0) ? (
+                                {(!summaryData.parameters || summaryData.parameters.length === 0) ? (
                                     <TableRow>
                                         <TableCell colSpan={6} className="h-24 text-center text-muted-foreground text-xs">
                                             측정된 파라미터 데이터가 없습니다.
@@ -581,7 +516,7 @@ export function EquipmentDetailSheet({ selectedEquipment, setSelectedEquipment }
                                     </TableRow>
                                 ) : (
                                     /* 🌟 수정: param과 index에 명시적 타입(Type Annotation) 부여 */
-                                    safeData.parameters.map((
+                                    summaryData.parameters.map((
                                         param: { name: string; avg: number | string; max: number | string; usl: number | string; zScore: number; isError: boolean }, 
                                         index: number
                                     ) => {
@@ -629,7 +564,7 @@ export function EquipmentDetailSheet({ selectedEquipment, setSelectedEquipment }
                 <Card className="border-border shadow-sm p-6">
                     
                     {/* 🌟 추가: 조치 이력 데이터가 아예 없을 경우 빈 화면 표시 */}
-                    {isReady && !isHistoryLoading && (!safeHistoryData || safeHistoryData.length === 0) ? (
+                    {isReady && !isHistoryLoading && (!historyData || historyData.length === 0) ? (
                         <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
                             <CheckCircle2 className="w-12 h-12 mb-3 opacity-20" />
                             <p className="text-sm font-medium">최근 조치 이력이 없습니다.</p>
@@ -657,7 +592,7 @@ export function EquipmentDetailSheet({ selectedEquipment, setSelectedEquipment }
                             ) : (
                                 /* 🌟 2. 실제 데이터 동적 렌더링 */
                                 // 🌟 수정: item과 index에 명시적 타입 지정 (any 에러 방지)
-                                safeHistoryData.map((item: EquipmentHistory, index: number) => { // 👈 인라인 타입 대신 EquipmentHistory 지정!
+                                historyData.map((item: EquipmentHistory, index: number) => { // 👈 인라인 타입 대신 EquipmentHistory 지정!
                                     const isUnresolved = item.status === "unresolved";
                                     return (
                                         <div 

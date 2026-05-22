@@ -42,7 +42,7 @@ export function YieldComparisonChart({ data, equipmentIds, className, isLoading 
                         <p className="text-sm">수율 데이터를 분석 중입니다...</p>
                     </div>
                 ) : (
-                    <ResponsiveContainer width="100%" height="100%" minHeight={300} debounce={300}>
+                    <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={300} debounce={300}>
                         <BarChart 
                             data={data} 
                             layout="vertical" 

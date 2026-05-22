@@ -1,159 +1,75 @@
 import { useState, useMemo } from "react"
-import { useQuery } from "@tanstack/react-query"
-import { fetchDowntimeTrend, fetchMtbf, fetchDefects, fetchEquipmentStatusList } from "@/api/equipment"
-
+import { format } from "date-fns"
 import type { DateRange } from "react-day-picker"
-import { DashboardHeader } from "@/components/layout/DashboardHeader"
-import { useFilterStore } from "@/store/useFilterStore"
-import { format } from "date-fns";
 
+// Hooks & Global Store
+import { useFilterStore } from "@/store/useFilterStore"
+import { useEquipmentQueries } from "@/hooks/useEquipmentQueries" // 🌟 새로 만든 커스텀 훅
+
+// Layout Components
+import { DashboardHeader } from "@/components/layout/DashboardHeader"
 import { EquipmentKPIChart } from "@/components/chart/EquipmentKPIChart"
 import { DefectCodeTable } from "@/components/table/DefectCodeTable"
 import { DefectPieChart } from "@/components/chart/DefectPieChart"
 import { EquipmentDetailTable } from "@/components/table/EquipmentDetailTable"
 
-import { downtimeResponse as mockDowntimeResponse, mockMtbfData_All, mockMtbfData_Single, defectStatsData as mockDefectStatsData,
-     DEFECT_COLORS, equipmentComparisonData as mockEquipmentComparisonData } from "@/data/mockData"
+import { DEFECT_COLORS } from "@/data/mockData"
 
 interface EquipmentStatsProps {
     setSelectedEquipment: (id: string) => void;
 }
 
 export function EquipmentStats({ setSelectedEquipment }: EquipmentStatsProps) {
-    
-    const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
-
     const { appliedEquipmentIds, appliedDate, setAppliedEquipmentIds, setAppliedDate, setLastUpdated } = useFilterStore();
+    
+    // UI 로컬 상태 관리 (헤더/필터 및 정렬)
     const [tempEquipmentIds, setTempEquipmentIds] = useState(appliedEquipmentIds);
     const [tempDate, setTempDate] = useState<DateRange | undefined>(appliedDate);
     const [isCalendarOpen, setIsCalendarOpen] = useState(false);
-        
+    const [sortBy, setSortBy] = useState("yield-asc");
+    
+    const equipmentParams = appliedEquipmentIds.length > 0 ? appliedEquipmentIds.join(',') : "all";
+    
+    // 🌟 커스텀 훅 1줄 호출: 모든 쿼리 호출 및 목데이터 스위칭 처리 완비
+    const {
+        downtimeRes,
+        mtbfData,
+        defectsData,
+        equipmentList,
+        availableEquipmentIds,
+        isDowntimeLoading,
+        isMtbfLoading,
+        isDefectsLoading,
+        isEquipmentListLoading
+    } = useEquipmentQueries({ equipmentParams, appliedDate, appliedEquipmentIds });
+
+    // 캘린더 이탈 방어 핸들러
     const handleCalendarOpenChange = (open: boolean) => {
         setIsCalendarOpen(open);
-        if (!open) {
-            if (!tempDate?.from) {
-                setTempDate(appliedDate);
-            }
+        if (!open && !tempDate?.from) {
+            setTempDate(appliedDate);
         }
     };
     
+    // 조회 트리거 핸들러
     const handleSearch = () => {
         if (!tempDate?.from) {
             alert("조회할 날짜를 선택해주세요.");
             setTempDate(appliedDate);
             return;
         }
-
         setLastUpdated(format(new Date(), "yyyy-MM-dd HH:mm 'KST'"));
         setAppliedEquipmentIds(tempEquipmentIds);
         setAppliedDate(tempDate);
         setIsCalendarOpen(false);
     };
 
-    const [sortBy, setSortBy] = useState("yield-asc");
-    
-    const equipmentParams = appliedEquipmentIds.length > 0 ? appliedEquipmentIds.join(',') : "all";
-    
-    // 🌟 1. 비가동 시간 트렌드 (Downtime)
-    const { data: downtimeRes, isLoading: isDowntimeLoading, isError: isDowntimeError, } = useQuery({
-        queryKey: ["equipmentDowntime", equipmentParams, appliedDate],
-        queryFn: () => fetchDowntimeTrend(equipmentParams, appliedDate),
-        enabled: !!appliedDate?.from,
-        retry: false,
-
-        staleTime: 1000 * 60 * 10, // 10분 동안 캐시 유지
-        refetchOnMount: false,     // 컴포넌트 마운트 시(메뉴 이동 시) 재조회 금지
-        refetchOnWindowFocus: false, // 브라우저 창 활성화 시 재조회 금지
-    });
-
-    // 수정: 서버에서 받은 data 배열이 텅 비어있을 때도 목데이터를 쓰도록 조건을 추가합니다!
-    const safeDowntimeRes = (
-        isDowntimeError ||                 // 통신 에러가 났거나
-        !downtimeRes ||                    // 아예 데이터가 없거나
-        !downtimeRes.data                  // data 속성이 없거나
-        //||downtimeRes.data.length === 0      
-    ) 
-        ? mockDowntimeResponse 
-        : downtimeRes;
-        
-    // 🌟 2. 평균 무고장 시간 (MTBF) 추가!
-    const { data: mtbfDataRaw, isLoading: isMtbfLoading, isError: isMtbfError, error: downtimeError, } = useQuery({
-        queryKey: ["equipmentMtbf", equipmentParams, appliedDate],
-        queryFn: () => fetchMtbf(equipmentParams, appliedDate),
-        enabled: !!appliedDate?.from,
-        retry: false,
-
-        staleTime: 1000 * 60 * 10, // 10분 동안 캐시 유지
-        
-        refetchOnMount: false,     // 컴포넌트 마운트 시(메뉴 이동 시) 재조회 금지
-        refetchOnWindowFocus: false, // 브라우저 창 활성화 시 재조회 금지
-    });
-
-    // 🌟 방어 로직: 에러 시 "all"인지 특정 장비인지에 따라 알맞은 목데이터를 꽂아줍니다!
-    const safeMtbfData = (isMtbfError || !mtbfDataRaw || mtbfDataRaw.length === 0) 
-        ? (appliedEquipmentIds.length === 0 ? mockMtbfData_All : mockMtbfData_Single) // 👈 length === 0 으로 수정
-        : mtbfDataRaw;
-
-    // 3 defect
-    const { 
-        data: defectsRes, 
-        isLoading: isDefectsLoading, 
-        isError: isDefectsError 
-    } = useQuery({
-        queryKey: ["equipmentDefects", equipmentParams, appliedDate],
-        queryFn: () => fetchDefects(equipmentParams, appliedDate),
-        enabled: !!appliedDate?.from,
-        retry: false,
-        
-        staleTime: 1000 * 60 * 10, // 10분 동안 캐시 유지
-        refetchOnMount: false,     // 컴포넌트 마운트 시(메뉴 이동 시) 재조회 금지
-        refetchOnWindowFocus: false, // 브라우저 창 활성화 시 재조회 금지
-    });
-
-    // 🌟 2. 강력한 방어 로직: 에러, null, 빈 배열일 경우 모두 목데이터로 대체!
-    const safeDefectsData = (
-        isDefectsError || 
-        !defectsRes || 
-        defectsRes.length === 0
-    ) 
-        ? mockDefectStatsData // 기환님이 작성하신 목데이터
-        : defectsRes;
-
-    // 4 equipment
-    const { 
-        data: equipmentListRes, 
-        isLoading: isEquipmentListLoading, 
-        isError: isEquipmentListError 
-    } = useQuery({
-        queryKey: ["equipmentList", equipmentParams, appliedDate],
-        queryFn: () => fetchEquipmentStatusList(equipmentParams, appliedDate),
-        enabled: !!appliedDate?.from,
-        retry: false, // 개발/디버깅 편의를 위해 일단 false
-
-        staleTime: 1000 * 60 * 10, // 10분 동안 캐시 유지
-        refetchOnMount: false,     // 컴포넌트 마운트 시(메뉴 이동 시) 재조회 금지
-        refetchOnWindowFocus: false, // 브라우저 창 활성화 시 재조회 금지
-    });
-
-    // 🌟 2. 강력한 방어 로직: 에러, null, 빈 배열 시 목데이터 스위칭
-    const safeEquipmentList = (
-        isEquipmentListError || 
-        !equipmentListRes || 
-        equipmentListRes.length === 0
-    ) 
-        ? mockEquipmentComparisonData // 기환님이 data/mockData.ts 에 준비해두신 목데이터
-        : equipmentListRes;
-        
-        // 🌟 서버에서 받은(혹은 목데이터로 대체된) 데이터를 기반으로 필터링 및 정렬 수행
+    // 🌟 가공/필터링/정렬 로직은 메모이제이션 처리 유지
     const filteredAndSortedData = useMemo(() => {
-        
-        // 1. 장비 필터링 (명세 변경 반영: eq.line -> eq.id)
-        const filtered = safeEquipmentList.filter(eq => 
+        const filtered = equipmentList.filter(eq => 
             appliedEquipmentIds.length === 0 ? true : appliedEquipmentIds.includes(eq.id)
         );
 
-        // 2. 정렬 (기존의 훌륭한 얕은 복사 정렬 로직 유지!)
         return [...filtered].sort((a, b) => {
             switch (sortBy) {
                 case "yield-asc": return a.yield - b.yield;
@@ -163,16 +79,12 @@ export function EquipmentStats({ setSelectedEquipment }: EquipmentStatsProps) {
                 default: return 0;
             }
         });
-    }, [safeEquipmentList, appliedEquipmentIds, sortBy]); 
-
-    const availableEquipmentIds = useMemo(() => {
-        // 현재 리스트에 존재하는 장비 ID만 중복 없이 혹은 순서대로 추출
-        return safeEquipmentList.map(eq => eq.id);
-    }, [safeEquipmentList]);
+    }, [equipmentList, appliedEquipmentIds, sortBy]); 
 
     return (
-        <div className="animate-in fade-in duration-500 space-y-6 ">
+        <div className="animate-in fade-in duration-500 space-y-6">
 
+            {/* 1. 공통 대시보드 헤더 */}
             <DashboardHeader 
                 title="장비 현황 통계"
                 subtitle="장비별 상세 수율 현황 및 설비 신뢰성 지표를 분석"
@@ -186,31 +98,30 @@ export function EquipmentStats({ setSelectedEquipment }: EquipmentStatsProps) {
                 onCalendarOpenChange={handleCalendarOpenChange}
             />
 
+            {/* 2. 장비 KPI & 불량 원인 분석 그리드 섹션 */}
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
-                
-                {/* 🌟 3. 두 가지 데이터와 두 가지 로딩 상태를 각각 분리해서 주입 */}
                 <EquipmentKPIChart 
-                    downtimeRes={safeDowntimeRes} 
-                    mtbfData={safeMtbfData} 
+                    downtimeRes={downtimeRes} 
+                    mtbfData={mtbfData} 
                     isDowntimeLoading={isDowntimeLoading} 
                     isMtbfLoading={isMtbfLoading} 
                 />
 
                 <DefectCodeTable 
-                    data={safeDefectsData}
+                    data={defectsData}
                     isLoading={isDefectsLoading}
                     className="col-span-1 lg:col-span-2" 
                 />
 
                 <DefectPieChart 
-                    data={safeDefectsData} 
+                    data={defectsData} 
                     colors={DEFECT_COLORS} 
                     isLoading={isDefectsLoading}
                     className="col-span-1"
                 />
-
             </div>
             
+            {/* 3. 하단 상세 장비 분석 테이블 */}
             <EquipmentDetailTable 
                 data={filteredAndSortedData} 
                 isLoading={isEquipmentListLoading}
@@ -220,6 +131,5 @@ export function EquipmentStats({ setSelectedEquipment }: EquipmentStatsProps) {
             />
 
         </div>
-        
     )
 }

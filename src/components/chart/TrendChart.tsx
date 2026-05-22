@@ -44,14 +44,14 @@ export function TrendChart({ data, trendUnit, onTrendUnitChange, className, isLo
                 </Select>
             </CardHeader>
             
-            <CardContent className="h-70 pt-6 flex-1">
+            <CardContent className="h-70 pt-6 flex-1 ">
                 {isLoading || !data  ? (
                     <div className="w-full h-full pb-8 flex flex-col items-center justify-center bg-muted/10 animate-pulse rounded-lg border border-dashed border-border text-muted-foreground">
                         <Loader2 className="w-8 h-8 mb-2 animate-spin text-primary/50" />
                         <p className="text-sm">차트 데이터를 분석 중입니다...</p>
                     </div>
                 ) : (
-                    <ResponsiveContainer width="100%" height="100%" minHeight={250} debounce={300}>
+                    <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={250} debounce={300}>
                         <ComposedChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                             <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
                             <XAxis dataKey="date" tick={{ fontSize: 10, fill: 'var(--muted-foreground)' }} tickLine={false} axisLine={false} />

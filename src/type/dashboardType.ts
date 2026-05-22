@@ -1,3 +1,4 @@
+// 1. KPI Summary Data Type
 export interface DashboardSummaryResponse {
     kpi: {
         totalProduction: number;
@@ -20,22 +21,21 @@ export interface DashboardSummaryResponse {
         down: number;
     };
 }
-
+// 2. Defect Pareto Data Type
 export interface ParetoData {
     defectCode: string;
     defectName: string;
     count: number;
     cumulative: number;
 }
-
+// 3. Trend Data Type
 export type TrendUnitType = "daily" | "weekly";
-
 export interface TrendData {
     date: string;
     production: number;
     yield: number;
 }
-
+// 4. Yield Comparison Type
 export interface YieldComparisonData {
     name: string; 
     yield: number;

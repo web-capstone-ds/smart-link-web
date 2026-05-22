@@ -1,6 +1,5 @@
 import { Cpu, Activity, AlertTriangle, CheckCircle2, Settings2 } from "lucide-react";
 import type { ReportSummary, QualityDistribution, ReportHeatmap, ReportAlarm } from "@/type/reportType";
-import { equipmentComparisonData } from "@/data/mockData"; // 4번 표 렌더링용 (추후 API로 대체 가능)
 import type { EquipmentStatus } from "@/type/equipmentType";
 import { format } from "date-fns";
 import type { DateRange } from "react-day-picker";

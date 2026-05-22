@@ -1,7 +1,7 @@
 // Main Dashboard
 
 // 1. KPI Summary Data
-export const dashboardSummary = {
+export const mockDashboardSummary = {
     kpi: {
         totalProduction: 24563,
         uph: 2850,
@@ -24,7 +24,7 @@ export const dashboardSummary = {
     }
 };
 // 2. Defect Pareto Data
-export const paretoData = [
+export const mockParetoData = [
   { defectCode: "C-01", defectName:"치핑", count: 342, cumulative: 45 },
   { defectCode: "B-01", defectName:"마모", count: 185, cumulative: 69 },
   { defectCode: "E-01", defectName:"오염", count: 89, cumulative: 81 },
@@ -32,7 +32,7 @@ export const paretoData = [
   { defectCode: "G-01", defectName:"기타", count: 99, cumulative: 100 },
 ];
 // 3. Trend Data 
-export const trendData = [
+export const mockTrendData = [
   { date: "05-01", production: 3100, yield: 95.1 },
   { date: "05-02", production: 3400, yield: 96.2 },
   { date: "05-03", production: 2800, yield: 93.8 },
@@ -42,13 +42,13 @@ export const trendData = [
   { date: "05-07", production: 3400, yield: 96.1 }
 ];
 // 4-1. Line Yield Comparison Data
-export const lineYieldData = [
+export const mockLineYieldData = [
   { name: "DS-VIS-001", yield: 96.4 },
   { name: "DS-VIS-002", yield: 98.1 },
   { name: "DS-VIS-003", yield: 94.2 },
 ];
 // 4-2. Equipment Yield Comparison Data
-export const equipmentYieldData = [
+export const mockEquipmentYieldData = [
   { name: "LOT#1", yield: 95.2 },
   { name: "LOT#2", yield: 97.4 },
   { name: "LOT#3", yield: 99.3 },
@@ -59,7 +59,7 @@ export const equipmentYieldData = [
 // Equipment Dashboard
 
 // 1. Downtime Trend Data (.data)
-export const downtimeResponse = {
+export const mockDowntimeResponse = {
     success: true,
     unit: "hr" as "hr" | "min",
     data: [
@@ -87,7 +87,7 @@ export const mockMtbfData_Single: MtbfDataPoint[] = [
     { name: "05/05", hours: 55 },
 ]; // Single
 // 3. Defects Data + Report Defects Pareto
-export const defectStatsData = [
+export const mockDefectStatsData = [
     { code: "C-01", name: "Chipping (치핑)", type: "공통 불량", count: 342, ratio: "45%", impact: "Package Size 이상치 발생" },
     { code: "B-02", name: "Blade Wear (블레이드 마모)", type: "공통 불량", count: 185, ratio: "24%", impact: "절단면 품질 저하 및 부하" },
     { code: "L-03", name: "Lens Contamination", type: "개별 불량", count: 89, ratio: "12%", impact: "비전 인식 오류" },
@@ -98,7 +98,7 @@ export const defectStatsData = [
 export const DEFECT_COLORS = ["#f59e0b", "#f97316", "#3b82f6", "#0ea5e9"]; // Pareto Pie Chart Color
 // 4. Equipment Status Data + Report Equipment Table
 import type { EquipmentStatus } from "@/type/equipmentType";
-export const equipmentComparisonData: EquipmentStatus[] = [
+export const mockEquipmentComparisonData: EquipmentStatus[] = [
     { 
         id: "DS-VIS-001", 
         recipe: "PKG_A12", 

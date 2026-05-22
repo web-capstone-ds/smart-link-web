@@ -33,7 +33,7 @@ export function ParetoChart({ data, className, isLoading }: DefectParetoChartPro
                         <p className="text-sm">불량 데이터를 집계 중입니다...</p>
                     </div>
                 ) : (
-                    <ResponsiveContainer width="100%" height="100%" debounce={300}>
+                    <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0} debounce={300}>
                         <ComposedChart data={data} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
                             <CartesianGrid strokeDasharray="3 3" stroke="#3f3f46" vertical={false} />
                             <XAxis 
