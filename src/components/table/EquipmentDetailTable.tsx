@@ -1,5 +1,7 @@
 import { ArrowUpDown, Download, BellRing, CheckCircle2, Filter, Loader2 } from "lucide-react"
 import { ResponsiveContainer, LineChart, Line, YAxis } from "recharts"
+import { format } from "date-fns"
+import type { DateRange } from "react-day-picker"
 
 import { cn } from "@/lib/utils"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -17,6 +19,8 @@ interface EquipmentDetailTableProps {
     onRowClick: (id: string) => void;
     className?: string;
     isLoading?: boolean;
+    appliedDate?: DateRange;
+    selectedEquipmentIds?: string[];
 }
 
 export function EquipmentDetailTable({ 
@@ -25,8 +29,21 @@ export function EquipmentDetailTable({
     onSortChange, 
     onRowClick,
     className,
-    isLoading
+    isLoading,
+    appliedDate,
+    selectedEquipmentIds = []
 }: EquipmentDetailTableProps) {
+    const periodText = formatPeriod(appliedDate);
+    const selectedEquipmentText = selectedEquipmentIds.length > 0 ? selectedEquipmentIds.join(", ") : "ALL";
+
+    const handleExportExcel = () => {
+        exportEquipmentStatusExcel(data, {
+            periodText,
+            selectedEquipmentText,
+            sortBy,
+        });
+    };
+
     return (
         <Card className={cn(
             "sticky top-22", 
@@ -59,8 +76,14 @@ export function EquipmentDetailTable({
                         </Select>
                     </div>
 
-                    <Button variant="outline" size="sm" className="h-8 text-xs gap-1.5 ml-2">
-                        <Download className="w-3.5 h-3.5" /> 내보내기
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-8 text-xs gap-1.5 ml-2"
+                        onClick={handleExportExcel}
+                        disabled={isLoading || data.length === 0}
+                    >
+                        <Download className="w-3.5 h-3.5" /> 엑셀 내보내기
                     </Button>
                 </div>
             </CardHeader>
@@ -191,4 +214,198 @@ export function EquipmentDetailTable({
             </CardContent>
         </Card>
     )
+}
+
+function formatPeriod(date: DateRange | undefined) {
+    if (!date?.from) return "전체 기간";
+    if (date.to && date.to.getTime() !== date.from.getTime()) {
+        return `${format(date.from, "yyyy-MM-dd")} ~ ${format(date.to, "yyyy-MM-dd")}`;
+    }
+    return format(date.from, "yyyy-MM-dd");
+}
+
+function getRiskGrade(eq: EquipmentStatus) {
+    const failRate = eq.total > 0 ? (eq.fail / eq.total) * 100 : 0;
+
+    if (eq.unresolvedAlert || eq.uptime < 90 || eq.yield < 97) {
+        return "Critical";
+    }
+
+    if (eq.uptime < 95 || eq.yield < 98 || failRate >= 2) {
+        return "Warning";
+    }
+
+    return "Stable";
+}
+
+function getRecommendedAction(eq: EquipmentStatus) {
+    if (eq.unresolvedAlert) return "미조치 경보 우선 확인 및 조치 이력 등록";
+    if (eq.uptime < 90) return "비가동 원인 분석, 점검 일정 우선 배정";
+    if (eq.yield < 97) return "주요 불량 유형 기준 공정 조건 및 검사 파라미터 점검";
+    if (eq.uptime < 95) return "가동률 저하 구간 확인 및 예방 정비 검토";
+    if (eq.majorDefect !== "-") return "주요 불량 추이 모니터링 및 재발 방지 항목 등록";
+    return "정상 범위 유지, 정기 모니터링";
+}
+
+function escapeHtml(value: unknown) {
+    return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+}
+
+function numberCell(value: number, decimals = 0) {
+    return Number.isFinite(value) ? Number(value.toFixed(decimals)) : "-";
+}
+
+function exportEquipmentStatusExcel(
+    rows: EquipmentStatus[],
+    meta: {
+        periodText: string;
+        selectedEquipmentText: string;
+        sortBy: string;
+    }
+) {
+    const generatedAt = format(new Date(), "yyyy-MM-dd HH:mm");
+    const totalProduction = rows.reduce((sum, eq) => sum + eq.total, 0);
+    const totalFail = rows.reduce((sum, eq) => sum + eq.fail, 0);
+    const totalMarginal = rows.reduce((sum, eq) => sum + eq.marginal, 0);
+    const weightedYield = totalProduction > 0
+        ? rows.reduce((sum, eq) => sum + eq.yield * eq.total, 0) / totalProduction
+        : 0;
+    const avgUptime = rows.length > 0
+        ? rows.reduce((sum, eq) => sum + eq.uptime, 0) / rows.length
+        : 0;
+    const criticalCount = rows.filter((eq) => getRiskGrade(eq) === "Critical").length;
+    const warningCount = rows.filter((eq) => getRiskGrade(eq) === "Warning").length;
+    const alertCount = rows.filter((eq) => eq.unresolvedAlert).length;
+
+    const summaryRows = [
+        ["조회 기간", meta.periodText],
+        ["대상 설비", meta.selectedEquipmentText],
+        ["정렬 기준", meta.sortBy],
+        ["생성 일시", `${generatedAt} KST`],
+        ["설비 수", rows.length],
+        ["총 생산수", totalProduction],
+        ["Fail 합계", totalFail],
+        ["Marginal 합계", totalMarginal],
+        ["가중 평균 수율(%)", numberCell(weightedYield, 2)],
+        ["평균 가동률(%)", numberCell(avgUptime, 2)],
+        ["미조치 경보 설비", alertCount],
+        ["Critical 설비", criticalCount],
+        ["Warning 설비", warningCount],
+    ];
+
+    const detailHeader = [
+        "Risk",
+        "설비 ID",
+        "Recipe",
+        "가동률(%)",
+        "종합 수율(%)",
+        "총 생산수",
+        "Fail",
+        "Fail Rate(%)",
+        "Marginal",
+        "Marginal Rate(%)",
+        "양품 추정",
+        "미조치 경보",
+        "주요 불량",
+        "최근 수율 시작(%)",
+        "최근 수율 마지막(%)",
+        "수율 변화(%p)",
+        "최근 수율 추세",
+        "권장 조치",
+    ];
+
+    const detailRows = rows.map((eq) => {
+        const firstTrend = eq.yieldTrend[0] ?? eq.yield;
+        const lastTrend = eq.yieldTrend[eq.yieldTrend.length - 1] ?? eq.yield;
+        const trendDelta = lastTrend - firstTrend;
+        const failRate = eq.total > 0 ? (eq.fail / eq.total) * 100 : 0;
+        const marginalRate = eq.total > 0 ? (eq.marginal / eq.total) * 100 : 0;
+        const goodCount = Math.max(eq.total - eq.fail - eq.marginal, 0);
+        const trendText = trendDelta < -0.3 ? "하락" : trendDelta > 0.3 ? "상승" : "유지";
+
+        return [
+            getRiskGrade(eq),
+            eq.id,
+            eq.recipe,
+            numberCell(eq.uptime, 1),
+            numberCell(eq.yield, 1),
+            eq.total,
+            eq.fail,
+            numberCell(failRate, 2),
+            eq.marginal,
+            numberCell(marginalRate, 2),
+            goodCount,
+            eq.unresolvedAlert ? "Y" : "N",
+            eq.majorDefect,
+            numberCell(firstTrend, 1),
+            numberCell(lastTrend, 1),
+            numberCell(trendDelta, 2),
+            trendText,
+            getRecommendedAction(eq),
+        ];
+    });
+
+    const html = `
+        <html>
+            <head>
+                <meta charset="UTF-8" />
+                <style>
+                    table { border-collapse: collapse; font-family: Arial, sans-serif; font-size: 11pt; }
+                    th { background: #27272a; color: #fff; font-weight: 700; }
+                    th, td { border: 1px solid #d4d4d8; padding: 6px 8px; }
+                    .title { font-size: 16pt; font-weight: 700; background: #f4f4f5; }
+                    .section { font-weight: 700; background: #e4e4e7; }
+                    .number { mso-number-format: "0.00"; }
+                    .integer { mso-number-format: "0"; }
+                    .critical { background: #fee2e2; color: #991b1b; font-weight: 700; }
+                    .warning { background: #fef3c7; color: #92400e; font-weight: 700; }
+                    .stable { background: #dcfce7; color: #166534; font-weight: 700; }
+                </style>
+            </head>
+            <body>
+                <table>
+                    <tr><td class="title" colspan="18">설비별 수율 및 가동 현황</td></tr>
+                    <tr><td class="section" colspan="18">조회 조건 및 요약</td></tr>
+                    ${summaryRows.map(([label, value]) => `
+                        <tr>
+                            <td colspan="3">${escapeHtml(label)}</td>
+                            <td colspan="15">${escapeHtml(value)}</td>
+                        </tr>
+                    `).join("")}
+                    <tr><td colspan="18"></td></tr>
+                    <tr>${detailHeader.map((header) => `<th>${escapeHtml(header)}</th>`).join("")}</tr>
+                    ${detailRows.map((row) => {
+                        const riskClass = row[0] === "Critical" ? "critical" : row[0] === "Warning" ? "warning" : "stable";
+                        const decimalColumnIndexes = new Set([3, 4, 7, 9, 13, 14, 15]);
+                        return `
+                            <tr>
+                                ${row.map((cell, index) => {
+                                    const className = index === 0
+                                        ? riskClass
+                                        : typeof cell === "number"
+                                            ? decimalColumnIndexes.has(index) ? "number" : "integer"
+                                            : "";
+                                    return `<td class="${className}">${escapeHtml(cell)}</td>`;
+                                }).join("")}
+                            </tr>
+                        `;
+                    }).join("")}
+                </table>
+            </body>
+        </html>
+    `;
+
+    const blob = new Blob(["\ufeff", html], { type: "application/vnd.ms-excel;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `equipment-status-${format(new Date(), "yyyyMMdd-HHmm")}.xls`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
 }

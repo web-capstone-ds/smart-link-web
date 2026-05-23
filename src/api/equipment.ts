@@ -1,4 +1,4 @@
-import axios from "axios";
+import { apiClient } from "@/api/client";
 import { format } from "date-fns";
 import type { DateRange } from "react-day-picker";
 
@@ -17,7 +17,7 @@ export const fetchDowntimeTrend = async (
     const startDate = date?.from ? format(date.from, 'yyyy-MM-dd') : '';
     const endDate = date?.to ? format(date.to, 'yyyy-MM-dd') : startDate;
 
-    const response = await axios.get('/api/v1/equipments/downtime-trend', {
+    const response = await apiClient.get('/api/v1/equipments/downtime-trend', {
         params: { 
             equipmentIds,
             startDate, 
@@ -43,7 +43,7 @@ export const fetchMtbf = async (
     const startDate = date?.from ? format(date.from, 'yyyy-MM-dd') : '';
     const endDate = date?.to ? format(date.to, 'yyyy-MM-dd') : startDate;
 
-    const response = await axios.get('/api/v1/equipments/mtbf', {
+    const response = await apiClient.get('/api/v1/equipments/mtbf', {
         params: { 
             equipmentIds, 
             startDate, 
@@ -69,7 +69,7 @@ export const fetchDefects = async (
     const startDate = date?.from ? format(date.from, 'yyyy-MM-dd') : '';
     const endDate = date?.to ? format(date.to, 'yyyy-MM-dd') : startDate;
 
-    const response = await axios.get('/api/v1/equipments/defects', {
+    const response = await apiClient.get('/api/v1/equipments/defects', {
         params: { 
             equipmentIds, 
             startDate, 
@@ -95,7 +95,7 @@ export const fetchEquipmentStatusList = async (
     const startDate = date?.from ? format(date.from, 'yyyy-MM-dd') : '';
     const endDate = date?.to ? format(date.to, 'yyyy-MM-dd') : startDate;
 
-    const response = await axios.get('/api/v1/equipments/status-list', {
+    const response = await apiClient.get('/api/v1/equipments/status-list', {
         params: { 
             equipmentIds, 
             startDate, 

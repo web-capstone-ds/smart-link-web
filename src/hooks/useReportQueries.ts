@@ -6,9 +6,9 @@ import {
     fetchQualityDistribution, 
     fetchReportHeatmap, 
     fetchReportAlarms, 
-    fetchReportEquipments 
+    fetchReportEquipments,
+    fetchReportDefects
 } from "@/api/report";
-import { fetchDefectPareto } from "@/api/dashboard";
 import { 
     mockReportSummary, 
     mockQualityDistribution, 
@@ -27,7 +27,7 @@ interface UseReportQueriesProps {
 export function useReportQueries({ appliedDate, reportMode, targetEq }: UseReportQueriesProps) {
     // API에 꽂아줄 포맷팅된 문자열 날짜 계산
     const fromStr = appliedDate?.from ? format(appliedDate.from, 'yyyy-MM-dd') : "";
-    const toStr = appliedDate?.to ? format(appliedDate.to, 'yyyy-MM-dd') : "";
+    const toStr = appliedDate?.to ? format(appliedDate.to, 'yyyy-MM-dd') : fromStr;
 
     // 🌟 핵심 방어 조건: 필수 날짜가 있어야 하고, 장비 리포트 모드일 때는 반드시 장비 ID가 선택되어야 쿼리를 보냄
     const isEnabled = !!appliedDate?.from && (reportMode !== "equipment" || targetEq.length > 0);
@@ -39,6 +39,16 @@ export function useReportQueries({ appliedDate, reportMode, targetEq }: UseRepor
         refetchOnMount: false,
         refetchOnWindowFocus: false,
     };
+
+    const { data: equipmentOptionsData, isLoading: isEquipmentOptionsLoading } = useQuery({
+        queryKey: ["reportEquipmentOptions", appliedDate],
+        queryFn: () => fetchReportEquipments(fromStr, toStr, "daily"),
+        enabled: !!appliedDate?.from,
+        retry: false,
+        staleTime: 1000 * 60 * 10,
+        refetchOnMount: false,
+        refetchOnWindowFocus: false,
+    });
 
     // 1. 메인 리포트 요약 (KPI 등)
     const { data: reportData, isLoading: isReportLoading, isError: isReportError } = useQuery({
@@ -65,7 +75,7 @@ export function useReportQueries({ appliedDate, reportMode, targetEq }: UseRepor
     // 4. 불량 통계 (파레토)
     const { data: defectData, isLoading: isDefectLoading, isError: isDefectError } = useQuery({
         queryKey: ["reportDefects", appliedDate, reportMode, targetEq],
-        queryFn: () => fetchDefectPareto(reportMode === "equipment" ? targetEq : "all", appliedDate),
+        queryFn: () => fetchReportDefects(fromStr, toStr, reportMode, targetEq),
         ...commonOptions,
     });
 
@@ -92,10 +102,15 @@ export function useReportQueries({ appliedDate, reportMode, targetEq }: UseRepor
     const safeEquipmentData = (isEqError || !equipmentData) ? mockEquipmentComparisonData : equipmentData;
 
     // 전체 로딩 판단 통합
-    const isAnyLoading = isReportLoading || isQualityLoading || (reportMode === "equipment" && isHeatmapLoading) || isDefectLoading || isAlarmLoading || isEqLoading;
+    const isAnyLoading = isReportLoading || isQualityLoading || (reportMode === "equipment" && isHeatmapLoading) || isDefectLoading || isAlarmLoading || isEqLoading || isEquipmentOptionsLoading;
 
     // 장비 드롭다운용 ID 추출
-    const availableEquipmentIds = mockEquipmentComparisonData.map(eq => eq.id);
+    const availableEquipmentIds = (equipmentOptionsData?.length
+        ? equipmentOptionsData
+        : equipmentData?.length
+            ? equipmentData
+            : mockEquipmentComparisonData
+    ).map(eq => eq.id);
 
     return {
         safeReportData,

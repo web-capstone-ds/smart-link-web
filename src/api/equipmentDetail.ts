@@ -1,4 +1,4 @@
-import axios from "axios";
+import { apiClient } from "@/api/client";
 import { format, subDays } from "date-fns";
 
 import type { DowntimeTrendResponse } from "@/type/equipmentType";
@@ -14,7 +14,7 @@ export const fetchEquipmentSummary = async (
 
     const formattedDate = typeof targetDate === 'string' ? targetDate : format(targetDate, 'yyyy-MM-dd');
 
-    const response = await axios.get(`/api/v1/equipments/${equipmentId}/summary`, {
+    const response = await apiClient.get(`/api/v1/equipments/${equipmentId}/summary`, {
         params: { targetDate: formattedDate }
     });
 
@@ -44,7 +44,7 @@ export const fetchEquipmentDowntimeTrend = async (
     const startDate = format(startDateObj, 'yyyy-MM-dd');
 
     // 4. 대시보드용 엔드포인트(/api/v1/equipments/downtime-trend) 호출!
-    const response = await axios.get('/api/v1/equipments/downtime-trend', {
+    const response = await apiClient.get('/api/v1/equipments/downtime-trend', {
         params: { 
             equipmentIds: equipmentId, // 백엔드는 복수형(equipmentIds)을 원하므로 이름 맞춰주기
             startDate,
@@ -70,7 +70,7 @@ export const fetchEquipmentSPCTrend = async (
     await new Promise(resolve => setTimeout(resolve, 1000));
     const formattedDate = typeof targetDate === 'string' ? targetDate : format(targetDate, 'yyyy-MM-dd');
 
-    const response = await axios.get(`/api/v1/equipments/${equipmentId}/spc-trend`, {
+    const response = await apiClient.get(`/api/v1/equipments/${equipmentId}/spc-trend`, {
         params: { 
             limit,
             targetDate: formattedDate // 🌟 쿼리 추가 (limit과 함께 전달)
@@ -93,7 +93,7 @@ export const fetchEquipmentHeatmap = async (
     await new Promise(resolve => setTimeout(resolve, 1000));
     const formattedDate = typeof targetDate === 'string' ? targetDate : format(targetDate, 'yyyy-MM-dd');
 
-    const response = await axios.get(`/api/v1/equipments/${equipmentId}/heatmap`, {
+    const response = await apiClient.get(`/api/v1/equipments/${equipmentId}/heatmap`, {
         params: { targetDate: formattedDate } // 🌟 쿼리 추가
     });
     if (!response.data || !response.data.data) {
@@ -112,7 +112,7 @@ export const fetchEquipmentHistory = async (
     await new Promise(resolve => setTimeout(resolve, 1000));
     const formattedDate = typeof targetDate === 'string' ? targetDate : format(targetDate, 'yyyy-MM-dd');
 
-    const response = await axios.get(`/api/v1/equipments/${equipmentId}/history`, {
+    const response = await apiClient.get(`/api/v1/equipments/${equipmentId}/history`, {
         params: { targetDate: formattedDate } // 🌟 쿼리 추가
     });
 

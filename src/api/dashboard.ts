@@ -1,4 +1,4 @@
-import axios from "axios";
+import { apiClient } from "@/api/client";
 import { format, subDays, subWeeks, isSameDay } from 'date-fns';
 import type { DateRange } from "react-day-picker";
 
@@ -17,7 +17,7 @@ export const fetchDashboardSummary = async (
     const startDate = date?.from ? format(date.from, 'yyyy-MM-dd') : '';
     const endDate = date?.to ? format(date.to, 'yyyy-MM-dd') : startDate;
 
-    const response = await axios.get('/api/v1/dashboard/summary', {
+    const response = await apiClient.get('/api/v1/dashboard/summary', {
         params: {
             equipmentIds,
             startDate,
@@ -43,7 +43,7 @@ export const fetchDefectPareto = async (
     const startDate = date?.from ? format(date.from, 'yyyy-MM-dd') : '';
     const endDate = date?.to ? format(date.to, 'yyyy-MM-dd') : startDate;
 
-    const response = await axios.get('/api/v1/dashboard/defects/pareto', {
+    const response = await apiClient.get('/api/v1/dashboard/defects/pareto', {
         params: { equipmentIds, startDate, endDate }
     });
     
@@ -84,7 +84,7 @@ export const fetchDashboardTrend = async (
         startDate = date?.from ? format(date.from, 'yyyy-MM-dd') : endDate;
     }
 
-    const response = await axios.get('/api/v1/dashboard/trend', {
+    const response = await apiClient.get('/api/v1/dashboard/trend', {
         params: { 
             equipmentIds, 
             startDate, // 분기 처리된 시작일
@@ -111,7 +111,7 @@ export const fetchYieldComparison = async (
     const startDate = date?.from ? format(date.from, 'yyyy-MM-dd') : '';
     const endDate = date?.to ? format(date.to, 'yyyy-MM-dd') : startDate;
 
-    const response = await axios.get('/api/v1/dashboard/yield-comparison', {
+    const response = await apiClient.get('/api/v1/dashboard/yield-comparison', {
         params: { 
             equipmentIds,
             startDate, 

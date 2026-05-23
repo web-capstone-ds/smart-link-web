@@ -1,4 +1,4 @@
-import { Filter, Printer, Download, CalendarIcon } from "lucide-react";
+import { Filter, Printer, CalendarIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { format, isSameDay, subMonths } from "date-fns";
 import { ko } from "date-fns/locale";
@@ -76,7 +76,7 @@ export function ReportHeader({
                     </h2>
                     <p className="text-xs text-muted-foreground mt-1">인쇄용 데이터 요약 초안(Draft) 생성기</p>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="ml-auto flex items-center justify-end gap-2">
                     <Popover open={isCalendarOpen} onOpenChange={onCalendarOpenChange}>
                         <PopoverTrigger asChild>
                             <Button
@@ -107,7 +107,7 @@ export function ReportHeader({
                                 mode="range"
                                 defaultMonth={lastMonth}
                                 selected={date}
-                                onSelect={onDateChange}
+                                onSelect={handleDateSelect}
                                 numberOfMonths={2}
                                 locale={ko}
                                 disabled={{ after: today }}
@@ -130,11 +130,8 @@ export function ReportHeader({
                         조회
                     </Button>
 
-                    <Button variant="outline" size="sm" className="gap-2 h-9 text-xs ml-2" onClick={() => window.print()}>
+                    <Button variant="outline" size="sm" className="gap-2 h-9 text-xs ml-2" onClick={handlePrint}>
                         <Printer className="w-4 h-4" /> 초안 인쇄
-                    </Button>
-                    <Button size="sm" className="gap-2 h-9 text-xs bg-zinc-900 text-white">
-                        <Download className="w-4 h-4" /> PDF 내보내기
                     </Button>
                 </div>
             </div>

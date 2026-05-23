@@ -128,6 +128,8 @@ export function EquipmentStats({ setSelectedEquipment }: EquipmentStatsProps) {
                 sortBy={sortBy}
                 onSortChange={setSortBy}
                 onRowClick={setSelectedEquipment}
+                appliedDate={appliedDate}
+                selectedEquipmentIds={appliedEquipmentIds}
             />
 
         </div>

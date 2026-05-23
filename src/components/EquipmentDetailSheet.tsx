@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react"
-import { useQuery } from "@tanstack/react-query"
 import { cn } from "@/lib/utils"
 
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet"
@@ -11,10 +10,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Download, Info, Settings2, Activity, CheckCircle2, AlertTriangle, Sparkles, Grid3X3, TrendingUp, BarChart3 } from "lucide-react"
 import { ResponsiveContainer, Tooltip, XAxis, Line, YAxis, CartesianGrid, Legend, ComposedChart, Bar, BarChart } from "recharts"
 
-import { mockEquipmentHeatmap, mockEquipmentSPCTrend, mockEquipmentSummary, mockEquipmentHistory, mockEquipmentDowntimeTrend } from "@/data/mockData"
-
-import { fetchEquipmentSummary, fetchEquipmentSPCTrend, fetchEquipmentHeatmap, fetchEquipmentHistory, fetchEquipmentDowntimeTrend } from "@/api/equipmentDetail";
-
 import { useFilterStore } from "@/store/useFilterStore"
 import { format } from "date-fns"
 import type { HeatmapSlot } from "@/type/equipmentDetailType";
@@ -25,9 +20,14 @@ import { useDetailEquipmentQueries } from "@/hooks/useDetailEquipmentQueries" //
 interface EquipmentDetailSheetProps {
     selectedEquipment: string | null;
     setSelectedEquipment: (id: string | null) => void;
+    onOpenEquipmentReport: (id: string) => void;
 }
 
-export function EquipmentDetailSheet({ selectedEquipment, setSelectedEquipment }: EquipmentDetailSheetProps) {
+export function EquipmentDetailSheet({
+    selectedEquipment,
+    setSelectedEquipment,
+    onOpenEquipmentReport
+}: EquipmentDetailSheetProps) {
 
     const [isReady, setIsReady] = useState(false);
 
@@ -108,7 +108,15 @@ export function EquipmentDetailSheet({ selectedEquipment, setSelectedEquipment }
                         </SheetDescription>
                     </SheetHeader>
                     
-                    <Button className="gap-2 h-9 text-xs">
+                    <Button
+                        className="gap-2 h-9 text-xs"
+                        disabled={!selectedEquipment}
+                        onClick={() => {
+                            if (selectedEquipment) {
+                                onOpenEquipmentReport(selectedEquipment);
+                            }
+                        }}
+                    >
                         <Download className="w-4 h-4" /> 리포트 PDF 다운로드
                     </Button>
                 </div>

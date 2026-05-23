@@ -1,12 +1,14 @@
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 
 import { Sidebar } from "@/components/layout/Sidebar"
 import { Header } from "@/components/layout/Header"
 import { EquipmentDetailSheet } from "@/components/EquipmentDetailSheet"
+import { LoginScreen } from "@/components/auth/LoginScreen"
 
 import { Dashboard } from "@/pages/Dashboard"
 import { EquipmentStats } from "@/pages/EquipmentStats"
 import { ReportPage } from "@/pages/ReportPage"
+import { useAuthStore } from "@/store/useAuthStore"
 
 function App() {
 
@@ -14,10 +16,22 @@ function App() {
     const [activeMenu, setActiveMenu] = useState("dashboard");
 
     const [selectedEquipment, setSelectedEquipment] = useState<string | null>(null);
+    const [reportEquipmentId, setReportEquipmentId] = useState<string | null>(null);
+    const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+    const contentRef = useRef<HTMLDivElement>(null);
 
-    return (
-        
-        <div className="flex h-screen w-full bg-background text-foreground">
+    useEffect(() => {
+        contentRef.current?.scrollTo({ top: 0, left: 0 });
+    }, [activeMenu]);
+
+    const handleOpenEquipmentReport = (equipmentId: string) => {
+        setReportEquipmentId(equipmentId);
+        setSelectedEquipment(null);
+        setActiveMenu("report");
+    };
+
+    return isAuthenticated ? (
+        <div className="app-shell flex h-screen w-full bg-background text-foreground">
 
             {/* 1. Sidebar */}
             <Sidebar 
@@ -27,7 +41,7 @@ function App() {
             />
 
             {/* Main Area */}
-            <main className="flex-1 flex flex-col overflow-hidden">
+            <main className="app-main flex-1 flex flex-col overflow-hidden">
 
                 {/* 2. Header */}
                 <Header 
@@ -36,8 +50,8 @@ function App() {
                 />
 
                 {/* 3. Content Area */}
-                <div className="flex-1 p-6 overflow-auto bg-background custom-scrollbar">
-                    <div className="max-w-7xl mx-auto space-y-6">
+                <div ref={contentRef} className="app-content flex-1 p-6 overflow-auto bg-background custom-scrollbar">
+                    <div className="app-content-inner max-w-7xl mx-auto space-y-6">
 
                         {/* 3.1. Dashboard */}
                         {activeMenu === "dashboard" && <Dashboard />}
@@ -47,7 +61,7 @@ function App() {
                             <EquipmentStats setSelectedEquipment={setSelectedEquipment} />)}
                     
                         {/* 3.3. DailyReport */}
-                        {activeMenu === "report" &&  <ReportPage />}
+                        {activeMenu === "report" &&  <ReportPage requestedEquipmentId={reportEquipmentId} />}
                     </div>
                 </div>
 
@@ -55,9 +69,12 @@ function App() {
                 <EquipmentDetailSheet 
                     selectedEquipment={selectedEquipment} 
                     setSelectedEquipment={setSelectedEquipment} 
+                    onOpenEquipmentReport={handleOpenEquipmentReport}
                 />
             </main>
         </div>
+    ) : (
+        <LoginScreen />
     )
 }
 

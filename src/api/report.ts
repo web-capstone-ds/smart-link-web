@@ -1,6 +1,7 @@
-import axios from "axios";
+import { apiClient } from "@/api/client";
 
 import type { EquipmentStatus } from "@/type/equipmentType";
+import type { DefectStat } from "@/type/equipmentType";
 import type { ReportSummary, QualityDistribution, ReportAlarm, ReportHeatmap } from "@/type/reportType";
 
 // 1. Report Summary Data
@@ -13,7 +14,7 @@ export const fetchReportSummary = async (
     
     await new Promise(resolve => setTimeout(resolve, 1000));
 
-    const response = await axios.get("/api/v1/reports/summary", {
+    const response = await apiClient.get("/api/v1/reports/summary", {
         params: {
             startDate,
             endDate,
@@ -39,7 +40,7 @@ export const fetchReportEquipments = async (
     
     await new Promise(resolve => setTimeout(resolve, 1000));
 
-    const response = await axios.get("/api/v1/reports/equipments", {
+    const response = await apiClient.get("/api/v1/reports/equipments", {
         params: {
             startDate, endDate, reportMode,
             ...(reportMode === "equipment" && equipmentId ? { equipmentId } : {})
@@ -63,7 +64,7 @@ export const fetchQualityDistribution = async (
     
     await new Promise(resolve => setTimeout(resolve, 1000));
 
-    const response = await axios.get("/api/v1/reports/quality-distribution", {
+    const response = await apiClient.get("/api/v1/reports/quality-distribution", {
         params: {
             startDate,
             endDate,
@@ -89,7 +90,7 @@ export const fetchReportHeatmap = async (
     
     await new Promise(resolve => setTimeout(resolve, 1000));
 
-    const response = await axios.get("/api/v1/reports/heatmap", {
+    const response = await apiClient.get("/api/v1/reports/heatmap", {
         params: {
             startDate,
             endDate,
@@ -115,7 +116,7 @@ export const fetchReportAlarms = async (
     
     await new Promise(resolve => setTimeout(resolve, 1000));
 
-    const response = await axios.get("/api/v1/reports/alarms", {
+    const response = await apiClient.get("/api/v1/reports/alarms", {
         params: {
             startDate,
             endDate,
@@ -126,6 +127,32 @@ export const fetchReportAlarms = async (
 
     if (!response.data || !response.data.data) {
         throw new Error("서버에서 경보 이력 데이터를 받지 못했습니다.");
+    }
+
+    return response.data.data;
+};
+
+// 6. Report Defect Data
+export const fetchReportDefects = async (
+    startDate: string,
+    endDate: string,
+    reportMode: "daily" | "weekly" | "equipment",
+    equipmentId?: string
+): Promise<DefectStat[]> => {
+
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    const response = await apiClient.get("/api/v1/reports/defects", {
+        params: {
+            startDate,
+            endDate,
+            reportMode,
+            ...(reportMode === "equipment" && equipmentId ? { equipmentId } : {})
+        }
+    });
+
+    if (!response.data || !response.data.data) {
+        throw new Error("서버에서 리포트 불량 통계 데이터를 받지 못했습니다.");
     }
 
     return response.data.data;

@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import { format, isSameDay } from "date-fns";
 import type { DateRange } from "react-day-picker";
 
@@ -10,7 +10,11 @@ import { useReportQueries } from "@/hooks/useReportQueries"; // 🌟 분리한 �
 import { ReportHeader } from "@/components/layout/ReportHeader";
 import { ReportDocument } from "@/components/ReportDocument";
 
-export function ReportPage() {
+interface ReportPageProps {
+    requestedEquipmentId?: string | null;
+}
+
+export function ReportPage({ requestedEquipmentId }: ReportPageProps) {
     const { appliedDate, setAppliedDate, setLastUpdated } = useFilterStore();
     
     // UI 로컬 제어 상태
@@ -23,6 +27,14 @@ export function ReportPage() {
             ? "weekly" 
             : "daily"  
     );
+
+    useEffect(() => {
+        if (!requestedEquipmentId) return;
+
+        setReportMode("equipment");
+        setTargetEq(requestedEquipmentId);
+        setTempDate(appliedDate);
+    }, [requestedEquipmentId, appliedDate]);
 
     const {
         safeReportData,
@@ -66,7 +78,7 @@ export function ReportPage() {
     };
 
     return (
-        <div className="flex flex-col items-center space-y-8 animate-in fade-in duration-500 pb-20 bg-muted/30 pt-8">
+        <div className="report-page flex flex-col items-center space-y-8 animate-in fade-in duration-500 pb-20 bg-muted/30 pt-8">
             
             {/* 1. 상단 분석 조건 컨트롤 바 패널 */}
             <ReportHeader 
@@ -83,7 +95,7 @@ export function ReportPage() {
             />
 
             {/* 2. 메인 인쇄용 리포트 도큐먼트 출력 영역 */}
-            <div className="flex flex-col items-center gap-8 print:block print:gap-0 print:m-0">
+            <div className="report-print-area flex flex-col items-center gap-8 print:block print:gap-0 print:m-0">
                 {reportMode === "equipment" && (!targetEq || targetEq.length === 0) ? (
                     
                     /* [Empty State] 장비 리포트 모드인데 장비가 안 고르고 비어있을 때 표출할 A4 예쁜 공백 템플릿 */
