@@ -1,4 +1,5 @@
 import { apiClient } from "@/api/client";
+import { delayForMockData } from "@/api/mockDelay";
 import { format, subDays, subWeeks, isSameDay } from 'date-fns';
 import type { DateRange } from "react-day-picker";
 
@@ -12,7 +13,7 @@ export const fetchDashboardSummary = async (
     date: DateRange | undefined
 ): Promise<DashboardSummaryResponse> => {
     
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await delayForMockData();
 
     const startDate = date?.from ? format(date.from, 'yyyy-MM-dd') : '';
     const endDate = date?.to ? format(date.to, 'yyyy-MM-dd') : startDate;
@@ -38,7 +39,7 @@ export const fetchDefectPareto = async (
     date: DateRange | undefined
 ): Promise<ParetoData[]> => {
     
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await delayForMockData();
 
     const startDate = date?.from ? format(date.from, 'yyyy-MM-dd') : '';
     const endDate = date?.to ? format(date.to, 'yyyy-MM-dd') : startDate;
@@ -61,7 +62,7 @@ export const fetchDashboardTrend = async (
     unit: TrendUnitType
 ): Promise<TrendData[]> => {
     
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await delayForMockData();
 
     const anchorDate = date?.to || date?.from || new Date();
     const endDate = format(anchorDate, 'yyyy-MM-dd');
@@ -71,7 +72,7 @@ export const fetchDashboardTrend = async (
     let startDate: string;
 
     if (isSingleDay) {
-        // 🌟 [하루 선택 시] 강제로 과거 7개 데이터 범위를 잡아줍니다.
+        // ?뙚 [?섎（ ?좏깮 ?? 媛뺤젣濡?怨쇨굅 7媛??곗씠??踰붿쐞瑜??≪븘以띾땲??
         let calculatedStartDate: Date;
         if (unit === "daily") {
             calculatedStartDate = subDays(anchorDate, 6);
@@ -80,14 +81,14 @@ export const fetchDashboardTrend = async (
         }
         startDate = format(calculatedStartDate, 'yyyy-MM-dd');
     } else {
-        // 🌟 [기간 선택 시] 사용자가 지정한 시작일을 그대로 존중합니다.
+        // ?뙚 [湲곌컙 ?좏깮 ?? ?ъ슜?먭? 吏?뺥븳 ?쒖옉?쇱쓣 洹몃?濡?議댁쨷?⑸땲??
         startDate = date?.from ? format(date.from, 'yyyy-MM-dd') : endDate;
     }
 
     const response = await apiClient.get('/api/v1/dashboard/trend', {
         params: { 
             equipmentIds, 
-            startDate, // 분기 처리된 시작일
+            startDate, // 遺꾧린 泥섎━???쒖옉??
             endDate,   
             unit       
         }
@@ -106,7 +107,7 @@ export const fetchYieldComparison = async (
     date: DateRange | undefined
 ): Promise<YieldComparisonData[]> => {
     
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await delayForMockData();
 
     const startDate = date?.from ? format(date.from, 'yyyy-MM-dd') : '';
     const endDate = date?.to ? format(date.to, 'yyyy-MM-dd') : startDate;
@@ -125,3 +126,7 @@ export const fetchYieldComparison = async (
 
     return response.data.data; 
 };
+
+
+
+

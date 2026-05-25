@@ -1,4 +1,5 @@
 import { apiClient } from "@/api/client";
+import { delayForMockData } from "@/api/mockDelay";
 import { format } from "date-fns";
 import type { DateRange } from "react-day-picker";
 
@@ -12,7 +13,7 @@ export const fetchDowntimeTrend = async (
     date: DateRange | undefined
 ): Promise<DowntimeTrendResponse> => {
     
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await delayForMockData();
 
     const startDate = date?.from ? format(date.from, 'yyyy-MM-dd') : '';
     const endDate = date?.to ? format(date.to, 'yyyy-MM-dd') : startDate;
@@ -38,7 +39,7 @@ export const fetchMtbf = async (
     date: DateRange | undefined
 ): Promise<MtbfDataPoint[]> => {
     
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await delayForMockData();
 
     const startDate = date?.from ? format(date.from, 'yyyy-MM-dd') : '';
     const endDate = date?.to ? format(date.to, 'yyyy-MM-dd') : startDate;
@@ -64,7 +65,7 @@ export const fetchDefects = async (
     date: DateRange | undefined
 ): Promise<DefectStat[]> => {
     
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await delayForMockData();
 
     const startDate = date?.from ? format(date.from, 'yyyy-MM-dd') : '';
     const endDate = date?.to ? format(date.to, 'yyyy-MM-dd') : startDate;
@@ -90,7 +91,7 @@ export const fetchEquipmentStatusList = async (
     date: DateRange | undefined
 ): Promise<EquipmentStatus[]> => {
     
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await delayForMockData();
 
     const startDate = date?.from ? format(date.from, 'yyyy-MM-dd') : '';
     const endDate = date?.to ? format(date.to, 'yyyy-MM-dd') : startDate;
@@ -109,3 +110,7 @@ export const fetchEquipmentStatusList = async (
 
     return response.data.data; 
 };
+
+
+
+

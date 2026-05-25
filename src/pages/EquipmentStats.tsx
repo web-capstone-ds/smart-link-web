@@ -4,7 +4,7 @@ import type { DateRange } from "react-day-picker"
 
 // Hooks & Global Store
 import { useFilterStore } from "@/store/useFilterStore"
-import { useEquipmentQueries } from "@/hooks/useEquipmentQueries" // 🌟 새로 만든 커스텀 훅
+import { useEquipmentQueries } from "@/hooks/useEquipmentQueries" // ?뙚 ?덈줈 留뚮뱺 而ㅼ뒪? ??
 
 // Layout Components
 import { DashboardHeader } from "@/components/layout/DashboardHeader"
@@ -14,6 +14,7 @@ import { DefectPieChart } from "@/components/chart/DefectPieChart"
 import { EquipmentDetailTable } from "@/components/table/EquipmentDetailTable"
 
 import { DEFECT_COLORS } from "@/data/mockData"
+import { noDataMessage } from "@/data/emptyData"
 
 interface EquipmentStatsProps {
     setSelectedEquipment: (id: string) => void;
@@ -22,7 +23,7 @@ interface EquipmentStatsProps {
 export function EquipmentStats({ setSelectedEquipment }: EquipmentStatsProps) {
     const { appliedEquipmentIds, appliedDate, setAppliedEquipmentIds, setAppliedDate, setLastUpdated } = useFilterStore();
     
-    // UI 로컬 상태 관리 (헤더/필터 및 정렬)
+    // UI 濡쒖뺄 ?곹깭 愿由?(?ㅻ뜑/?꾪꽣 諛??뺣젹)
     const [tempEquipmentIds, setTempEquipmentIds] = useState(appliedEquipmentIds);
     const [tempDate, setTempDate] = useState<DateRange | undefined>(appliedDate);
     const [isCalendarOpen, setIsCalendarOpen] = useState(false);
@@ -30,7 +31,7 @@ export function EquipmentStats({ setSelectedEquipment }: EquipmentStatsProps) {
     
     const equipmentParams = appliedEquipmentIds.length > 0 ? appliedEquipmentIds.join(',') : "all";
     
-    // 🌟 커스텀 훅 1줄 호출: 모든 쿼리 호출 및 목데이터 스위칭 처리 완비
+    // ?뙚 而ㅼ뒪? ??1以??몄텧: 紐⑤뱺 荑쇰━ ?몄텧 諛?紐⑸뜲?댄꽣 ?ㅼ쐞移?泥섎━ ?꾨퉬
     const {
         downtimeRes,
         mtbfData,
@@ -40,10 +41,11 @@ export function EquipmentStats({ setSelectedEquipment }: EquipmentStatsProps) {
         isDowntimeLoading,
         isMtbfLoading,
         isDefectsLoading,
-        isEquipmentListLoading
+        isEquipmentListLoading,
+        hasDataIssue
     } = useEquipmentQueries({ equipmentParams, appliedDate, appliedEquipmentIds });
 
-    // 캘린더 이탈 방어 핸들러
+    // 罹섎┛???댄깉 諛⑹뼱 ?몃뱾??
     const handleCalendarOpenChange = (open: boolean) => {
         setIsCalendarOpen(open);
         if (!open && !tempDate?.from) {
@@ -51,7 +53,7 @@ export function EquipmentStats({ setSelectedEquipment }: EquipmentStatsProps) {
         }
     };
     
-    // 조회 트리거 핸들러
+    // 議고쉶 ?몃━嫄??몃뱾??
     const handleSearch = () => {
         if (!tempDate?.from) {
             alert("조회할 날짜를 선택해주세요.");
@@ -64,7 +66,7 @@ export function EquipmentStats({ setSelectedEquipment }: EquipmentStatsProps) {
         setIsCalendarOpen(false);
     };
 
-    // 🌟 가공/필터링/정렬 로직은 메모이제이션 처리 유지
+    // ?뙚 媛怨??꾪꽣留??뺣젹 濡쒖쭅? 硫붾え?댁젣?댁뀡 泥섎━ ?좎?
     const filteredAndSortedData = useMemo(() => {
         const filtered = equipmentList.filter(eq => 
             appliedEquipmentIds.length === 0 ? true : appliedEquipmentIds.includes(eq.id)
@@ -84,7 +86,7 @@ export function EquipmentStats({ setSelectedEquipment }: EquipmentStatsProps) {
     return (
         <div className="animate-in fade-in duration-500 space-y-6">
 
-            {/* 1. 공통 대시보드 헤더 */}
+            {/* 1. 怨듯넻 ??쒕낫???ㅻ뜑 */}
             <DashboardHeader 
                 title="장비 현황 통계"
                 subtitle="장비별 상세 수율 현황 및 설비 신뢰성 지표를 분석"
@@ -98,7 +100,13 @@ export function EquipmentStats({ setSelectedEquipment }: EquipmentStatsProps) {
                 onCalendarOpenChange={handleCalendarOpenChange}
             />
 
-            {/* 2. 장비 KPI & 불량 원인 분석 그리드 섹션 */}
+            {hasDataIssue && (
+                <div className="rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-900">
+                    {noDataMessage}
+                </div>
+            )}
+
+            {/* 2. ?λ퉬 KPI & 遺덈웾 ?먯씤 遺꾩꽍 洹몃━???뱀뀡 */}
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
                 <EquipmentKPIChart 
                     downtimeRes={downtimeRes} 
@@ -121,7 +129,7 @@ export function EquipmentStats({ setSelectedEquipment }: EquipmentStatsProps) {
                 />
             </div>
             
-            {/* 3. 하단 상세 장비 분석 테이블 */}
+            {/* 3. ?섎떒 ?곸꽭 ?λ퉬 遺꾩꽍 ?뚯씠釉?*/}
             <EquipmentDetailTable 
                 data={filteredAndSortedData} 
                 isLoading={isEquipmentListLoading}
@@ -135,3 +143,4 @@ export function EquipmentStats({ setSelectedEquipment }: EquipmentStatsProps) {
         </div>
     )
 }
+

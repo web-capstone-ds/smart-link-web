@@ -1,18 +1,26 @@
 import { useQuery } from "@tanstack/react-query";
-import { 
-    fetchEquipmentSummary, 
-    fetchEquipmentSPCTrend, 
-    fetchEquipmentHeatmap, 
-    fetchEquipmentHistory, 
-    fetchEquipmentDowntimeTrend 
+import {
+    fetchEquipmentSummary,
+    fetchEquipmentSPCTrend,
+    fetchEquipmentHeatmap,
+    fetchEquipmentHistory,
+    fetchEquipmentDowntimeTrend,
 } from "@/api/equipmentDetail";
-import { 
-    mockEquipmentSummary, 
-    mockEquipmentSPCTrend, 
-    mockEquipmentHeatmap, 
-    mockEquipmentHistory, 
-    mockEquipmentDowntimeTrend 
+import {
+    mockEquipmentSummary,
+    mockEquipmentSPCTrend,
+    mockEquipmentHeatmap,
+    mockEquipmentHistory,
+    mockEquipmentDowntimeTrend,
 } from "@/data/mockData";
+import {
+    emptyDowntimeResponse,
+    emptyEquipmentHeatmap,
+    emptyEquipmentHistory,
+    emptyEquipmentSPCTrend,
+    emptyEquipmentSummary,
+} from "@/data/emptyData";
+import { useAuthStore } from "@/store/useAuthStore";
 
 interface UseDetailEquipmentQueriesProps {
     selectedEquipment: string | null;
@@ -21,8 +29,8 @@ interface UseDetailEquipmentQueriesProps {
 }
 
 export function useDetailEquipmentQueries({ selectedEquipment, targetDate, isReady }: UseDetailEquipmentQueriesProps) {
-    
     const isEnabled = !!selectedEquipment;
+    const useMockData = useAuthStore((state) => state.useMockData);
 
     const commonOptions = {
         enabled: isEnabled,
@@ -32,49 +40,48 @@ export function useDetailEquipmentQueries({ selectedEquipment, targetDate, isRea
         refetchOnWindowFocus: false,
     };
 
-    // 1. Summary 데이터
     const { data: summaryData, isLoading: isSummaryLoading, isError: isSummaryError } = useQuery({
         queryKey: ["equipmentSummary", selectedEquipment, targetDate],
         queryFn: () => fetchEquipmentSummary(selectedEquipment!, targetDate),
         ...commonOptions,
     });
 
-    // 2. SPC 데이터
     const { data: spcData, isLoading: isSpcLoading, isError: isSpcError } = useQuery({
         queryKey: ["equipmentSPCTrend", selectedEquipment, targetDate],
         queryFn: () => fetchEquipmentSPCTrend(selectedEquipment!, targetDate),
         ...commonOptions,
     });
 
-    // 3. Heatmap 데이터
     const { data: heatmapData, isLoading: isHeatmapLoading, isError: isHeatmapError } = useQuery({
         queryKey: ["equipmentHeatmap", selectedEquipment, targetDate],
         queryFn: () => fetchEquipmentHeatmap(selectedEquipment!, targetDate),
         ...commonOptions,
     });
 
-    // 4. History 데이터
     const { data: historyData, isLoading: isHistoryLoading, isError: isHistoryError } = useQuery({
         queryKey: ["equipmentHistory", selectedEquipment, targetDate],
         queryFn: () => fetchEquipmentHistory(selectedEquipment!, targetDate),
         ...commonOptions,
     });
 
-    // 5. Downtime 트렌드 데이터
     const { data: downtimeTrendData, isLoading: isDowntimeLoading, isError: isDowntimeError } = useQuery({
         queryKey: ["equipmentDetailDowntime", selectedEquipment, targetDate],
         queryFn: () => fetchEquipmentDowntimeTrend(selectedEquipment!, targetDate),
         ...commonOptions,
     });
 
-    // --- 🌟 데이터 안전 가공/방어 레이어 ---
-    const safeSummaryData = (isSummaryError || !summaryData) ? mockEquipmentSummary : summaryData;
-    const safeSpcData = (isSpcError || !spcData || spcData.length === 0) ? mockEquipmentSPCTrend : spcData;
-    const safeHeatmapData = (isHeatmapError || !heatmapData) ? mockEquipmentHeatmap : heatmapData;
-    const safeHistoryData = (isHistoryError || !historyData || historyData.length === 0) ? mockEquipmentHistory : historyData;
-    const safeDowntimeTrendData = (isDowntimeError || !downtimeTrendData || !downtimeTrendData.data || downtimeTrendData.data.length === 0) 
-        ? mockEquipmentDowntimeTrend 
+    const safeSummaryData = (isSummaryError || !summaryData) ? (useMockData ? mockEquipmentSummary : emptyEquipmentSummary) : summaryData;
+    const safeSpcData = (isSpcError || !spcData || spcData.length === 0) ? (useMockData ? mockEquipmentSPCTrend : emptyEquipmentSPCTrend) : spcData;
+    const safeHeatmapData = (isHeatmapError || !heatmapData) ? (useMockData ? mockEquipmentHeatmap : emptyEquipmentHeatmap) : heatmapData;
+    const safeHistoryData = (isHistoryError || !historyData || historyData.length === 0) ? (useMockData ? mockEquipmentHistory : emptyEquipmentHistory) : historyData;
+    const safeDowntimeTrendData = (isDowntimeError || !downtimeTrendData || !downtimeTrendData.data || downtimeTrendData.data.length === 0)
+        ? (useMockData ? mockEquipmentDowntimeTrend : emptyDowntimeResponse)
         : downtimeTrendData;
+
+    const isAnyLoading = isSummaryLoading || isSpcLoading || isHeatmapLoading || isHistoryLoading || isDowntimeLoading;
+    const hasDataIssue = !useMockData && isReady && !isAnyLoading && (
+        isSummaryError || isSpcError || isHeatmapError || isHistoryError || isDowntimeError || !summaryData
+    );
 
     return {
         summaryData: safeSummaryData,
@@ -82,11 +89,11 @@ export function useDetailEquipmentQueries({ selectedEquipment, targetDate, isRea
         heatmapData: safeHeatmapData,
         historyData: safeHistoryData,
         downtimeTrendData: safeDowntimeTrendData,
-        
         isSummaryLoading: !isReady || isSummaryLoading,
         isSpcLoading: !isReady || isSpcLoading,
         isHeatmapLoading: !isReady || isHeatmapLoading,
         isHistoryLoading: !isReady || isHistoryLoading,
-        isDowntimeLoading: !isReady || isDowntimeLoading
+        isDowntimeLoading: !isReady || isDowntimeLoading,
+        hasDataIssue,
     };
 }

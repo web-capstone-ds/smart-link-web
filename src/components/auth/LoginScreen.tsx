@@ -10,6 +10,7 @@ export function LoginScreen() {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [remember, setRemember] = useState(true);
+    const [useMockData, setUseMockData] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
 
@@ -19,7 +20,7 @@ export function LoginScreen() {
         setIsSubmitting(true);
 
         try {
-            await login({ username, password, remember });
+            await login({ username, password, remember, useMockData });
         } catch (error) {
             setErrorMessage(error instanceof Error ? error.message : "로그인에 실패했습니다.");
         } finally {
@@ -123,6 +124,24 @@ export function LoginScreen() {
                                     <LockKeyhole className="w-3 h-3" />
                                     JWT 인증
                                 </div>
+                            </div>
+
+                            <div className="rounded-md border border-border bg-muted/20 px-3 py-2">
+                                <label htmlFor="gate-use-mock" className="flex items-start gap-2 text-xs text-muted-foreground">
+                                    <input
+                                        id="gate-use-mock"
+                                        type="checkbox"
+                                        checked={useMockData}
+                                        onChange={(event) => setUseMockData(event.target.checked)}
+                                        className="mt-0.5 size-3.5 accent-primary"
+                                    />
+                                    <span>
+                                        서버 데이터가 없을 때 목데이터 표시
+                                        <span className="block mt-0.5 text-[10px] text-muted-foreground/80">
+                                            선택하지 않으면 서버 미연동 또는 데이터 없음 안내만 표시됩니다.
+                                        </span>
+                                    </span>
+                                </label>
                             </div>
 
                             {errorMessage && (

@@ -220,30 +220,47 @@ html, body, #root {
     background: #fff !important;
   }
 
+  .app-shell > :not(.app-main),
+  .app-main > :not(.app-content),
+  .app-content-inner > :not(.report-page),
+  .report-page > :not(.report-print-area) {
+    display: none !important;
+  }
+
   .report-page {
     animation: none !important;
   }
 
   .report-page-sheet {
     display: flex !important;
+    box-sizing: border-box !important;
     width: 210mm !important;
     min-width: 210mm !important;
     max-width: 210mm !important;
-    height: 297mm !important;
-    min-height: 297mm !important;
-    max-height: 297mm !important;
+    height: calc(297mm - 0.5mm) !important;
+    min-height: calc(297mm - 0.5mm) !important;
+    max-height: calc(297mm - 0.5mm) !important;
     margin: 0 !important;
     padding: 12mm !important;
     border: 0 !important;
     box-shadow: none !important;
     overflow: hidden !important;
-    break-after: page;
-    page-break-after: always;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+    break-before: auto !important;
+    page-break-before: auto !important;
+    break-after: auto !important;
+    page-break-after: auto !important;
   }
 
-  .report-page-sheet:last-child {
-    break-after: auto;
-    page-break-after: auto;
+  .report-page-sheet + .report-page-sheet {
+    break-before: page !important;
+    page-break-before: always !important;
+  }
+
+  .report-print-area > :last-child {
+    break-after: auto !important;
+    page-break-after: auto !important;
   }
 
   /* 3. 스크롤바 숨기기 (가끔 미리보기에 스크롤바가 찍히는 현상 방지) */

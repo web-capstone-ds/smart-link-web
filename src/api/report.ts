@@ -1,4 +1,5 @@
 import { apiClient } from "@/api/client";
+import { delayForMockData } from "@/api/mockDelay";
 
 import type { EquipmentStatus } from "@/type/equipmentType";
 import type { DefectStat } from "@/type/equipmentType";
@@ -9,10 +10,10 @@ export const fetchReportSummary = async (
     startDate: string,
     endDate: string,
     reportMode: "daily" | "weekly" | "equipment",
-    equipmentId?: string // equipment 모드일 때만 필수
+    equipmentId?: string // equipment 紐⑤뱶???뚮쭔 ?꾩닔
 ): Promise<ReportSummary> => {
     
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await delayForMockData();
 
     const response = await apiClient.get("/api/v1/reports/summary", {
         params: {
@@ -38,7 +39,7 @@ export const fetchReportEquipments = async (
     equipmentId?: string
 ): Promise<EquipmentStatus[]> => {
     
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await delayForMockData();
 
     const response = await apiClient.get("/api/v1/reports/equipments", {
         params: {
@@ -62,7 +63,7 @@ export const fetchQualityDistribution = async (
     equipmentId?: string
 ): Promise<QualityDistribution> => {
     
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await delayForMockData();
 
     const response = await apiClient.get("/api/v1/reports/quality-distribution", {
         params: {
@@ -88,7 +89,7 @@ export const fetchReportHeatmap = async (
     equipmentId?: string
 ): Promise<ReportHeatmap> => {
     
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await delayForMockData();
 
     const response = await apiClient.get("/api/v1/reports/heatmap", {
         params: {
@@ -114,7 +115,7 @@ export const fetchReportAlarms = async (
     equipmentId?: string
 ): Promise<ReportAlarm[]> => {
     
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await delayForMockData();
 
     const response = await apiClient.get("/api/v1/reports/alarms", {
         params: {
@@ -140,7 +141,7 @@ export const fetchReportDefects = async (
     equipmentId?: string
 ): Promise<DefectStat[]> => {
 
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await delayForMockData();
 
     const response = await apiClient.get("/api/v1/reports/defects", {
         params: {
@@ -157,3 +158,7 @@ export const fetchReportDefects = async (
 
     return response.data.data;
 };
+
+
+
+

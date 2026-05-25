@@ -1,4 +1,5 @@
 import { apiClient } from "@/api/client";
+import { delayForMockData } from "@/api/mockDelay";
 import { format, subDays } from "date-fns";
 
 import type { DowntimeTrendResponse } from "@/type/equipmentType";
@@ -10,7 +11,7 @@ export const fetchEquipmentSummary = async (
     targetDate: Date | string
 ): Promise<EquipmentSummary> => {
     
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await delayForMockData();
 
     const formattedDate = typeof targetDate === 'string' ? targetDate : format(targetDate, 'yyyy-MM-dd');
 
@@ -31,28 +32,28 @@ export const fetchEquipmentDowntimeTrend = async (
     targetDate: Date | string
 ): Promise<DowntimeTrendResponse> => {
     
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await delayForMockData();
 
-    // 1. targetDate를 Date 객체로 확실하게 변환 (endDate 기준일)
+    // 1. targetDate瑜?Date 媛앹껜濡??뺤떎?섍쾶 蹂??(endDate 湲곗???
     const endDateObj = typeof targetDate === 'string' ? new Date(targetDate) : targetDate;
     
-    // 2. 기준일로부터 6일 전을 시작일로 계산 (오늘 포함 총 7일치)
+    // 2. 湲곗??쇰줈遺??6???꾩쓣 ?쒖옉?쇰줈 怨꾩궛 (?ㅻ뒛 ?ы븿 珥?7?쇱튂)
     const startDateObj = subDays(endDateObj, 6);
 
-    // 3. 서버가 좋아하는 'YYYY-MM-DD' 문자열로 포맷팅
+    // 3. ?쒕쾭媛 醫뗭븘?섎뒗 'YYYY-MM-DD' 臾몄옄?대줈 ?щ㎎??
     const endDate = format(endDateObj, 'yyyy-MM-dd');
     const startDate = format(startDateObj, 'yyyy-MM-dd');
 
-    // 4. 대시보드용 엔드포인트(/api/v1/equipments/downtime-trend) 호출!
+    // 4. ??쒕낫?쒖슜 ?붾뱶?ъ씤??/api/v1/equipments/downtime-trend) ?몄텧!
     const response = await apiClient.get('/api/v1/equipments/downtime-trend', {
         params: { 
-            equipmentIds: equipmentId, // 백엔드는 복수형(equipmentIds)을 원하므로 이름 맞춰주기
+            equipmentIds: equipmentId, // 諛깆뿏?쒕뒗 蹂듭닔??equipmentIds)???먰븯誘濡??대쫫 留욎떠二쇨린
             startDate,
             endDate
         }
     });
 
-    // 주의: downtime-trend 명세는 response.data 자체를 반환했었으므로 분기 처리
+    // 二쇱쓽: downtime-trend 紐낆꽭??response.data ?먯껜瑜?諛섑솚?덉뿀?쇰?濡?遺꾧린 泥섎━
     if (!response.data) {
         throw new Error("비가동 시간 트렌드 데이터를 불러오지 못했습니다.");
     }
@@ -67,13 +68,13 @@ export const fetchEquipmentSPCTrend = async (
     limit: number = 7
 ): Promise<EquipmentSPCTrend[]> => {
 
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await delayForMockData();
     const formattedDate = typeof targetDate === 'string' ? targetDate : format(targetDate, 'yyyy-MM-dd');
 
     const response = await apiClient.get(`/api/v1/equipments/${equipmentId}/spc-trend`, {
         params: { 
             limit,
-            targetDate: formattedDate // 🌟 쿼리 추가 (limit과 함께 전달)
+            targetDate: formattedDate // ?뙚 荑쇰━ 異붽? (limit怨??④퍡 ?꾨떖)
         }
     });
     
@@ -90,11 +91,11 @@ export const fetchEquipmentHeatmap = async (
     targetDate: Date | string
 ): Promise<EquipmentHeatmap> => {
 
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await delayForMockData();
     const formattedDate = typeof targetDate === 'string' ? targetDate : format(targetDate, 'yyyy-MM-dd');
 
     const response = await apiClient.get(`/api/v1/equipments/${equipmentId}/heatmap`, {
-        params: { targetDate: formattedDate } // 🌟 쿼리 추가
+        params: { targetDate: formattedDate } // ?뙚 荑쇰━ 異붽?
     });
     if (!response.data || !response.data.data) {
         throw new Error("서버에서 히트맵 데이터를 받지 못했습니다.");
@@ -109,11 +110,11 @@ export const fetchEquipmentHistory = async (
     targetDate: Date | string
 ): Promise<EquipmentHistory[]> => {
 
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await delayForMockData();
     const formattedDate = typeof targetDate === 'string' ? targetDate : format(targetDate, 'yyyy-MM-dd');
 
     const response = await apiClient.get(`/api/v1/equipments/${equipmentId}/history`, {
-        params: { targetDate: formattedDate } // 🌟 쿼리 추가
+        params: { targetDate: formattedDate } // ?뙚 荑쇰━ 異붽?
     });
 
     if (!response.data || !response.data.data) {
@@ -122,3 +123,7 @@ export const fetchEquipmentHistory = async (
 
     return response.data.data;
 };
+
+
+
+

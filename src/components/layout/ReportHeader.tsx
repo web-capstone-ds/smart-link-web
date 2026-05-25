@@ -63,7 +63,66 @@ export function ReportHeader({
 
     // 인쇄 트리거 함수
     const handlePrint = () => {
-        window.print();
+        const printTarget = document.querySelector(".report-print-area");
+
+        if (!printTarget) {
+            window.print();
+            return;
+        }
+
+        const frame = document.createElement("iframe");
+        frame.title = "report-print-frame";
+        frame.style.position = "fixed";
+        frame.style.right = "0";
+        frame.style.bottom = "0";
+        frame.style.width = "0";
+        frame.style.height = "0";
+        frame.style.border = "0";
+        frame.style.opacity = "0";
+
+        document.body.appendChild(frame);
+
+        const frameDocument = frame.contentDocument;
+        const frameWindow = frame.contentWindow;
+
+        if (!frameDocument || !frameWindow) {
+            frame.remove();
+            window.print();
+            return;
+        }
+
+        const styles = Array.from(document.querySelectorAll('link[rel="stylesheet"], style'))
+            .map((node) => node.outerHTML)
+            .join("\n");
+
+        frameDocument.open();
+        frameDocument.write(`
+            <!doctype html>
+            <html>
+                <head>
+                    <meta charset="utf-8" />
+                    <title>Smart Link Report</title>
+                    ${styles}
+                </head>
+                <body>
+                    ${printTarget.outerHTML}
+                </body>
+            </html>
+        `);
+        frameDocument.close();
+
+        const removeFrame = () => {
+            setTimeout(() => frame.remove(), 300);
+        };
+
+        frameWindow.onafterprint = removeFrame;
+        setTimeout(() => {
+            frameWindow.focus();
+            frameWindow.print();
+        }, 250);
+        setTimeout(() => {
+            if (frame.isConnected) frame.remove();
+        }, 60_000);
     };
 
     return (

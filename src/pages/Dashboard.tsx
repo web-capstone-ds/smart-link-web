@@ -4,27 +4,28 @@ import type { DateRange } from "react-day-picker"
 
 // Hooks & Components
 import { useFilterStore } from "@/store/useFilterStore"
-import { useDashboardQueries } from "@/hooks/useDashboardQueries" // 🌟 커스텀 훅 임포트
+import { useDashboardQueries } from "@/hooks/useDashboardQueries" // ?뙚 而ㅼ뒪? ???꾪룷??
 import { DashboardHeader } from "@/components/layout/DashboardHeader"
 import { KpiSummaryCards } from "@/components/card/KpiSummaryCards"
 import { ParetoChart } from "@/components/chart/ParetoChart"
 import { UptimePieChart } from "@/components/chart/UptimePieChart"
 import { TrendChart } from "@/components/chart/TrendChart"
 import { YieldComparisonChart } from "@/components/chart/YieldComparisonChart"
+import { noDataMessage } from "@/data/emptyData"
 
 export function Dashboard() {
     const { appliedEquipmentIds, appliedDate, setAppliedEquipmentIds, setAppliedDate, setLastUpdated } = useFilterStore();
     
-    // UI 로컬 상태 관리 (헤더/필터 전용)
+    // UI 濡쒖뺄 ?곹깭 愿由?(?ㅻ뜑/?꾪꽣 ?꾩슜)
     const [tempEquipmentIds, setTempEquipmentIds] = useState(appliedEquipmentIds);
     const [tempDate, setTempDate] = useState<DateRange | undefined>(appliedDate);
     const [isCalendarOpen, setIsCalendarOpen] = useState(false);
     const [trendUnit, setTrendUnit] = useState<"daily" | "weekly">("daily");
 
-    // 쿼리에 찔러줄 파라미터 변환
+    // 荑쇰━??李붾윭以??뚮씪誘명꽣 蹂??
     const equipmentParams = appliedEquipmentIds.length > 0 ? appliedEquipmentIds.join(',') : "all";
 
-    // 🌟 커스텀 훅 호출: 모든 복잡한 쿼리와 방어로직이 이 한 줄로 요약됩니다.
+    // ?뙚 而ㅼ뒪? ???몄텧: 紐⑤뱺 蹂듭옟??荑쇰━? 諛⑹뼱濡쒖쭅??????以꾨줈 ?붿빟?⑸땲??
     const {
         availableEquipmentIds,
         summaryData,
@@ -35,17 +36,18 @@ export function Dashboard() {
         isSummaryLoading,
         isTrendLoading,
         isYieldLoading,
-        isParetoLoading
+        isParetoLoading,
+        hasDataIssue
     } = useDashboardQueries({ equipmentParams, appliedDate, trendUnit });
 
-    // 단일 날짜 여부 판단 계산
+    // ?⑥씪 ?좎쭨 ?щ? ?먮떒 怨꾩궛
     const isSingleDay = useMemo(() => {
         if (!appliedDate?.from) return false;
         if (!appliedDate.to) return true;
         return isSameDay(appliedDate.from, appliedDate.to);
     }, [appliedDate]);
         
-    // 캘린더 방어 핸들러
+    // 罹섎┛??諛⑹뼱 ?몃뱾??
     const handleCalendarOpenChange = (open: boolean) => {
         setIsCalendarOpen(open);
         if (!open && !tempDate?.from) {
@@ -53,7 +55,7 @@ export function Dashboard() {
         }
     };
     
-    // 조회 버튼 클릭 핸들러
+    // 議고쉶 踰꾪듉 ?대┃ ?몃뱾??
     const handleSearch = () => {
         if (!tempDate?.from) {
             alert("조회할 날짜를 선택해주세요.");
@@ -69,7 +71,7 @@ export function Dashboard() {
     return (
         <div className="animate-in fade-in duration-500 space-y-6">
             
-            {/* 1. 상단 헤더 영역 */}
+            {/* 1. ?곷떒 ?ㅻ뜑 ?곸뿭 */}
             <DashboardHeader 
                 title="종합 대시보드"
                 subtitle="생산 공정 지표 분석 및 AI 예측 리포트"
@@ -83,7 +85,13 @@ export function Dashboard() {
                 onCalendarOpenChange={handleCalendarOpenChange}
             />
 
-            {/* 2. 상단 지표 섹션 (KPI + 파레토 + 가동비율) */}
+            {hasDataIssue && (
+                <div className="rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-900">
+                    {noDataMessage}
+                </div>
+            )}
+
+            {/* 2. ?곷떒 吏???뱀뀡 (KPI + ?뚮젅??+ 媛?숇퉬?? */}
             <div className="space-y-4 p-5 bg-muted/20 rounded-xl border border-border/50">
                 <KpiSummaryCards 
                     isSingleDay={isSingleDay} 
@@ -106,7 +114,7 @@ export function Dashboard() {
                 </div>
             </div>
 
-            {/* 3. 하단 트렌드 분석 섹션 (생산량/수율 트렌드 + 수율 비교) */}
+            {/* 3. ?섎떒 ?몃젋??遺꾩꽍 ?뱀뀡 (?앹궛???섏쑉 ?몃젋??+ ?섏쑉 鍮꾧탳) */}
             <div className="grid grid-cols-3 gap-6">
                 <TrendChart 
                     data={trendData} 
@@ -126,3 +134,4 @@ export function Dashboard() {
         </div>
     )
 }
+
