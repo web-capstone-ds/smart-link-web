@@ -27,13 +27,13 @@ export function DashboardHeader({
 }: DashboardHeaderProps){
 
     return(
-        <div className="flex items-end justify-between">
-            <div>
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div className="min-w-0">
                 <h1 className="text-2xl font-bold text-foreground">{title}</h1>
                 <p className="text-muted-foreground mt-1 text-sm">{subtitle}</p>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex w-full flex-col gap-2 sm:flex-row sm:flex-wrap lg:w-auto lg:justify-end">
 
                 {/* 1. 장비 다중 선택기 */}
                 <EquipmentSelect 
@@ -51,7 +51,7 @@ export function DashboardHeader({
                 />
 
                 {/* 3. 조회 버튼 */}
-                <Button variant="default" className="px-5 h-10" onClick={onSearch}>
+                <Button variant="default" className="h-10 px-5 sm:w-auto" onClick={onSearch}>
                     조회
                 </Button>
             </div>

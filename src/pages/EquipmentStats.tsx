@@ -26,7 +26,7 @@ export function EquipmentStats({ setSelectedEquipment }: EquipmentStatsProps) {
     const [tempEquipmentIds, setTempEquipmentIds] = useState(appliedEquipmentIds);
     const [tempDate, setTempDate] = useState<DateRange | undefined>(appliedDate);
     const [isCalendarOpen, setIsCalendarOpen] = useState(false);
-    const [sortBy, setSortBy] = useState("yield-asc");
+    const [sortBy, setSortBy] = useState("risk-desc");
     
     const equipmentParams = appliedEquipmentIds.length > 0 ? appliedEquipmentIds.join(',') : "all";
     
@@ -69,6 +69,8 @@ export function EquipmentStats({ setSelectedEquipment }: EquipmentStatsProps) {
 
         return [...filtered].sort((a, b) => {
             switch (sortBy) {
+                case "risk-desc": return getRiskScore(b) - getRiskScore(a);
+                case "yield-delta-asc": return getYieldDelta(a) - getYieldDelta(b);
                 case "yield-asc": return a.yield - b.yield;
                 case "yield-desc": return b.yield - a.yield;
                 case "uptime-asc": return a.uptime - b.uptime;
@@ -136,5 +138,34 @@ export function EquipmentStats({ setSelectedEquipment }: EquipmentStatsProps) {
 
         </div>
     )
+}
+
+function getYieldDelta(eq: { yield: number; yieldTrend: number[] }) {
+    const firstTrend = eq.yieldTrend[0] ?? eq.yield;
+    const lastTrend = eq.yieldTrend[eq.yieldTrend.length - 1] ?? eq.yield;
+    return lastTrend - firstTrend;
+}
+
+function getRiskScore(eq: {
+    unresolvedAlert: boolean;
+    uptime: number;
+    yield: number;
+    total: number;
+    fail: number;
+    yieldTrend: number[];
+}) {
+    const failRate = eq.total > 0 ? (eq.fail / eq.total) * 100 : 0;
+    const yieldDrop = Math.max(0, -getYieldDelta(eq));
+
+    let score = 0;
+    if (eq.unresolvedAlert) score += 100;
+    if (eq.uptime < 90) score += 80;
+    else if (eq.uptime < 95) score += 35;
+    if (eq.yield < 97) score += 70;
+    else if (eq.yield < 98) score += 30;
+    if (failRate >= 2) score += 25;
+    score += yieldDrop * 10;
+
+    return score;
 }
 

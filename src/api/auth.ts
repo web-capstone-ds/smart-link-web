@@ -32,6 +32,13 @@ type LoginResponse = {
     };
 };
 
+type MeResponse = {
+    user?: Partial<AuthUser>;
+    data?: {
+        user?: Partial<AuthUser>;
+    } & Partial<AuthUser>;
+} & Partial<AuthUser>;
+
 export async function login(payload: LoginPayload): Promise<LoginResult> {
     if (payload.operatorId === "user" && payload.password === "user") {
         return {
@@ -69,4 +76,19 @@ export async function login(payload: LoginPayload): Promise<LoginResult> {
 
 export async function logout() {
     await apiClient.post("/api/v1/auth/logout");
+}
+
+export async function fetchMe(): Promise<AuthUser> {
+    const response = await apiClient.get<MeResponse>("/api/v1/auth/me");
+    const body = response.data;
+    const data = body.data || body;
+    const user = data.user || data;
+
+    return {
+        id: user.id,
+        operatorId: user.operatorId,
+        name: user.name || user.operatorId || "Unknown",
+        role: user.role || "Operator",
+        department: user.department || "운영팀",
+    };
 }

@@ -32,5 +32,6 @@ export interface EquipmentStatus {
     yield: number;
     majorDefect: string;
     unresolvedAlert: boolean;
+    unresolvedAlertCount?: number;
     yieldTrend: number[];
 }

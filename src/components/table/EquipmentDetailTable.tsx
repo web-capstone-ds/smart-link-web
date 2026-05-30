@@ -68,6 +68,8 @@ export function EquipmentDetailTable({
                                 <SelectValue placeholder="정렬 기준" />
                             </SelectTrigger>
                             <SelectContent>
+                                <SelectItem value="risk-desc" className="text-xs">위험도 높은 순</SelectItem>
+                                <SelectItem value="yield-delta-asc" className="text-xs">수율 하락 큰 순</SelectItem>
                                 <SelectItem value="yield-asc" className="text-xs">수율 낮은 순 (위험)</SelectItem>
                                 <SelectItem value="yield-desc" className="text-xs">수율 높은 순</SelectItem>
                                 <SelectItem value="uptime-asc" className="text-xs">가동률 낮은 순 (위험)</SelectItem>
@@ -93,10 +95,12 @@ export function EquipmentDetailTable({
                     <Table>
                         <TableHeader className="sticky top-0 z-10 bg-muted/95 backdrop-blur-sm shadow-sm">
                             <TableRow className="hover:bg-transparent border-border/50">
-                                <TableHead className="h-10 px-4 py-2 text-xs">장비 ID (레시피)</TableHead>
+                                <TableHead className="h-10 px-4 py-2 text-xs">우선순위</TableHead>
+                                <TableHead className="h-10 py-2 text-xs">장비 ID (레시피)</TableHead>
                                 <TableHead className="h-10 py-2 text-xs">상태 및 경보</TableHead>
                                 <TableHead className="h-10 py-2 text-xs">가동률 (Uptime)</TableHead>
                                 <TableHead className="h-10 py-2 text-xs text-center">최근 수율 추이</TableHead>
+                                <TableHead className="h-10 py-2 text-xs text-right">수율 변화</TableHead>
                                 <TableHead className="h-10 py-2 text-xs text-right">종합 수율</TableHead>
                                 <TableHead className="h-10 py-2 text-xs pl-8">주요 불량 현상</TableHead>
                             </TableRow>
@@ -104,7 +108,7 @@ export function EquipmentDetailTable({
                         <TableBody>
                             {isLoading ? (
                                 <TableRow>
-                                    <TableCell colSpan={6} className="h-80 text-center">
+                                    <TableCell colSpan={8} className="h-80 text-center">
                                         <div className="flex flex-col items-center justify-center text-muted-foreground">
                                             <Loader2 className="w-6 h-6 mb-2 animate-spin text-primary/50" />
                                             <span className="text-xs">장비 리스트를 불러오는 중입니다...</span>
@@ -112,14 +116,31 @@ export function EquipmentDetailTable({
                                     </TableCell>
                                 </TableRow>
                             ) : data.map(
-                                (eq) => (
+                                (eq) => {
+                                    const risk = getRiskMeta(eq);
+                                    const yieldDelta = getYieldDelta(eq);
+
+                                    return (
                                     <TableRow 
                                         key={eq.id} 
                                         onClick={() => onRowClick(eq.id)} 
                                         className="cursor-pointer hover:bg-muted/50 transition-colors border-border/50"
                                     >
-                                        {/* 1. 장비 ID & 레시피 */}
-                                        <TableCell className="px-4 py-2.5 font-semibold text-foreground text-sm">
+                                        {/* 1. 우선순위 */}
+                                        <TableCell className="px-4 py-2.5">
+                                            <div className="flex flex-col gap-1">
+                                                <Badge variant="outline" className={cn("w-fit gap-1 border text-[10px] font-bold", risk.className)}>
+                                                    <span className={cn("size-1.5 rounded-full", risk.dotClassName)} />
+                                                    {risk.label}
+                                                </Badge>
+                                                <span className="max-w-28 truncate text-[10px] text-muted-foreground" title={risk.reason}>
+                                                    {risk.reason}
+                                                </span>
+                                            </div>
+                                        </TableCell>
+
+                                        {/* 2. 장비 ID & 레시피 */}
+                                        <TableCell className="py-2.5 font-semibold text-foreground text-sm">
                                             <div className="flex flex-col gap-0.5">
                                                 <span>{eq.id}</span>
                                                 <Badge variant="secondary" className="w-fit text-[9px] px-1 py-0 h-3.5 font-normal bg-secondary/50">
@@ -132,7 +153,13 @@ export function EquipmentDetailTable({
                                         <TableCell className="py-2.5">
                                             {eq.unresolvedAlert ? (
                                                 <Badge variant="destructive" className="bg-destructive/10 text-destructive border-destructive/20 gap-1 text-[10px] py-0 h-5">
-                                                    <BellRing className="w-3 h-3 animate-pulse" /> 미조치 경보
+                                                    <BellRing className="w-3 h-3 animate-pulse" />
+                                                    미조치 경보
+                                                    {eq.unresolvedAlertCount ? (
+                                                        <span className="ml-0.5 flex h-3.5 min-w-3.5 items-center justify-center rounded-full border border-destructive/30 bg-destructive/20 px-1 text-[9px] leading-none font-black text-red-200">
+                                                            {eq.unresolvedAlertCount}
+                                                        </span>
+                                                    ) : null}
                                                 </Badge>
                                             ) : (
                                                 <Badge variant="outline" className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20 gap-1 text-[10px] py-0 h-5 font-normal">
@@ -175,7 +202,17 @@ export function EquipmentDetailTable({
                                             </div>
                                         </TableCell>
 
-                                        {/* 5. 종합 수율 */}
+                                        {/* 6. 수율 변화 */}
+                                        <TableCell className="py-2.5 text-right">
+                                            <span className={cn(
+                                                "font-bold text-xs",
+                                                yieldDelta < -0.3 ? "text-destructive" : yieldDelta > 0.3 ? "text-emerald-500" : "text-muted-foreground"
+                                            )}>
+                                                {yieldDelta > 0 ? "+" : ""}{yieldDelta.toFixed(1)}%p
+                                            </span>
+                                        </TableCell>
+
+                                        {/* 7. 종합 수율 */}
                                         <TableCell className="py-2.5 text-right">
                                             <div className="flex flex-col items-end">
                                                 <span className={`font-bold text-sm ${eq.yield < 97 ? 'text-destructive' : 'text-emerald-500'}`}>
@@ -200,7 +237,8 @@ export function EquipmentDetailTable({
                                             ) : "-"}
                                         </TableCell>
                                     </TableRow>
-                                ))}
+                                    );
+                                })}
                         </TableBody>
                     </Table>
                 </div>
@@ -224,6 +262,12 @@ function formatPeriod(date: DateRange | undefined) {
     return format(date.from, "yyyy-MM-dd");
 }
 
+function getYieldDelta(eq: EquipmentStatus) {
+    const firstTrend = eq.yieldTrend[0] ?? eq.yield;
+    const lastTrend = eq.yieldTrend[eq.yieldTrend.length - 1] ?? eq.yield;
+    return lastTrend - firstTrend;
+}
+
 function getRiskGrade(eq: EquipmentStatus) {
     const failRate = eq.total > 0 ? (eq.fail / eq.total) * 100 : 0;
 
@@ -236,6 +280,51 @@ function getRiskGrade(eq: EquipmentStatus) {
     }
 
     return "Stable";
+}
+
+function getRiskMeta(eq: EquipmentStatus) {
+    const grade = getRiskGrade(eq);
+    const failRate = eq.total > 0 ? (eq.fail / eq.total) * 100 : 0;
+    const yieldDelta = getYieldDelta(eq);
+
+    if (grade === "Critical") {
+        return {
+            label: "Critical",
+            reason: eq.unresolvedAlert
+                ? "미조치 경보"
+                : eq.uptime < 90
+                    ? "가동률 90% 미만"
+                    : eq.yield < 97
+                        ? "수율 97% 미만"
+                        : "즉시 확인 필요",
+            className: "border-destructive/30 bg-destructive/10 text-destructive",
+            dotClassName: "bg-destructive",
+        };
+    }
+
+    if (grade === "Warning") {
+        return {
+            label: "Warning",
+            reason: eq.uptime < 95
+                ? "가동률 95% 미만"
+                : eq.yield < 98
+                    ? "수율 98% 미만"
+                    : failRate >= 2
+                        ? "Fail 2% 이상"
+                        : yieldDelta < -0.3
+                            ? "수율 하락"
+                            : "주의 관찰",
+            className: "border-amber-500/30 bg-amber-500/10 text-amber-600",
+            dotClassName: "bg-amber-500",
+        };
+    }
+
+    return {
+        label: "Stable",
+        reason: "정상 범위",
+        className: "border-emerald-500/30 bg-emerald-500/10 text-emerald-600",
+        dotClassName: "bg-emerald-500",
+    };
 }
 
 function getRecommendedAction(eq: EquipmentStatus) {

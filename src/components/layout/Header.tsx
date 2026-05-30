@@ -1,8 +1,11 @@
-import { useState, type FormEvent } from "react"
+import { useMemo, useState, type FormEvent } from "react"
+import { useQuery } from "@tanstack/react-query"
 import { Cpu, PanelLeft, Bell, User, LockKeyhole, Loader2, LogOut, ShieldCheck } from "lucide-react"
 
+import { fetchPendingActions } from "@/api/actions"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Badge } from "@/components/ui/badge"
 import {
     Dialog,
     DialogContent,
@@ -11,25 +14,53 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { mockEquipmentComparisonData } from "@/data/mockData"
 import { useFilterStore } from "@/store/useFilterStore"
 import { useAuthStore } from "@/store/useAuthStore"
 
 interface HeaderProps {
     isSidebarOpen: boolean;
     setIsSidebarOpen: (isOpen: boolean) => void;
+    onOpenEquipmentDetail: (id: string) => void;
 }
 
-export function Header({ isSidebarOpen, setIsSidebarOpen }: HeaderProps) {
+export function Header({ isSidebarOpen, setIsSidebarOpen, onOpenEquipmentDetail }: HeaderProps) {
 
-    const { lastUpdated } = useFilterStore();
-    const { user, isAuthenticated, login, logout } = useAuthStore();
+    const { lastUpdated, appliedDate } = useFilterStore();
+    const { user, isAuthenticated, useMockData: isMockMode, login, logout } = useAuthStore();
     const [isLoginOpen, setIsLoginOpen] = useState(false);
+    const [isAlertOpen, setIsAlertOpen] = useState(false);
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [remember, setRemember] = useState(true);
     const [useMockData, setUseMockData] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
+
+    const { data: pendingActionsRes, isLoading: isPendingLoading } = useQuery({
+        queryKey: ["headerPendingActions", appliedDate],
+        queryFn: () => fetchPendingActions(appliedDate),
+        enabled: isAuthenticated && !!appliedDate?.from && !isMockMode,
+        retry: false,
+        staleTime: 1000 * 60,
+        refetchOnWindowFocus: false,
+    });
+
+    const pendingActions = useMemo(() => {
+        if (!isMockMode) return pendingActionsRes || [];
+
+        return mockEquipmentComparisonData
+            .filter((eq) => eq.unresolvedAlert)
+            .map((eq) => ({
+                equipmentId: eq.id,
+                count: eq.unresolvedAlertCount ?? 1,
+                highestSeverity: eq.yield < 97 || eq.uptime < 90 ? "critical" : "warning",
+                latestMessage: eq.majorDefect !== "-" ? eq.majorDefect : "미조치 경보",
+            }));
+    }, [pendingActionsRes, isMockMode]);
+
+    const pendingTotal = pendingActions.reduce((sum, item) => sum + item.count, 0);
 
     const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
@@ -71,10 +102,59 @@ export function Header({ isSidebarOpen, setIsSidebarOpen }: HeaderProps) {
             </div>
             
             <div className="flex items-center gap-4">
-                <Button variant="ghost" size="icon" className="text-muted-foreground relative hover:bg-muted/50">
-                    <Bell className="w-5 h-5" />
-                    <span className="absolute top-2 right-2 w-2 h-2 bg-destructive rounded-full"></span>
-                </Button>
+                <Popover open={isAlertOpen} onOpenChange={setIsAlertOpen}>
+                    <PopoverTrigger asChild>
+                        <Button variant="ghost" size="icon" className="text-muted-foreground relative hover:bg-muted/50" title="미조치 경보">
+                            <Bell className="w-5 h-5" />
+                            {pendingTotal > 0 && (
+                                <span className="absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full border border-destructive/30 bg-destructive/20 px-1 text-[9px] font-black leading-none text-red-200">
+                                    {pendingTotal}
+                                </span>
+                            )}
+                        </Button>
+                    </PopoverTrigger>
+                    <PopoverContent align="end" className="w-82 p-0">
+                        <div className="border-b border-border px-3 py-2.5">
+                            <div className="flex items-center justify-between">
+                                <p className="text-sm font-bold text-foreground">미조치 경보</p>
+                                <Badge variant="secondary" className="h-5 text-[10px]">
+                                    {pendingTotal}건
+                                </Badge>
+                            </div>
+                            <p className="mt-0.5 text-xs text-muted-foreground">항목을 선택하면 장비 상세 Sheet로 이동합니다.</p>
+                        </div>
+                        <div className="max-h-80 overflow-y-auto p-1.5 custom-scrollbar">
+                            {isPendingLoading ? (
+                                <div className="px-3 py-6 text-center text-xs text-muted-foreground">경보 목록을 불러오는 중입니다.</div>
+                            ) : pendingActions.length === 0 ? (
+                                <div className="px-3 py-6 text-center text-xs text-muted-foreground">미조치 경보가 없습니다.</div>
+                            ) : (
+                                pendingActions.map((item) => (
+                                    <button
+                                        key={item.equipmentId}
+                                        type="button"
+                                        className="w-full rounded-md px-2.5 py-2 text-left hover:bg-muted/50"
+                                        onClick={() => {
+                                            onOpenEquipmentDetail(item.equipmentId);
+                                            setIsAlertOpen(false);
+                                        }}
+                                    >
+                                        <div className="flex items-center justify-between gap-2">
+                                            <span className="text-xs font-bold text-foreground">{item.equipmentId}</span>
+                                            <Badge
+                                                variant="outline"
+                                                className={`h-5 text-[9px] ${item.highestSeverity === "critical" ? "border-destructive/30 bg-destructive/10 text-destructive" : "border-amber-500/30 bg-amber-500/10 text-amber-600"}`}
+                                            >
+                                                {item.count}건
+                                            </Badge>
+                                        </div>
+                                        <p className="mt-1 truncate text-[11px] text-muted-foreground">{item.latestMessage}</p>
+                                    </button>
+                                ))
+                            )}
+                        </div>
+                    </PopoverContent>
+                </Popover>
                 
                 <div className="w-px h-6 bg-border mx-2"></div>
                 {isAuthenticated ? (

@@ -24,9 +24,10 @@ export function TrendChart({ data, trendUnit, onTrendUnitChange, className, isLo
     const minYield = data && data.length > 0 
         ? Math.floor(Math.min(...data.map(d => d.yield))) - 1
         : 90;
+    const chartWidth = Math.max(640, (data?.length || 0) * 72);
 
     return (
-        <Card className={cn("shadow-sm border-border pt-2 flex flex-col", className)}>
+        <Card className={cn("shadow-sm border-border bg-card pt-2 flex flex-col", className)}>
             
             <CardHeader className="py-3 pb-2 border-b border-border/50 flex flex-row items-center justify-between">
                 <CardTitle className="text-sm font-bold flex items-center gap-2">
@@ -44,19 +45,21 @@ export function TrendChart({ data, trendUnit, onTrendUnitChange, className, isLo
                 </Select>
             </CardHeader>
             
-            <CardContent className="h-70 pt-6 flex-1 ">
+            <CardContent className="h-70 flex-1 overflow-hidden pt-6">
                 {isLoading || !data  ? (
                     <div className="w-full h-full pb-8 flex flex-col items-center justify-center bg-muted/10 animate-pulse rounded-lg border border-dashed border-border text-muted-foreground">
                         <Loader2 className="w-8 h-8 mb-2 animate-spin text-primary/50" />
                         <p className="text-sm">차트 데이터를 분석 중입니다...</p>
                     </div>
                 ) : (
+                    <div className="h-full overflow-x-auto overflow-y-hidden custom-scrollbar">
+                        <div className="h-full" style={{ width: chartWidth }}>
                     <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={250} debounce={300}>
                         <ComposedChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                             <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
                             <XAxis dataKey="date" tick={{ fontSize: 10, fill: 'var(--muted-foreground)' }} tickLine={false} axisLine={false} />
                             <YAxis yAxisId="left" tick={{ fontSize: 10, fill: 'var(--muted-foreground)' }} tickLine={false} axisLine={false} />
-                            <YAxis yAxisId="right" orientation="right" domain={[minYield, 100]} tick={{ fontSize: 10, fill: '#10b981' }} tickLine={false} axisLine={false} />
+                            <YAxis yAxisId="right" orientation="right" domain={[minYield, 100]} tick={{ fontSize: 10, fill: 'var(--chart-2)' }} tickLine={false} axisLine={false} />
                             
                             <Tooltip 
                                 contentStyle={{ 
@@ -70,10 +73,12 @@ export function TrendChart({ data, trendUnit, onTrendUnitChange, className, isLo
                             />
                             <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }} />
                             
-                            <Bar yAxisId="left" dataKey="production" name="생산량" fill="#3b82f6" radius={[2, 2, 0, 0]} maxBarSize={40} />
-                            <Line yAxisId="right" type="monotone" dataKey="yield" name="수율(%)" stroke="#10b981" strokeWidth={3} dot={{ r: 4 }} />
+                            <Bar yAxisId="left" dataKey="production" name="생산량" fill="var(--chart-1)" radius={[2, 2, 0, 0]} maxBarSize={40} />
+                            <Line yAxisId="right" type="monotone" dataKey="yield" name="수율(%)" stroke="var(--chart-2)" strokeWidth={3} dot={{ r: 4, fill: 'var(--chart-2)', stroke: 'var(--card)' }} />
                         </ComposedChart>
                     </ResponsiveContainer>
+                        </div>
+                    </div>
                 )}
             </CardContent>
         </Card>

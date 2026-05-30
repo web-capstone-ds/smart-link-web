@@ -47,6 +47,9 @@ export function EquipmentDetailSheet({
         isHeatmapLoading,
         isHistoryLoading,
         isDowntimeLoading,
+        isActionMutating,
+        onResolveAction,
+        onCreateAction,
         hasDataIssue,
     } = useDetailEquipmentQueries({ selectedEquipment, targetDate, isReady });
 
@@ -92,6 +95,9 @@ export function EquipmentDetailSheet({
                         historyData={historyData}
                         isReady={isReady}
                         isHistoryLoading={isHistoryLoading}
+                        isActionMutating={isActionMutating}
+                        onResolveAction={onResolveAction}
+                        onCreateAction={onCreateAction}
                     />
                 </div>
             </SheetContent>

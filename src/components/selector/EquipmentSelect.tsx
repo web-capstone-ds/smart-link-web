@@ -35,7 +35,7 @@ export function EquipmentSelect({ options, selected, onChange }: EquipmentMultiS
             <PopoverTrigger asChild>
                 <Button 
                     variant="outline" 
-                    className="w-44 bg-card border-border text-foreground font-medium h-10 justify-between text-xs px-3"
+                    className="h-10 w-full justify-between border-border bg-card px-3 text-xs font-medium text-foreground sm:w-44"
                 >
                     <span className="truncate">{displayValue}</span>
                     <ChevronDown className="h-4 w-4 opacity-50 shrink-0 ml-1" />

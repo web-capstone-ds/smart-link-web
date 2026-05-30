@@ -26,7 +26,7 @@ export function DateRangeSelect({ date, onDateChange, isOpen, onOpenChange }: Da
                 <Button
                     variant={"outline"}
                     className={cn(
-                        "w-58 justify-start text-left font-normal bg-card border-border h-10",
+                        "h-10 w-full justify-start border-border bg-card text-left font-normal sm:w-58",
                         !date && "text-muted-foreground"
                     )}
                 >
@@ -46,7 +46,7 @@ export function DateRangeSelect({ date, onDateChange, isOpen, onOpenChange }: Da
                     )}
                 </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-auto p-0 flex flex-col" align="end">
+            <PopoverContent className="flex max-w-[calc(100vw-2rem)] flex-col overflow-auto p-0 sm:w-auto" align="end">
                 <Calendar
                     mode="range"
                     defaultMonth={lastMonth}

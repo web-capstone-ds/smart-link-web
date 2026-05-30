@@ -19,14 +19,15 @@ export function YieldComparisonChart({ data, equipmentIds, className, isLoading 
     const formattedName = equipmentIds.length > 0 ? equipmentIds.join(', ').toUpperCase() : "ALL";
     
     const chartTitle = isAllEquipments ? "전체 장비별 수율 비교" : `${formattedName} LOT별 수율`;
-    const barColor = isAllEquipments ? "#8b5cf6" : "#0ea5e9";
+    const barColor = "var(--chart-1)";
 
     const minYield = data && data.length > 0 
         ? Math.floor(Math.min(...data.map(d => d.yield))) - 1
         : 90; 
+    const chartHeight = Math.max(280, (data?.length || 0) * 34);
 
     return (
-        <Card className={cn("shadow-sm border-border pt-2 flex flex-col", className)}>
+        <Card className={cn("shadow-sm border-border bg-card pt-2 flex flex-col", className)}>
 
             <CardHeader className="py-4 pb-2 border-b border-border/50">
                 <CardTitle className="text-sm font-bold flex items-center gap-2">
@@ -35,14 +36,16 @@ export function YieldComparisonChart({ data, equipmentIds, className, isLoading 
                 </CardTitle>
             </CardHeader>
             
-            <CardContent className="h-70 pt-6 flex-1">
+            <CardContent className="h-70 flex-1 overflow-hidden pt-6">
                 {isLoading ? (
                     <div className="w-full h-full min-h-75 flex flex-col items-center justify-center bg-muted/10 animate-pulse rounded-lg border border-dashed border-border text-muted-foreground">
                         <Loader2 className="w-8 h-8 mb-2 animate-spin text-primary/50" />
                         <p className="text-sm">수율 데이터를 분석 중입니다...</p>
                     </div>
                 ) : (
-                    <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={300} debounce={300}>
+                    <div className="h-full overflow-y-auto overflow-x-hidden custom-scrollbar">
+                        <div style={{ height: chartHeight }}>
+                    <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={280} debounce={300}>
                         <BarChart 
                             data={data} 
                             layout="vertical" 
@@ -85,6 +88,8 @@ export function YieldComparisonChart({ data, equipmentIds, className, isLoading 
                             />
                         </BarChart>
                     </ResponsiveContainer>
+                        </div>
+                    </div>
                 )}
             </CardContent>
         </Card>

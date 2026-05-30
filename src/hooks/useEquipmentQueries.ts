@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { fetchPendingActions } from "@/api/actions";
 import { fetchDowntimeTrend, fetchMtbf, fetchDefects, fetchEquipmentStatusList } from "@/api/equipment";
 import {
     mockDowntimeResponse,
@@ -58,6 +59,12 @@ export function useEquipmentQueries({ equipmentParams, appliedDate, appliedEquip
         ...commonOptions,
     });
 
+    const { data: pendingActionsRes } = useQuery({
+        queryKey: ["pendingActions", appliedDate],
+        queryFn: () => fetchPendingActions(appliedDate),
+        ...commonOptions,
+    });
+
     const safeDowntimeRes = (isDowntimeError || !downtimeRes || !downtimeRes.data)
         ? (useMockData ? mockDowntimeResponse : emptyDowntimeResponse)
         : downtimeRes;
@@ -70,9 +77,32 @@ export function useEquipmentQueries({ equipmentParams, appliedDate, appliedEquip
         ? (useMockData ? mockDefectStatsData : emptyDefectStatsData)
         : defectsRes;
 
-    const safeEquipmentList = (isEquipmentListError || !equipmentListRes || equipmentListRes.length === 0)
+    const safePendingActions = pendingActionsRes || (useMockData
+        ? mockEquipmentComparisonData
+            .filter((eq) => eq.unresolvedAlert)
+            .map((eq) => ({
+                equipmentId: eq.id,
+                count: eq.unresolvedAlertCount ?? 1,
+                highestSeverity: eq.yield < 97 || eq.uptime < 90 ? "critical" : "warning",
+                latestMessage: eq.majorDefect !== "-" ? eq.majorDefect : "미조치 경보",
+            }))
+        : []);
+
+    const pendingActionMap = new Map(safePendingActions.map((item) => [item.equipmentId, item]));
+
+    const baseEquipmentList = (isEquipmentListError || !equipmentListRes || equipmentListRes.length === 0)
         ? (useMockData ? mockEquipmentComparisonData : emptyEquipmentStatusData)
         : equipmentListRes;
+
+    const safeEquipmentList = baseEquipmentList.map((eq) => {
+        const pendingAction = pendingActionMap.get(eq.id);
+
+        return {
+            ...eq,
+            unresolvedAlert: eq.unresolvedAlert || !!pendingAction,
+            unresolvedAlertCount: pendingAction?.count ?? eq.unresolvedAlertCount,
+        };
+    });
 
     const availableEquipmentIds = safeEquipmentList.map((eq) => eq.id);
     const isAnyLoading = isDowntimeLoading || isMtbfLoading || isDefectsLoading || isEquipmentListLoading;

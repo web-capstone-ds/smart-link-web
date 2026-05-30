@@ -86,41 +86,39 @@ export function Dashboard() {
             )}
 
             {/* Main */}
-            <div className="space-y-4 p-5 bg-muted/20 rounded-xl border border-border/50">
+            <div className="space-y-4">
                 <KpiSummaryCards 
                     isSingleDay={isSingleDay} 
                     data={summaryData}
                     isLoading={isSummaryLoading} 
                 />
 
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
                     <ParetoChart 
                         data={paretoData} 
-                        className="col-span-2" 
+                        className="xl:col-span-2" 
                         isLoading={isParetoLoading}
                     />
                     <UptimePieChart 
                         data={statusData}
                         uptimePercent={summaryData.kpi.availability}
                         isLoading={isSummaryLoading} 
-                        className="col-span-1" 
                     />
                 </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
                 <TrendChart 
                     data={trendData} 
                     isLoading={isTrendLoading}
                     trendUnit={trendUnit}
                     onTrendUnitChange={setTrendUnit}
-                    className="col-span-2" 
+                    className="xl:col-span-2" 
                 />
                 <YieldComparisonChart 
                     data={yieldData} 
                     equipmentIds={appliedEquipmentIds} 
                     isLoading={isYieldLoading}
-                    className="col-span-1" 
                 />
             </div>
 

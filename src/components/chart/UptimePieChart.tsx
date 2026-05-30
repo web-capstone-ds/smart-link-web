@@ -36,7 +36,7 @@ export function UptimePieChart({ data, uptimePercent, className, isLoading }: Up
     };
 
     return (
-        <Card className={cn("shadow-sm border-border bg-card/50 relative pt-2 flex flex-col", className)}>
+        <Card className={cn("shadow-sm border-border bg-card relative pt-2 flex flex-col", className)}>
             
             <CardHeader className="py-3 pb-0">
                 <CardTitle className="text-xs font-bold">종합 가동 비율</CardTitle>

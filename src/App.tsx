@@ -18,7 +18,13 @@ function App() {
     const [selectedEquipment, setSelectedEquipment] = useState<string | null>(null);
     const [reportEquipmentId, setReportEquipmentId] = useState<string | null>(null);
     const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+    const isAuthChecking = useAuthStore((state) => state.isAuthChecking);
+    const initializeAuth = useAuthStore((state) => state.initializeAuth);
     const contentRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        void initializeAuth();
+    }, [initializeAuth]);
 
     useEffect(() => {
         contentRef.current?.scrollTo({ top: 0, left: 0 });
@@ -29,6 +35,14 @@ function App() {
         setSelectedEquipment(null);
         setActiveMenu("report");
     };
+
+    if (isAuthChecking) {
+        return (
+            <div className="flex h-screen w-full items-center justify-center bg-background text-sm text-muted-foreground">
+                인증 상태를 확인하는 중입니다...
+            </div>
+        );
+    }
 
     return isAuthenticated ? (
         <div className="app-shell flex h-screen w-full bg-background text-foreground">
@@ -47,10 +61,11 @@ function App() {
                 <Header 
                     isSidebarOpen={isSidebarOpen} 
                     setIsSidebarOpen={setIsSidebarOpen} 
+                    onOpenEquipmentDetail={setSelectedEquipment}
                 />
 
                 {/* 3. Content Area */}
-                <div ref={contentRef} className="app-content flex-1 p-6 overflow-auto bg-background custom-scrollbar">
+                <div ref={contentRef} className="app-content flex-1 overflow-auto bg-background p-4 custom-scrollbar md:p-6">
                     <div className="app-content-inner max-w-7xl mx-auto space-y-6">
 
                         {/* 3.1. Dashboard */}

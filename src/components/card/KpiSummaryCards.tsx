@@ -23,12 +23,12 @@ export function KpiSummaryCards({ isSingleDay, data, isLoading }: KpiSummaryCard
             </div>
 
             {isLoading || !data ? (
-                <div className="h-41.5 w-full flex flex-col items-center justify-center bg-muted/10 animate-pulse rounded-xl border border-dashed border-border text-muted-foreground">
+                <div className="flex h-41.5 w-full flex-col items-center justify-center rounded-lg border border-dashed border-border bg-card text-muted-foreground shadow-sm">
                     <Loader2 className="w-8 h-8 mb-2 animate-spin text-primary/50" />
                     <p className="text-sm">핵심 지표 데이터를 불러오는 중입니다...</p>
                 </div>
             ) : (   
-                <div className="grid grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
                     
                     {/* 1: 생산량 및 UPH */}
                     <BaseKpiCard 

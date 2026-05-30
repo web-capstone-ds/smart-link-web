@@ -86,9 +86,9 @@ export function useDashboardQueries({ equipmentParams, appliedDate, trendUnit }:
         : summaryData;
 
     const safeStatusData = [
-        { name: "Run", value: safeSummaryData.status.run, color: "#10b981" },
-        { name: "Idle", value: safeSummaryData.status.idle, color: "#f59e0b" },
-        { name: "Down", value: safeSummaryData.status.down, color: "#ef4444" },
+        { name: "Run", value: safeSummaryData.status.run, color: "var(--chart-2)" },
+        { name: "Idle", value: safeSummaryData.status.idle, color: "var(--chart-4)" },
+        { name: "Down", value: safeSummaryData.status.down, color: "var(--destructive)" },
     ];
 
     const safeTrendData = (isTrendError || !trendDataRaw || trendDataRaw.length === 0)
