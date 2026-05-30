@@ -23,7 +23,6 @@ interface EquipmentStatsProps {
 export function EquipmentStats({ setSelectedEquipment }: EquipmentStatsProps) {
     const { appliedEquipmentIds, appliedDate, setAppliedEquipmentIds, setAppliedDate, setLastUpdated } = useFilterStore();
     
-    // UI 濡쒖뺄 ?곹깭 愿由?(?ㅻ뜑/?꾪꽣 諛??뺣젹)
     const [tempEquipmentIds, setTempEquipmentIds] = useState(appliedEquipmentIds);
     const [tempDate, setTempDate] = useState<DateRange | undefined>(appliedDate);
     const [isCalendarOpen, setIsCalendarOpen] = useState(false);
@@ -31,7 +30,6 @@ export function EquipmentStats({ setSelectedEquipment }: EquipmentStatsProps) {
     
     const equipmentParams = appliedEquipmentIds.length > 0 ? appliedEquipmentIds.join(',') : "all";
     
-    // ?뙚 而ㅼ뒪? ??1以??몄텧: 紐⑤뱺 荑쇰━ ?몄텧 諛?紐⑸뜲?댄꽣 ?ㅼ쐞移?泥섎━ ?꾨퉬
     const {
         downtimeRes,
         mtbfData,
@@ -45,7 +43,6 @@ export function EquipmentStats({ setSelectedEquipment }: EquipmentStatsProps) {
         hasDataIssue
     } = useEquipmentQueries({ equipmentParams, appliedDate, appliedEquipmentIds });
 
-    // 罹섎┛???댄깉 諛⑹뼱 ?몃뱾??
     const handleCalendarOpenChange = (open: boolean) => {
         setIsCalendarOpen(open);
         if (!open && !tempDate?.from) {
@@ -53,7 +50,6 @@ export function EquipmentStats({ setSelectedEquipment }: EquipmentStatsProps) {
         }
     };
     
-    // 議고쉶 ?몃━嫄??몃뱾??
     const handleSearch = () => {
         if (!tempDate?.from) {
             alert("조회할 날짜를 선택해주세요.");
@@ -66,7 +62,6 @@ export function EquipmentStats({ setSelectedEquipment }: EquipmentStatsProps) {
         setIsCalendarOpen(false);
     };
 
-    // ?뙚 媛怨??꾪꽣留??뺣젹 濡쒖쭅? 硫붾え?댁젣?댁뀡 泥섎━ ?좎?
     const filteredAndSortedData = useMemo(() => {
         const filtered = equipmentList.filter(eq => 
             appliedEquipmentIds.length === 0 ? true : appliedEquipmentIds.includes(eq.id)
@@ -86,7 +81,7 @@ export function EquipmentStats({ setSelectedEquipment }: EquipmentStatsProps) {
     return (
         <div className="animate-in fade-in duration-500 space-y-6">
 
-            {/* 1. 怨듯넻 ??쒕낫???ㅻ뜑 */}
+            {/* Header */}
             <DashboardHeader 
                 title="장비 현황 통계"
                 subtitle="장비별 상세 수율 현황 및 설비 신뢰성 지표를 분석"
@@ -106,7 +101,7 @@ export function EquipmentStats({ setSelectedEquipment }: EquipmentStatsProps) {
                 </div>
             )}
 
-            {/* 2. ?λ퉬 KPI & 遺덈웾 ?먯씤 遺꾩꽍 洹몃━???뱀뀡 */}
+            {/* Main */}
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
                 <EquipmentKPIChart 
                     downtimeRes={downtimeRes} 
@@ -129,7 +124,6 @@ export function EquipmentStats({ setSelectedEquipment }: EquipmentStatsProps) {
                 />
             </div>
             
-            {/* 3. ?섎떒 ?곸꽭 ?λ퉬 遺꾩꽍 ?뚯씠釉?*/}
             <EquipmentDetailTable 
                 data={filteredAndSortedData} 
                 isLoading={isEquipmentListLoading}

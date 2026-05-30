@@ -13,7 +13,7 @@ export function ReportSheet({ children, isLoading, className = "" }: { children:
                     <div className="animate-pulse font-bold text-zinc-400 text-xl tracking-widest">UPDATING REPORT...</div>
                 </div>
             )}
-            <div className="absolute top-[42%] left-[-10%] w-[120%] -rotate-45 text-[110px] font-black text-zinc-100/50 pointer-events-none select-none flex justify-center items-center z-0">
+            <div className="absolute top-[42%] left-[-10%] w-[120%] -rotate-45 text-[96px] font-black text-zinc-100/40 pointer-events-none select-none flex justify-center items-center z-0">
                 DRAFT SUMMARY
             </div>
             {children}
@@ -37,11 +37,11 @@ export function ReportMasthead({
     pageLabel: string;
 }) {
     return (
-        <header className="flex justify-between items-start mb-7 relative z-10">
+        <header className="flex justify-between items-start mb-5 relative z-10">
             <div>
                 <h1 className="text-3xl font-black tracking-tight text-zinc-900">{title}</h1>
                 <p className="text-sm font-bold text-zinc-500 mt-1">{subtitle}</p>
-                <div className="grid grid-cols-2 gap-x-8 gap-y-1.5 text-xs text-zinc-600 mt-5">
+                <div className="grid grid-cols-2 gap-x-8 gap-y-1.5 text-xs text-zinc-600 mt-4">
                     <p><span className="font-bold text-zinc-400 mr-2">발행 일시</span>{issueDateTime}</p>
                     <p><span className="font-bold text-zinc-400 mr-2">작성자</span>Smart Link AI</p>
                     <p><span className="font-bold text-zinc-400 mr-2">집계 기간</span>{periodText}</p>
@@ -65,7 +65,7 @@ export function ReportMasthead({
 
 export function ReportSectionHeader({ index, title }: { index: string; title: string }) {
     return (
-        <div className="mb-6 z-10">
+        <div className="mb-4 z-10">
             <h2 className="text-2xl font-black text-zinc-900 border-b-2 border-zinc-900 pb-2 flex items-center gap-2">
                 <span className="text-zinc-400 font-normal">{index}.</span>
                 {title}
@@ -86,9 +86,9 @@ export function SectionTitle({ index, title }: { index: string; title: string })
 
 export function KpiTile({ label, value, unit, danger = false }: { label: string; value: string | number; unit: string; danger?: boolean }) {
     return (
-        <div className={`border p-3 rounded-sm ${danger ? "border-red-200 bg-red-50" : "border-zinc-200 bg-zinc-50"}`}>
+        <div className={`border p-2.5 rounded-sm ${danger ? "border-red-200 bg-red-50" : "border-zinc-200 bg-zinc-50"}`}>
             <p className={`text-[10px] font-bold mb-1 ${danger ? "text-red-600" : "text-zinc-500"}`}>{label}</p>
-            <p className={`text-lg font-black ${danger ? "text-red-700" : "text-zinc-900"}`}>
+            <p className={`text-base font-black ${danger ? "text-red-700" : "text-zinc-900"}`}>
                 {value}<span className="text-[10px] font-medium text-zinc-500 ml-1">{unit}</span>
             </p>
         </div>
@@ -117,9 +117,9 @@ export function RiskBadge({ eq }: { eq: EquipmentStatus }) {
 
 export function QualityTile({ label, value, danger = false }: { label: string; value: string | number; danger?: boolean }) {
     return (
-        <div className={`border p-3 rounded-sm bg-white ${danger ? "border-red-200" : "border-zinc-200"}`}>
+        <div className={`border p-2.5 rounded-sm bg-white ${danger ? "border-red-200" : "border-zinc-200"}`}>
             <p className="text-[10px] font-bold text-zinc-500">{label}</p>
-            <p className={`text-2xl font-black mt-1 ${danger ? "text-red-600" : "text-zinc-900"}`}>{value}</p>
+            <p className={`text-xl font-black mt-1 ${danger ? "text-red-600" : "text-zinc-900"}`}>{value}</p>
         </div>
     );
 }
@@ -154,7 +154,7 @@ export function Timeline({ segments }: { segments: ReportSummary["operationTimel
     const totalMinutes = Math.max(endMinutes - startMinutes, 1);
 
     return (
-        <div className="border border-zinc-200 p-4 rounded-sm bg-white">
+        <div className="border border-zinc-200 p-3 rounded-sm bg-white">
             <div className="h-7 flex rounded-sm overflow-hidden bg-zinc-100">
                 {segments.map((segment, index) => {
                     const color = segment.status === "run" ? "bg-emerald-500 print:bg-zinc-700" : segment.status === "error" ? "bg-red-500 print:bg-zinc-900" : "bg-amber-400 print:bg-zinc-400";

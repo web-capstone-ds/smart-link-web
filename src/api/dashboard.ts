@@ -72,7 +72,6 @@ export const fetchDashboardTrend = async (
     let startDate: string;
 
     if (isSingleDay) {
-        // ?뙚 [?섎（ ?좏깮 ?? 媛뺤젣濡?怨쇨굅 7媛??곗씠??踰붿쐞瑜??≪븘以띾땲??
         let calculatedStartDate: Date;
         if (unit === "daily") {
             calculatedStartDate = subDays(anchorDate, 6);
@@ -81,14 +80,13 @@ export const fetchDashboardTrend = async (
         }
         startDate = format(calculatedStartDate, 'yyyy-MM-dd');
     } else {
-        // ?뙚 [湲곌컙 ?좏깮 ?? ?ъ슜?먭? 吏?뺥븳 ?쒖옉?쇱쓣 洹몃?濡?議댁쨷?⑸땲??
         startDate = date?.from ? format(date.from, 'yyyy-MM-dd') : endDate;
     }
 
     const response = await apiClient.get('/api/v1/dashboard/trend', {
         params: { 
             equipmentIds, 
-            startDate, // 遺꾧린 泥섎━???쒖옉??
+            startDate,
             endDate,   
             unit       
         }
