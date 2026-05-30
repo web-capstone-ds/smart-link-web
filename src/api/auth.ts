@@ -1,12 +1,13 @@
 import { apiClient } from "@/api/client";
 
 export interface LoginPayload {
-    username: string;
+    operatorId: string;
     password: string;
 }
 
 export interface AuthUser {
     id?: string;
+    operatorId?: string;
     name: string;
     role?: string;
     department?: string;
@@ -32,7 +33,7 @@ type LoginResponse = {
 };
 
 export async function login(payload: LoginPayload): Promise<LoginResult> {
-    if (payload.username === "user" && payload.password === "user") {
+    if (payload.operatorId === "user" && payload.password === "user") {
         return {
             accessToken: "dev-temp-user-token",
             user: {
@@ -58,7 +59,8 @@ export async function login(payload: LoginPayload): Promise<LoginResult> {
         refreshToken: data.refreshToken,
         user: {
             id: data.user?.id,
-            name: data.user?.name || payload.username,
+            operatorId: data.user?.operatorId,
+            name: data.user?.name || data.user?.operatorId || payload.operatorId,
             role: data.user?.role || "Operator",
             department: data.user?.department || "운영팀",
         },
