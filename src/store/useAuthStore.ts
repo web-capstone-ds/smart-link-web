@@ -73,7 +73,7 @@ export const useAuthStore = create<AuthState>((set) => {
         isAuthenticated: !!initialUser,
         useMockData: initialUseMockData,
         login: async ({ username, password, remember, useMockData }) => {
-            const result = await requestLogin({ username, password });
+            const result = await requestLogin({ operatorId: username, password });
             persistSession(result.user, result.accessToken, result.refreshToken, remember, useMockData);
             set({ user: result.user, isAuthenticated: true, useMockData });
         },
