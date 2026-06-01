@@ -37,8 +37,16 @@ export function isUnresolved(status: string) {
     return status.includes("미조치") || status.toLowerCase().includes("unresolved");
 }
 
+export function formatCpk(cpk: number | null | undefined) {
+    return typeof cpk === "number" ? cpk.toFixed(2) : "N/A";
+}
+
+export function isCpkWarning(cpk: number | null | undefined) {
+    return typeof cpk === "number" && cpk < 1.33;
+}
+
 export function getShiftVerdict(report: ReportSummary, quality: QualityDistribution, unresolvedCount: number) {
-    if (unresolvedCount > 0 || report.kpi.activeAlerts > 0 || report.kpi.yield < 97 || quality.summary.cpk < 1.33) {
+    if (unresolvedCount > 0 || report.kpi.activeAlerts > 0 || report.kpi.yield < 97 || isCpkWarning(quality.summary.cpk)) {
         return {
             label: "Attention Required",
             className: "border-red-200 bg-red-50 text-red-950",

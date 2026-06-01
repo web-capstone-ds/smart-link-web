@@ -2,7 +2,7 @@ import type { DefectStat, EquipmentStatus } from "@/type/equipmentType";
 import type { QualityDistribution, ReportHeatmap } from "@/type/reportType";
 import { Histogram } from "@/components/report-document/Histogram";
 import { QualityTile, ReportFooter, ReportSectionHeader, ReportSheet, SectionTitle, SlotCell } from "@/components/report-document/ReportLayout";
-import { normalizeRatio } from "@/components/report-document/utils";
+import { formatCpk, isCpkWarning, normalizeRatio } from "@/components/report-document/utils";
 
 interface ReportQualityPageProps {
     isLoading: boolean;
@@ -32,7 +32,7 @@ export function ReportQualityPage({
                     <SectionTitle index="01" title="공정 능력 상태" />
                     <div className="grid grid-cols-2 gap-2.5 mb-3">
                         <QualityTile label="Pass Rate" value={`${qualityData.summary.passRate}%`} />
-                        <QualityTile label="Cpk" value={qualityData.summary.cpk} danger={qualityData.summary.cpk < 1.33} />
+                        <QualityTile label="Cpk" value={formatCpk(qualityData.summary.cpk)} danger={isCpkWarning(qualityData.summary.cpk)} />
                     </div>
                     <p className="text-[10px] leading-relaxed text-zinc-600 mb-3">{qualityData.summary.cpkSub}</p>
                     <Histogram quality={qualityData} />
@@ -113,7 +113,7 @@ export function ReportQualityPage({
                         </div>
                         <div className="border border-amber-200 bg-white/60 p-2">
                             <p className="font-black text-amber-900">Cpk</p>
-                            <p className="font-bold text-zinc-800">{qualityData.summary.cpk}</p>
+                            <p className="font-bold text-zinc-800">{formatCpk(qualityData.summary.cpk)}</p>
                         </div>
                     </div>
                 </div>

@@ -6,8 +6,10 @@ export interface DashboardSummaryResponse {
         totalYield: number;
         yieldTrend: number;
         passRate: number;
-        cpk: number;
-        cpkTrend: number;
+        cpk: number | null;
+        cpkTrend: number | null;
+        cpkReliable?: boolean;
+        cpkSub?: string;
         topDefect: string;
         availability: number;      
         totalDowntimeMin: number;  

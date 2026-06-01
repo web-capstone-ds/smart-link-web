@@ -3,6 +3,13 @@ import { getEstimatedMean } from "@/components/report-document/utils";
 
 export function Histogram({ quality }: { quality: QualityDistribution }) {
     const histogram = quality.distributionChart.histogram;
+    if (!histogram || histogram.length === 0) {
+        return (
+            <div className="h-40 border border-zinc-200 bg-white p-3 flex items-center justify-center text-[10px] text-zinc-400">
+                분포 데이터가 없습니다.
+            </div>
+        );
+    }
     const maxCount = Math.max(...histogram.map((bar) => bar.count), 1);
     const chartPadding = { left: 8, right: 8, top: 10, bottom: 14 };
     const chartWidth = 100 - chartPadding.left - chartPadding.right;

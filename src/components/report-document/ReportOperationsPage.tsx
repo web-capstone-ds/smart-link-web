@@ -1,6 +1,7 @@
 import type { EquipmentStatus } from "@/type/equipmentType";
 import type { QualityDistribution, ReportAlarm, ReportSummary } from "@/type/reportType";
 import { ChecklistItem, KpiTile, ReportFooter, ReportSectionHeader, ReportSheet, SectionTitle, Timeline } from "@/components/report-document/ReportLayout";
+import { isCpkWarning } from "@/components/report-document/utils";
 
 interface ReportOperationsPageProps {
     isLoading: boolean;
@@ -75,7 +76,7 @@ export function ReportOperationsPage({
                     <div className="border-2 border-zinc-900 bg-white p-3 space-y-2.5">
                         <ChecklistItem text="미조치 Critical 알람 해당 여부" active={criticalAlarms.length > 0} />
                         <ChecklistItem text="수율 하위 장비 Recipe/LOT 확인" active={riskEquipments.length > 0} />
-                        <ChecklistItem text="Cpk Warning 항목 SPC 재확인" active={qualityData.summary.cpk < 1.33} />
+                        <ChecklistItem text="Cpk Warning 항목 SPC 재확인" active={isCpkWarning(qualityData.summary.cpk)} />
                         <ChecklistItem text="다음 근무조 Action Plan 공유" active={topActions.length > 0} />
                     </div>
 
