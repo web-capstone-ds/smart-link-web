@@ -43,6 +43,7 @@ export interface QualityDistribution {
         cpk: number;
         cpkSub: string;
         status: "normal" | "warning" | "critical" | string;
+        cpkReliable?: boolean; // 백엔드 AI 분기 응답: 표본 수(n>=30) 기반 cpk 신뢰 여부
     };
     distributionChart: {
         guidelines: { lsl: number; target: number; usl: number };

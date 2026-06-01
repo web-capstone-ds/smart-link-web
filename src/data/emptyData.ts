@@ -97,6 +97,7 @@ export const emptyQualityDistribution: QualityDistribution = {
         cpk: 0,
         cpkSub: noDataMessage,
         status: "no-data",
+        cpkReliable: false,
     },
     distributionChart: {
         guidelines: { lsl: 0, target: 0, usl: 0 },
