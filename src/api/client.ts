@@ -93,6 +93,11 @@ async function refreshAccessToken() {
 export const apiClient = axios.create();
 
 apiClient.interceptors.request.use((config) => {
+    const url = config.url || "";
+    if (url.includes("/api/v1/auth/login") || url.includes("/api/v1/auth/refresh")) {
+        return config;
+    }
+
     const token = getStoredAuthToken();
 
     if (token) {
