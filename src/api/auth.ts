@@ -11,6 +11,10 @@ export interface AuthUser {
     name: string;
     role?: string;
     department?: string;
+    phone?: string;
+    active?: boolean;
+    updatedAt?: string;
+    version?: number;
 }
 
 export interface LoginResult {
@@ -45,9 +49,11 @@ export async function login(payload: LoginPayload): Promise<LoginResult> {
             accessToken: "dev-temp-user-token",
             user: {
                 id: "TEMP-USER",
+                operatorId: "user",
                 name: "user",
-                role: "Operator",
+                role: "OPERATOR",
                 department: "운영팀",
+                active: true,
             },
         };
     }
@@ -64,13 +70,7 @@ export async function login(payload: LoginPayload): Promise<LoginResult> {
     return {
         accessToken,
         refreshToken: data.refreshToken,
-        user: {
-            id: data.user?.id,
-            operatorId: data.user?.operatorId,
-            name: data.user?.name || data.user?.operatorId || payload.operatorId,
-            role: data.user?.role || "Operator",
-            department: data.user?.department || "운영팀",
-        },
+        user: normalizeAuthUser(data.user, payload.operatorId),
     };
 }
 
@@ -84,11 +84,19 @@ export async function fetchMe(): Promise<AuthUser> {
     const data = body.data || body;
     const user = data.user || data;
 
+    return normalizeAuthUser(user);
+}
+
+function normalizeAuthUser(user: Partial<AuthUser> | undefined, fallbackOperatorId = "Unknown"): AuthUser {
     return {
-        id: user.id,
-        operatorId: user.operatorId,
-        name: user.name || user.operatorId || "Unknown",
-        role: user.role || "Operator",
-        department: user.department || "운영팀",
+        id: user?.id,
+        operatorId: user?.operatorId || fallbackOperatorId,
+        name: user?.name || user?.operatorId || fallbackOperatorId,
+        role: user?.role || "OPERATOR",
+        department: user?.department || "운영팀",
+        phone: user?.phone,
+        active: user?.active,
+        updatedAt: user?.updatedAt,
+        version: user?.version,
     };
 }
