@@ -12,6 +12,10 @@ interface KpiSummaryCardsProps {
 
 export function KpiSummaryCards({ isSingleDay, data, isLoading }: KpiSummaryCardsProps) {
     const compareText = isSingleDay ? "전일 대비" : "과거 평균 대비";
+    const cpkValue = data?.kpi.cpk;
+    const cpkTrend = data?.kpi.cpkTrend;
+    const hasCpk = typeof cpkValue === "number";
+    const hasCpkTrend = typeof cpkTrend === "number";
 
     return (
         <div>
@@ -72,19 +76,19 @@ export function KpiSummaryCards({ isSingleDay, data, isLoading }: KpiSummaryCard
                     <BaseKpiCard 
                         title="공정능력지수 (Cpk)" 
                         icon={<Activity className="h-4 w-4 text-muted-foreground" />}
-                        value={data.kpi.cpk.toFixed(2)} unit="Cpk"
-                        badgeText={`${compareText} ${data.kpi.cpkTrend > 0 ? '+' : ''}${data.kpi.cpkTrend}`} 
-                        badgeClassName={data.kpi.cpkTrend >= 0 ? "text-emerald-500 bg-emerald-500/10" : "text-destructive bg-destructive/10"}
+                        value={hasCpk ? cpkValue.toFixed(2) : "N/A"} unit={hasCpk ? "Cpk" : ""}
+                        badgeText={hasCpkTrend ? `${compareText} ${cpkTrend > 0 ? '+' : ''}${cpkTrend}` : "계산 불가"} 
+                        badgeClassName={hasCpkTrend && cpkTrend >= 0 ? "text-emerald-500 bg-emerald-500/10" : "text-muted-foreground bg-muted/20"}
                     >
                         <div className="flex justify-between">
                             <span>현재 공정 상태</span>
-                            <span className={data.kpi.cpk >= 1.33 ? "text-emerald-500" : "text-amber-500"}>
-                                {data.kpi.cpk >= 1.33 ? "안정 (Excellent)" : "경고 (Warning)"}
+                            <span className={hasCpk ? (cpkValue >= 1.33 ? "text-emerald-500" : "text-amber-500") : "text-muted-foreground"}>
+                                {hasCpk ? (cpkValue >= 1.33 ? "안정 (Excellent)" : "경고 (Warning)") : "계산 불가"}
                             </span>
                         </div>
                         <div className="flex justify-between">
                             <span>산포 관리 기준</span>
-                            <span className="text-muted-foreground">USL / LSL 이내</span>
+                            <span className="text-muted-foreground">{data.kpi.cpkSub ?? "USL / LSL 이내"}</span>
                         </div>
                     </BaseKpiCard>
 

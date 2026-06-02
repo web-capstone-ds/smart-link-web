@@ -26,11 +26,11 @@ export const fetchDowntimeTrend = async (
         }
     });
     
-    if (!response.data) {
+    if (!response.data || !response.data.data) {
         throw new Error("서버에서 데이터를 받지 못했습니다.");
     }
 
-    return response.data; 
+    return response.data.data; 
 };
 
 // 2. Mtbf Data
@@ -110,7 +110,6 @@ export const fetchEquipmentStatusList = async (
 
     return response.data.data; 
 };
-
 
 
 

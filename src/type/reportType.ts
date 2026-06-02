@@ -1,7 +1,10 @@
 export interface ReportKPI {
     totalProduction: number;
     yield: number;
-    cpk: number;
+    cpk: number | null;
+    cpkTrend?: number | null;
+    cpkReliable?: boolean;
+    cpkSub?: string;
     availability: number; // 명세 변경: oee -> availability
     activeAlerts: number;
     mtbf: number;
@@ -40,9 +43,10 @@ export interface QualityDistribution {
     summary: {
         passRate: number;
         passRateSub: string;
-        cpk: number;
+        cpk: number | null;
         cpkSub: string;
         status: "normal" | "warning" | "critical" | string;
+        cpkReliable?: boolean; // 백엔드 AI 분기 응답: 표본 수(n>=30) 기반 cpk 신뢰 여부
     };
     distributionChart: {
         guidelines: { lsl: number; target: number; usl: number };

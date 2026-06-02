@@ -58,8 +58,24 @@ export async function login(payload: LoginPayload): Promise<LoginResult> {
         };
     }
 
-    const response = await apiClient.post<LoginResponse>("/api/v1/auth/login", payload);
-    const body = response.data;
+    const loginResponse = await fetch("/api/v1/auth/login", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+    });
+    const body = await loginResponse.json().catch(() => null) as LoginResponse | null;
+
+    if (!loginResponse.ok) {
+        const message = body && "data" in body ? JSON.stringify(body.data) : loginResponse.statusText;
+        throw new Error(`로그인 요청 실패 (${loginResponse.status}): ${message}`);
+    }
+
+    if (!body) {
+        throw new Error("로그인 응답을 JSON으로 해석할 수 없습니다.");
+    }
+
     const data = body.data || body;
     const accessToken = data.accessToken || data.token;
 

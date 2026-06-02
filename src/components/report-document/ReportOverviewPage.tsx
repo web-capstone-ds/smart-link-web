@@ -1,7 +1,7 @@
 import type { EquipmentStatus } from "@/type/equipmentType";
 import type { QualityDistribution, ReportAlarm, ReportSummary } from "@/type/reportType";
 import { EmptyBox, KpiTile, PriorityLine, ReportFooter, ReportMasthead, ReportSheet, RiskBadge, SectionTitle } from "@/components/report-document/ReportLayout";
-import { getShiftVerdict } from "@/components/report-document/utils";
+import { formatCpk, getShiftVerdict, isCpkWarning } from "@/components/report-document/utils";
 
 interface ReportOverviewPageProps {
     isLoading: boolean;
@@ -64,7 +64,7 @@ export function ReportOverviewPage({
                         <PriorityLine label="미조치 경보" value={`${unresolvedAlarms.length}건`} danger={unresolvedAlarms.length > 0} />
                         <PriorityLine label="Critical Alarm" value={`${criticalAlarms.length}건`} danger={criticalAlarms.length > 0} />
                         <PriorityLine label="수율" value={`${reportData.kpi.yield}%`} danger={reportData.kpi.yield < 97} />
-                        <PriorityLine label="Cpk" value={String(reportData.kpi.cpk)} danger={reportData.kpi.cpk < 1.33} />
+                        <PriorityLine label="Cpk" value={formatCpk(reportData.kpi.cpk)} danger={isCpkWarning(reportData.kpi.cpk)} />
                         <PriorityLine label="가동률" value={`${reportData.kpi.availability}%`} danger={reportData.kpi.availability < 90} />
                     </div>
                 </div>
@@ -73,7 +73,7 @@ export function ReportOverviewPage({
             <section className="grid grid-cols-6 gap-2.5 mb-5 z-10">
                 <KpiTile label="총 생산" value={reportData.kpi.totalProduction.toLocaleString()} unit="EA" />
                 <KpiTile label="수율" value={reportData.kpi.yield} unit="%" danger={reportData.kpi.yield < 97} />
-                <KpiTile label="Cpk" value={reportData.kpi.cpk} unit="" danger={reportData.kpi.cpk < 1.33} />
+                <KpiTile label="Cpk" value={formatCpk(reportData.kpi.cpk)} unit="" danger={isCpkWarning(reportData.kpi.cpk)} />
                 <KpiTile label="가동률" value={reportData.kpi.availability} unit="%" danger={reportData.kpi.availability < 90} />
                 <KpiTile label="미조치 경보" value={reportData.kpi.activeAlerts} unit="건" danger={reportData.kpi.activeAlerts > 0} />
                 <KpiTile label="MTBF" value={reportData.kpi.mtbf} unit="hr" />
@@ -165,7 +165,7 @@ function DecisionBasis({
 }) {
     const basisRows = [
         { label: "수율 기준", value: `${reportData.kpi.yield}%`, note: reportData.kpi.yield < 97 ? "관리 하한 확인" : "정상 범위" },
-        { label: "공정 능력", value: String(qualityData.summary.cpk), note: qualityData.summary.cpk < 1.33 ? "SPC 재확인" : "안정" },
+        { label: "공정 능력", value: formatCpk(qualityData.summary.cpk), note: isCpkWarning(qualityData.summary.cpk) ? "SPC 재확인" : (qualityData.summary.cpk === null ? "계산 불가" : "안정") },
         { label: "가동률", value: `${reportData.kpi.availability}%`, note: reportData.kpi.availability < 90 ? "Down 원인 추적" : "계획 대비 유지" },
         { label: "미조치", value: `${unresolvedCount}건`, note: unresolvedCount > 0 ? "교대 전 조치 필요" : "잔여 없음" },
     ];
@@ -190,7 +190,7 @@ function DecisionBasis({
 
 function DailyReviewBox({ reportData, criticalCount }: { reportData: ReportSummary; criticalCount: number }) {
     const rows = [
-        { label: "품질", value: reportData.kpi.yield < 97 || reportData.kpi.cpk < 1.33 ? "확인 필요" : "정상" },
+        { label: "품질", value: reportData.kpi.yield < 97 || isCpkWarning(reportData.kpi.cpk) ? "확인 필요" : "정상" },
         { label: "설비", value: reportData.kpi.availability < 90 ? "가동 이슈" : "안정" },
         { label: "알람", value: criticalCount > 0 ? `${criticalCount}건 Critical` : "Critical 없음" },
     ];
