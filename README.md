@@ -1,75 +1,57 @@
-# React + TypeScript + Vite
+# DS Smart Link Web
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+반도체 후공정 비전 검사 장비 모니터링 웹 대시보드.  
+Web-Backend REST API를 통해 장비 KPI, 검사 결과, AI 보고서를 조회합니다.
 
-Currently, two official plugins are available:
+## 기술 스택
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+| 항목 | 내용 |
+|---|---|
+| Framework | React 18 + TypeScript |
+| 번들러 | Vite |
+| 상태 관리 | Zustand |
+| UI | Tailwind CSS + shadcn/ui |
+| 차트 | Recharts |
+| HTTP | Axios |
 
-## React Compiler
+## 디렉토리 구조
 
-The React Compiler is enabled on this template. See [this documentation](https://react.dev/learn/react-compiler) for more information.
-
-Note: This will impact Vite dev & build performances.
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```
+smart-link-web/src/
+├── api/              # REST API 클라이언트 (auth, dashboard, equipment, report 등)
+├── components/
+│   ├── auth/         # 로그인 화면
+│   ├── card/         # KPI 카드 컴포넌트
+│   ├── chart/        # 차트 (Pareto, Trend, Yield, Defect, Uptime)
+│   ├── equipment-detail/  # 장비 상세 패널
+│   ├── layout/       # 사이드바, 헤더
+│   └── report-document/   # 보고서 레이아웃 및 페이지
+├── pages/            # Dashboard, EquipmentStats, ReportPage
+└── store/            # Zustand 상태 (인증)
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## 주요 화면
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+- **대시보드**: 전체 장비 KPI 요약, 수율 트렌드, 불량 분포
+- **장비 현황**: 장비별 상세 통계, SPC 히트맵, 가동률, AI 인사이트
+- **보고서**: AI 자동 생성 일별/주간 보고서 (Overview, Quality, Operations)
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## 실행 방법
+
+```bash
+cd smart-link-web
+npm install
+npm run dev     # 개발 서버 (localhost:5173)
+npm run build   # 프로덕션 빌드
 ```
+
+## 포트
+
+| 서비스 | 포트 |
+|---|---|
+| 개발 서버 | 5173 |
+
+## 환경 설정
+
+Web-Backend가 `localhost:8080`에서 실행 중이어야 합니다.  
+API 베이스 URL은 `src/api/client.ts`에서 설정합니다.
