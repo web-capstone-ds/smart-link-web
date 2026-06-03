@@ -77,8 +77,8 @@ export function KpiSummaryCards({ isSingleDay, data, isLoading }: KpiSummaryCard
                         title="공정능력지수 (Cpk)" 
                         icon={<Activity className="h-4 w-4 text-muted-foreground" />}
                         value={hasCpk ? cpkValue.toFixed(2) : "N/A"} unit={hasCpk ? "Cpk" : ""}
-                        badgeText={hasCpkTrend ? `${compareText} ${cpkTrend > 0 ? '+' : ''}${cpkTrend}` : "계산 불가"} 
-                        badgeClassName={hasCpkTrend && cpkTrend >= 0 ? "text-emerald-500 bg-emerald-500/10" : "text-muted-foreground bg-muted/20"}
+                        badgeText={!hasCpk ? "계산 불가" : hasCpkTrend ? `${compareText} ${cpkTrend > 0 ? '+' : ''}${cpkTrend}` : (data.kpi.cpkReliable === false ? "표본 부족" : "표본 충분")}
+                        badgeClassName={hasCpkTrend && cpkTrend >= 0 ? "text-emerald-500 bg-emerald-500/10" : (hasCpk && !hasCpkTrend && data.kpi.cpkReliable === false ? "text-amber-500 bg-amber-500/10" : "text-muted-foreground bg-muted/20")}
                     >
                         <div className="flex justify-between">
                             <span>현재 공정 상태</span>
