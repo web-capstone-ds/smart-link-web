@@ -1,6 +1,7 @@
 import { LayoutList, Package, AlertTriangle, Activity, Loader2, Clock } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { BaseKpiCard } from "@/components/card/BaseKpiCard"
+import { getCpkGrade } from "@/components/report-document/utils"
 
 import type { DashboardSummaryResponse } from "@/type/dashboardType"
 
@@ -16,6 +17,7 @@ export function KpiSummaryCards({ isSingleDay, data, isLoading }: KpiSummaryCard
     const cpkTrend = data?.kpi.cpkTrend;
     const hasCpk = typeof cpkValue === "number";
     const hasCpkTrend = typeof cpkTrend === "number";
+    const cpkGrade = getCpkGrade(cpkValue); // 산업 표준 4단계 등급 (부적합/경고/안정/우수)
 
     return (
         <div>
@@ -82,8 +84,8 @@ export function KpiSummaryCards({ isSingleDay, data, isLoading }: KpiSummaryCard
                     >
                         <div className="flex justify-between">
                             <span>현재 공정 상태</span>
-                            <span className={hasCpk ? (cpkValue >= 1.33 ? "text-emerald-500" : "text-amber-500") : "text-muted-foreground"}>
-                                {hasCpk ? (cpkValue >= 1.33 ? "안정 (Excellent)" : "경고 (Warning)") : "계산 불가"}
+                            <span className={cpkGrade ? cpkGrade.textClass : "text-muted-foreground"}>
+                                {cpkGrade ? cpkGrade.label : "계산 불가"}
                             </span>
                         </div>
                         <div className="flex justify-between">

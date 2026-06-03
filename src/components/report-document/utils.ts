@@ -45,6 +45,28 @@ export function isCpkWarning(cpk: number | null | undefined) {
     return typeof cpk === "number" && cpk < 1.33;
 }
 
+// 공정능력지수(Cpk) 산업 표준 4단계 등급 (AIAG / SPC 통용 기준)
+//  Cpk < 1.00        : 부적합 (Incapable)  — 규격 이탈 다수
+//  1.00 ≤ Cpk < 1.33 : 경고 (Marginal)     — 개선 필요
+//  1.33 ≤ Cpk < 1.67 : 안정 (Capable)      — 양산 합격 기준
+//  Cpk ≥ 1.67        : 우수 (Excellent)
+export type CpkGradeTone = "danger" | "warn" | "good" | "great";
+export interface CpkGrade {
+    key: "incapable" | "marginal" | "capable" | "excellent";
+    label: string;
+    tone: CpkGradeTone;
+    /** tailwind 텍스트 색상 클래스 */
+    textClass: string;
+}
+
+export function getCpkGrade(cpk: number | null | undefined): CpkGrade | null {
+    if (typeof cpk !== "number" || Number.isNaN(cpk)) return null;
+    if (cpk < 1.0) return { key: "incapable", label: "부적합 (Incapable)", tone: "danger", textClass: "text-destructive" };
+    if (cpk < 1.33) return { key: "marginal", label: "경고 (Marginal)", tone: "warn", textClass: "text-amber-500" };
+    if (cpk < 1.67) return { key: "capable", label: "안정 (Capable)", tone: "good", textClass: "text-emerald-500" };
+    return { key: "excellent", label: "우수 (Excellent)", tone: "great", textClass: "text-emerald-400" };
+}
+
 export function getShiftVerdict(report: ReportSummary, quality: QualityDistribution, unresolvedCount: number) {
     if (unresolvedCount > 0 || report.kpi.activeAlerts > 0 || report.kpi.yield < 97 || isCpkWarning(quality.summary.cpk)) {
         return {
