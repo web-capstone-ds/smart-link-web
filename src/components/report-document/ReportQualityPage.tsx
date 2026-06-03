@@ -42,18 +42,18 @@ export function ReportQualityPage({
                     <SectionTitle index="02" title="주요 불량 Pareto" />
                     <div className="space-y-2.5">
                         {topDefects.map((defect, index) => (
-                            <div key={defect.code || defect.name} className="grid grid-cols-[5rem_1fr_3rem] items-center gap-3">
-                                <div>
-                                    <p className="text-[10px] font-black text-zinc-900">{defect.code}</p>
-                                    <p className="text-[9px] text-zinc-500 truncate">{defect.name}</p>
+                            <div key={defect.code || defect.name} className="grid min-w-0 grid-cols-[5rem_minmax(0,1fr)_3rem] items-center gap-3">
+                                <div className="min-w-0">
+                                    <p className="text-[10px] font-black text-zinc-900 truncate">{defect.code}</p>
+                                    <p className="text-[9px] text-zinc-500 leading-snug break-words min-w-0">{defect.name}</p>
                                 </div>
-                                <div className="h-4 bg-zinc-100 rounded-sm overflow-hidden">
+                                <div className="min-w-0 h-4 bg-zinc-100 rounded-sm overflow-hidden">
                                     <div
                                         className={`h-full ${index === 0 ? "bg-zinc-900" : "bg-zinc-400"}`}
                                         style={{ width: normalizeRatio(defect.ratio) }}
                                     />
                                 </div>
-                                <p className="text-[10px] font-bold text-right text-zinc-700">{defect.count}</p>
+                                <p className="text-[10px] font-bold text-right text-zinc-700 min-w-0">{defect.count}</p>
                             </div>
                         ))}
                     </div>

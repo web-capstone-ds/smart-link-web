@@ -15,13 +15,12 @@ interface FilterState {
     setLastUpdated: (time: string) => void;
 }
 
-// 기본값(어제 날짜) 계산
-const yesterday = new Date();
-yesterday.setDate(yesterday.getDate() - 1);
+// 기본값(오늘 날짜) 계산
+const today = new Date();
 
 export const useFilterStore = create<FilterState>((set) => ({
     appliedEquipmentIds: [],
-    appliedDate: { from: yesterday, to: yesterday },
+    appliedDate: { from: today, to: today },
     
     setAppliedEquipmentIds: (ids) => set({ appliedEquipmentIds: ids }),
     setAppliedDate: (date) => set({ appliedDate: date }),

@@ -47,8 +47,8 @@ export function ReportOperationsPage({
                             <tr className="border-y-2 border-zinc-900 bg-zinc-50 text-left text-zinc-600">
                                 <th className="py-2 px-2">등급</th>
                                 <th className="py-2 px-2">시간</th>
-                                <th className="py-2 px-2">장비</th>
-                                <th className="py-2 px-2">내용</th>
+                                <th className="py-2 px-2 break-words whitespace-normal">장비</th>
+                                <th className="py-2 px-2 break-words whitespace-normal">내용</th>
                                 <th className="py-2 px-2">상태</th>
                             </tr>
                         </thead>
@@ -57,8 +57,8 @@ export function ReportOperationsPage({
                                 <tr key={alarm.id} className={alarm.severity === "critical" ? "bg-red-50/50" : ""}>
                                     <td className={`py-1.5 px-2 font-black uppercase ${alarm.severity === "critical" ? "text-red-600" : "text-amber-600"}`}>{alarm.severity}</td>
                                     <td className="py-1.5 px-2 text-zinc-500">{alarm.time}</td>
-                                    <td className="py-1.5 px-2 font-bold">{alarm.eq}</td>
-                                    <td className="py-1.5 px-2 text-zinc-700">{alarm.message}</td>
+                                    <td className="py-1.5 px-2 font-bold break-words whitespace-normal max-w-[8rem]">{alarm.eq}</td>
+                                    <td className="py-1.5 px-2 text-zinc-700 break-words whitespace-normal max-w-[14rem]">{alarm.message}</td>
                                     <td className="py-1.5 px-2">{alarm.status}</td>
                                 </tr>
                             )) : (
