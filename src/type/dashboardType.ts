@@ -10,7 +10,7 @@ export interface DashboardSummaryResponse {
         cpkTrend: number | null;
         cpkReliable?: boolean;
         cpkSub?: string;
-        topDefect: string;
+        topDefect: string | null;
         availability: number;      
         totalDowntimeMin: number;  
         mtbfHours: number;         

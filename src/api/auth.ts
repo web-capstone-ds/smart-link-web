@@ -90,8 +90,8 @@ export async function login(payload: LoginPayload): Promise<LoginResult> {
     };
 }
 
-export async function logout() {
-    await apiClient.post("/api/v1/auth/logout");
+export async function logout(refreshToken: string) {
+    await apiClient.post("/api/v1/auth/logout", { refreshToken });
 }
 
 export async function fetchMe(): Promise<AuthUser> {

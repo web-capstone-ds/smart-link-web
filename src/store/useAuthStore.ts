@@ -42,6 +42,12 @@ function readStoredAccessToken() {
     return window.localStorage.getItem(ACCESS_TOKEN_KEY) || window.sessionStorage.getItem(ACCESS_TOKEN_KEY);
 }
 
+function readStoredRefreshToken() {
+    if (typeof window === "undefined") return null;
+
+    return window.localStorage.getItem(REFRESH_TOKEN_KEY) || window.sessionStorage.getItem(REFRESH_TOKEN_KEY);
+}
+
 function persistUser(user: AuthUser) {
     if (typeof window === "undefined") return;
 
@@ -111,7 +117,10 @@ export const useAuthStore = create<AuthState>((set) => {
         },
         logout: async () => {
             try {
-                await requestLogout();
+                const refreshToken = readStoredRefreshToken();
+                if (refreshToken) {
+                    await requestLogout(refreshToken);
+                }
             } finally {
                 clearSession();
                 set({ user: null, isAuthenticated: false, useMockData: false });

@@ -49,11 +49,13 @@ export const fetchEquipmentDowntimeTrend = async (
         }
     });
 
-    if (!response.data) {
+    const body = response.data?.data ?? response.data;
+
+    if (!body || !body.data) {
         throw new Error("비가동 시간 트렌드 데이터를 불러오지 못했습니다.");
     }
 
-    return response.data;
+    return body;
 };
 
 // 3. SPC Trend Data

@@ -10,7 +10,7 @@ export const fetchReportSummary = async (
     startDate: string,
     endDate: string,
     reportMode: "daily" | "weekly" | "equipment",
-    equipmentId?: string // equipment 紐⑤뱶???뚮쭔 ?꾩닔
+    equipmentId?: string
 ): Promise<ReportSummary> => {
     
     await delayForMockData();

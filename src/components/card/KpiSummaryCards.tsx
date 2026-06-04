@@ -18,6 +18,7 @@ export function KpiSummaryCards({ isSingleDay, data, isLoading }: KpiSummaryCard
     const hasCpk = typeof cpkValue === "number";
     const hasCpkTrend = typeof cpkTrend === "number";
     const cpkGrade = getCpkGrade(cpkValue); // 산업 표준 4단계 등급 (부적합/경고/안정/우수)
+    const topDefect = data?.kpi.topDefect || "-";
 
     return (
         <div>
@@ -69,7 +70,7 @@ export function KpiSummaryCards({ isSingleDay, data, isLoading }: KpiSummaryCard
                         <div className="flex justify-between items-center">
                             <span>최다 발생 불량</span>
                             <Badge variant="outline" className="h-4 text-[9px] px-1 bg-amber-500/10 text-amber-600 border-amber-500/20">
-                                {data.kpi.topDefect}
+                                {topDefect}
                             </Badge>
                         </div>
                     </BaseKpiCard>
