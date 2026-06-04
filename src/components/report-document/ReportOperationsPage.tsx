@@ -1,7 +1,7 @@
 import type { EquipmentStatus } from "@/type/equipmentType";
 import type { QualityDistribution, ReportAlarm, ReportSummary } from "@/type/reportType";
 import { ChecklistItem, KpiTile, ReportFooter, ReportSectionHeader, ReportSheet, SectionTitle, Timeline } from "@/components/report-document/ReportLayout";
-import { isCpkWarning } from "@/components/report-document/utils";
+import { formatEquipmentIdLines, isCpkWarning } from "@/components/report-document/utils";
 
 interface ReportOperationsPageProps {
     isLoading: boolean;
@@ -24,6 +24,8 @@ export function ReportOperationsPage({
     riskEquipments,
     topActions,
 }: ReportOperationsPageProps) {
+    const displayedAlarms = alarmData.slice(0, 8);
+
     return (
         <ReportSheet isLoading={isLoading} className="mt-8">
             <ReportSectionHeader index="03" title="가동 이력, 알람 및 조치 현황" />
@@ -41,7 +43,7 @@ export function ReportOperationsPage({
 
             <section className="grid grid-cols-[1.12fr_0.88fr] gap-4 flex-1 z-10">
                 <div className="flex flex-col">
-                    <SectionTitle index="02" title={`알람 및 조치 이력 (${alarmData.length}건)`} />
+                    <SectionTitle index="02" title={`알람 및 조치 이력 (${displayedAlarms.length}건)`} />
                     <table className="w-full text-[10px] border-collapse bg-white">
                         <thead>
                             <tr className="border-y-2 border-zinc-900 bg-zinc-50 text-left text-zinc-600">
@@ -53,11 +55,15 @@ export function ReportOperationsPage({
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-zinc-200">
-                            {alarmData.length > 0 ? alarmData.slice(0, 9).map((alarm) => (
+                            {displayedAlarms.length > 0 ? displayedAlarms.map((alarm) => (
                                 <tr key={alarm.id} className={alarm.severity === "critical" ? "bg-red-50/50" : ""}>
                                     <td className={`py-1.5 px-2 font-black uppercase ${alarm.severity === "critical" ? "text-red-600" : "text-amber-600"}`}>{alarm.severity}</td>
                                     <td className="py-1.5 px-2 text-zinc-500">{alarm.time}</td>
-                                    <td className="py-1.5 px-2 font-bold break-words whitespace-normal max-w-[8rem]">{alarm.eq}</td>
+                                    <td className="py-1.5 px-2 font-bold max-w-[8rem]" title={alarm.eq}>
+                                        {formatEquipmentIdLines(alarm.eq).map((line) => (
+                                            <span key={line} className="block leading-tight">{line}</span>
+                                        ))}
+                                    </td>
                                     <td className="py-1.5 px-2 text-zinc-700 break-words whitespace-normal max-w-[14rem]">{alarm.message}</td>
                                     <td className="py-1.5 px-2">{alarm.status}</td>
                                 </tr>
@@ -83,7 +89,7 @@ export function ReportOperationsPage({
                     <div className="mt-4 border border-zinc-200 rounded-sm p-3 bg-white">
                         <p className="text-[10px] font-black text-zinc-500 mb-2">Action Priority</p>
                         <div className="space-y-2">
-                            {topActions.slice(0, 3).map((plan) => (
+                            {topActions.slice(0, 4).map((plan) => (
                                 <div key={`${plan.priority}-${plan.title}`} className="grid grid-cols-[1.6rem_1fr] gap-2 text-[10px]">
                                     <span className={`font-black ${plan.isCritical ? "text-red-600" : "text-amber-600"}`}>P{plan.priority}</span>
                                     <p className="font-bold text-zinc-800 leading-snug">{plan.title}</p>
@@ -153,7 +159,7 @@ function ActionTrackingBox({ topActions }: { topActions: ReportSummary["actionPl
                     </tr>
                 </thead>
                 <tbody className="divide-y divide-zinc-100">
-                    {(topActions.length ? topActions.slice(0, 3) : [{ priority: "-", title: "등록된 Action Plan 없음" }]).map((plan) => (
+                    {(topActions.length ? topActions.slice(0, 4) : [{ priority: "-", title: "등록된 Action Plan 없음" }]).map((plan) => (
                         <tr key={`${plan.priority}-${plan.title}`}>
                             <td className="py-1.5 px-2 font-black text-zinc-800">P{plan.priority}</td>
                             <td className="py-1.5 px-2 text-zinc-700">{plan.title}</td>

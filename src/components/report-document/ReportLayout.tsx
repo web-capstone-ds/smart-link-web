@@ -133,13 +133,15 @@ export function SlotCell({ index, slot }: { index: number; slot?: ReportHeatmap[
             : "border-zinc-200 bg-zinc-50 text-zinc-600";
 
     return (
-        <div className={`border rounded-sm p-2 flex flex-col justify-between ${className}`}>
+        <div className={`border rounded-sm p-2 flex min-w-0 flex-col justify-between ${className}`}>
             <div className="flex justify-between items-start">
                 <span className="text-[10px] font-black">Z-{index}</span>
                 <span className="text-[9px] font-bold">F:{slot?.failCount || 0}</span>
             </div>
-            <div className="text-right">
-                <p className="text-[9px] font-bold">{slot?.dominantError || "OK"}</p>
+            <div className="min-w-0 text-right">
+                <p className="ml-auto max-w-full text-[8px] font-bold leading-tight break-all line-clamp-2" title={slot?.dominantError || "OK"}>
+                    {slot?.dominantError || "OK"}
+                </p>
                 <p className="text-[8px] opacity-70">P:{slot?.passCount || 0}</p>
             </div>
         </div>

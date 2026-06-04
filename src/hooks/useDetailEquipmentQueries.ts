@@ -22,6 +22,7 @@ import {
     emptyEquipmentSPCTrend,
     emptyEquipmentSummary,
 } from "@/data/emptyData";
+import { isDemoMockDate } from "@/lib/demoMockDate";
 import { useAuthStore } from "@/store/useAuthStore";
 import type { ActionItem } from "@/type/actionType";
 import type { EquipmentHistory } from "@/type/equipmentDetailType";
@@ -35,11 +36,13 @@ interface UseDetailEquipmentQueriesProps {
 export function useDetailEquipmentQueries({ selectedEquipment, targetDate, isReady }: UseDetailEquipmentQueriesProps) {
     const isEnabled = !!selectedEquipment;
     const useMockData = useAuthStore((state) => state.useMockData);
+    const forceMockData = isDemoMockDate(targetDate);
+    const shouldUseMockData = useMockData || forceMockData;
     const queryClient = useQueryClient();
     const [localHistoryData, setLocalHistoryData] = useState<EquipmentHistory[] | null>(null);
 
     const commonOptions = {
-        enabled: isEnabled,
+        enabled: isEnabled && !forceMockData,
         retry: false,
         staleTime: 1000 * 60 * 10,
         refetchOnMount: false,
@@ -86,26 +89,26 @@ export function useDetailEquipmentQueries({ selectedEquipment, targetDate, isRea
         ...commonOptions,
     });
 
-    const safeSummaryData = (isSummaryError || !summaryData) ? (useMockData ? mockEquipmentSummary : emptyEquipmentSummary) : summaryData;
-    const safeSpcData = (isSpcError || !spcData || spcData.length === 0) ? (useMockData ? mockEquipmentSPCTrend : emptyEquipmentSPCTrend) : spcData;
-    const safeHeatmapData = (isHeatmapError || !heatmapData) ? (useMockData ? mockEquipmentHeatmap : emptyEquipmentHeatmap) : heatmapData;
-    const actionHistoryData = !isActionError && actionData && actionData.length > 0
+    const safeSummaryData = (forceMockData || isSummaryError || !summaryData) ? (shouldUseMockData ? mockEquipmentSummary : emptyEquipmentSummary) : summaryData;
+    const safeSpcData = (forceMockData || isSpcError || !spcData || spcData.length === 0) ? (shouldUseMockData ? mockEquipmentSPCTrend : emptyEquipmentSPCTrend) : spcData;
+    const safeHeatmapData = (forceMockData || isHeatmapError || !heatmapData) ? (shouldUseMockData ? mockEquipmentHeatmap : emptyEquipmentHeatmap) : heatmapData;
+    const actionHistoryData = !forceMockData && !isActionError && actionData && actionData.length > 0
         ? actionData.map(toEquipmentHistory)
         : null;
-    const remoteHistoryData = actionHistoryData || ((isHistoryError || !historyData || historyData.length === 0) ? (useMockData ? mockEquipmentHistory : emptyEquipmentHistory) : historyData);
+    const remoteHistoryData = actionHistoryData || ((forceMockData || isHistoryError || !historyData || historyData.length === 0) ? (shouldUseMockData ? mockEquipmentHistory : emptyEquipmentHistory) : historyData);
     const safeHistoryData = localHistoryData || remoteHistoryData;
-    const safeDowntimeTrendData = (isDowntimeError || !downtimeTrendData || !downtimeTrendData.data || downtimeTrendData.data.length === 0)
-        ? (useMockData ? mockEquipmentDowntimeTrend : emptyDowntimeResponse)
+    const safeDowntimeTrendData = (forceMockData || isDowntimeError || !downtimeTrendData || !downtimeTrendData.data || downtimeTrendData.data.length === 0)
+        ? (shouldUseMockData ? mockEquipmentDowntimeTrend : emptyDowntimeResponse)
         : downtimeTrendData;
 
     const isAnyLoading = isSummaryLoading || isSpcLoading || isHeatmapLoading || isHistoryLoading || isActionLoading || isDowntimeLoading;
-    const hasDataIssue = !useMockData && isReady && !isAnyLoading && (
+    const hasDataIssue = !shouldUseMockData && isReady && !isAnyLoading && (
         isSummaryError || isSpcError || isHeatmapError || isHistoryError || isDowntimeError || !summaryData
     );
 
     const resolveActionMutation = useMutation({
         mutationFn: ({ id, action }: { id: string; action: string }) => {
-            if (useMockData) {
+            if (shouldUseMockData) {
                 return Promise.resolve(null);
             }
             return updateActionStatus(id, { status: "resolved", action });
@@ -134,7 +137,7 @@ export function useDetailEquipmentQueries({ selectedEquipment, targetDate, isRea
     const createActionMutation = useMutation({
         mutationFn: ({ title, message, action }: { title: string; message: string; action: string }) => {
             if (!selectedEquipment) return Promise.resolve(null);
-            if (useMockData) {
+            if (shouldUseMockData) {
                 return Promise.resolve(null);
             }
             return createAction({

@@ -28,6 +28,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { mockEquipmentComparisonData } from "@/data/mockData";
+import { isDemoMockDateRange } from "@/lib/demoMockDate";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useFilterStore } from "@/store/useFilterStore";
 
@@ -40,6 +41,8 @@ interface HeaderProps {
 export function Header({ isSidebarOpen, setIsSidebarOpen, onOpenEquipmentDetail }: HeaderProps) {
     const { lastUpdated, appliedDate } = useFilterStore();
     const { user, isAuthenticated, useMockData: isMockMode, login, logout } = useAuthStore();
+    const forceMockData = isDemoMockDateRange(appliedDate);
+    const shouldUseMockAlerts = isMockMode || forceMockData;
     const [isLoginOpen, setIsLoginOpen] = useState(false);
     const [isAlertOpen, setIsAlertOpen] = useState(false);
     const [isUserOpen, setIsUserOpen] = useState(false);
@@ -53,14 +56,14 @@ export function Header({ isSidebarOpen, setIsSidebarOpen, onOpenEquipmentDetail 
     const { data: pendingActionsRes, isLoading: isPendingLoading } = useQuery({
         queryKey: ["pendingActions", appliedDate],
         queryFn: () => fetchPendingActions(appliedDate),
-        enabled: isAuthenticated && !!appliedDate?.from && !isMockMode,
+        enabled: isAuthenticated && !!appliedDate?.from && !shouldUseMockAlerts,
         retry: false,
         staleTime: 1000 * 60,
         refetchOnWindowFocus: false,
     });
 
     const pendingActions = useMemo(() => {
-        if (!isMockMode) return pendingActionsRes || [];
+        if (!shouldUseMockAlerts) return pendingActionsRes || [];
 
         return mockEquipmentComparisonData
             .filter((eq) => eq.unresolvedAlert)
@@ -70,7 +73,7 @@ export function Header({ isSidebarOpen, setIsSidebarOpen, onOpenEquipmentDetail 
                 highestSeverity: eq.yield < 97 || eq.uptime < 90 ? "critical" : "warning",
                 latestMessage: eq.majorDefect !== "-" ? eq.majorDefect : "미조치 경보",
             }));
-    }, [pendingActionsRes, isMockMode]);
+    }, [pendingActionsRes, shouldUseMockAlerts]);
 
     const pendingTotal = pendingActions.reduce((sum, item) => sum + item.count, 0);
     const roleLabel = getRoleLabel(user?.role);

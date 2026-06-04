@@ -14,6 +14,7 @@ import {
     emptyEquipmentStatusData,
     emptyMtbfData,
 } from "@/data/emptyData";
+import { isDemoMockDateRange } from "@/lib/demoMockDate";
 import { useAuthStore } from "@/store/useAuthStore";
 import type { DateRange } from "react-day-picker";
 
@@ -26,9 +27,11 @@ interface UseEquipmentQueriesProps {
 export function useEquipmentQueries({ equipmentParams, appliedDate, appliedEquipmentIds }: UseEquipmentQueriesProps) {
     const isEnabled = !!appliedDate?.from;
     const useMockData = useAuthStore((state) => state.useMockData);
+    const forceMockData = isDemoMockDateRange(appliedDate);
+    const shouldUseMockData = useMockData || forceMockData;
 
     const commonOptions = {
-        enabled: isEnabled,
+        enabled: isEnabled && !forceMockData,
         retry: false,
         staleTime: 1000 * 60 * 10,
         refetchOnMount: false,
@@ -65,19 +68,19 @@ export function useEquipmentQueries({ equipmentParams, appliedDate, appliedEquip
         ...commonOptions,
     });
 
-    const safeDowntimeRes = (isDowntimeError || !downtimeRes || !downtimeRes.data)
-        ? (useMockData ? mockDowntimeResponse : emptyDowntimeResponse)
+    const safeDowntimeRes = (forceMockData || isDowntimeError || !downtimeRes || !downtimeRes.data)
+        ? (shouldUseMockData ? mockDowntimeResponse : emptyDowntimeResponse)
         : downtimeRes;
 
-    const safeMtbfData = (isMtbfError || !mtbfDataRaw || mtbfDataRaw.length === 0)
-        ? (useMockData ? (appliedEquipmentIds.length === 0 ? mockMtbfData_All : mockMtbfData_Single) : emptyMtbfData)
+    const safeMtbfData = (forceMockData || isMtbfError || !mtbfDataRaw || mtbfDataRaw.length === 0)
+        ? (shouldUseMockData ? (appliedEquipmentIds.length === 0 ? mockMtbfData_All : mockMtbfData_Single) : emptyMtbfData)
         : mtbfDataRaw;
 
-    const safeDefectsData = (isDefectsError || !defectsRes || defectsRes.length === 0)
-        ? (useMockData ? mockDefectStatsData : emptyDefectStatsData)
+    const safeDefectsData = (forceMockData || isDefectsError || !defectsRes || defectsRes.length === 0)
+        ? (shouldUseMockData ? mockDefectStatsData : emptyDefectStatsData)
         : defectsRes;
 
-    const safePendingActions = pendingActionsRes || (useMockData
+    const safePendingActions = (forceMockData ? null : pendingActionsRes) || (shouldUseMockData
         ? mockEquipmentComparisonData
             .filter((eq) => eq.unresolvedAlert)
             .map((eq) => ({
@@ -90,8 +93,8 @@ export function useEquipmentQueries({ equipmentParams, appliedDate, appliedEquip
 
     const pendingActionMap = new Map(safePendingActions.map((item) => [item.equipmentId, item]));
 
-    const baseEquipmentList = (isEquipmentListError || !equipmentListRes || equipmentListRes.length === 0)
-        ? (useMockData ? mockEquipmentComparisonData : emptyEquipmentStatusData)
+    const baseEquipmentList = (forceMockData || isEquipmentListError || !equipmentListRes || equipmentListRes.length === 0)
+        ? (shouldUseMockData ? mockEquipmentComparisonData : emptyEquipmentStatusData)
         : equipmentListRes;
 
     const safeEquipmentList = baseEquipmentList.map((eq) => {
@@ -106,7 +109,7 @@ export function useEquipmentQueries({ equipmentParams, appliedDate, appliedEquip
 
     const availableEquipmentIds = safeEquipmentList.map((eq) => eq.id);
     const isAnyLoading = isDowntimeLoading || isMtbfLoading || isDefectsLoading || isEquipmentListLoading;
-    const hasDataIssue = !useMockData && !isAnyLoading && (
+    const hasDataIssue = !shouldUseMockData && !isAnyLoading && (
         isDowntimeError || isMtbfError || isDefectsError || isEquipmentListError || !equipmentListRes
     );
 

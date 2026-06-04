@@ -20,6 +20,7 @@ import {
     emptyTrendData,
     emptyYieldComparisonData,
 } from "@/data/emptyData";
+import { isDemoMockDateRange } from "@/lib/demoMockDate";
 import { useAuthStore } from "@/store/useAuthStore";
 import type { DateRange } from "react-day-picker";
 
@@ -32,9 +33,11 @@ interface UseDashboardQueriesProps {
 export function useDashboardQueries({ equipmentParams, appliedDate, trendUnit }: UseDashboardQueriesProps) {
     const isEnabled = !!appliedDate?.from;
     const useMockData = useAuthStore((state) => state.useMockData);
+    const forceMockData = isDemoMockDateRange(appliedDate);
+    const shouldUseMockData = useMockData || forceMockData;
 
     const commonOptions = {
-        enabled: isEnabled,
+        enabled: isEnabled && !forceMockData,
         retry: false,
         staleTime: 1000 * 60 * 10,
         refetchOnMount: false,
@@ -44,7 +47,7 @@ export function useDashboardQueries({ equipmentParams, appliedDate, trendUnit }:
     const { data: eqListForSelect } = useQuery({
         queryKey: ["equipmentListForSelect", appliedDate],
         queryFn: () => fetchEquipmentStatusList("all", appliedDate),
-        enabled: isEnabled,
+        enabled: isEnabled && !forceMockData,
         retry: false,
     });
 
@@ -73,11 +76,11 @@ export function useDashboardQueries({ equipmentParams, appliedDate, trendUnit }:
     });
 
     const availableEquipmentIds = !eqListForSelect || eqListForSelect.length === 0
-        ? (useMockData ? mockEquipmentComparisonData.map((eq) => eq.id) : [])
+        ? (shouldUseMockData ? mockEquipmentComparisonData.map((eq) => eq.id) : [])
         : eqListForSelect.map((eq) => eq.id);
 
-    const safeSummaryData = (isSummaryError || !summaryData)
-        ? (useMockData
+    const safeSummaryData = (forceMockData || isSummaryError || !summaryData)
+        ? (shouldUseMockData
             ? {
                 kpi: mockDashboardSummary.kpi,
                 status: mockDashboardSummary.status,
@@ -91,20 +94,20 @@ export function useDashboardQueries({ equipmentParams, appliedDate, trendUnit }:
         { name: "Down", value: safeSummaryData.status.down, color: "var(--destructive)" },
     ];
 
-    const safeTrendData = (isTrendError || !trendDataRaw || trendDataRaw.length === 0)
-        ? (useMockData ? mockTrendData : emptyTrendData)
+    const safeTrendData = (forceMockData || isTrendError || !trendDataRaw || trendDataRaw.length === 0)
+        ? (shouldUseMockData ? mockTrendData : emptyTrendData)
         : trendDataRaw;
 
-    const safeYieldData = (isYieldError || !yieldDataRaw || yieldDataRaw.length === 0)
-        ? (useMockData ? (equipmentParams === "all" ? mockLineYieldData : mockEquipmentYieldData) : emptyYieldComparisonData)
+    const safeYieldData = (forceMockData || isYieldError || !yieldDataRaw || yieldDataRaw.length === 0)
+        ? (shouldUseMockData ? (equipmentParams === "all" ? mockLineYieldData : mockEquipmentYieldData) : emptyYieldComparisonData)
         : yieldDataRaw;
 
-    const safeParetoData = (isParetoError || !paretoDataRaw || paretoDataRaw.length === 0)
-        ? (useMockData ? mockParetoData : emptyParetoData)
+    const safeParetoData = (forceMockData || isParetoError || !paretoDataRaw || paretoDataRaw.length === 0)
+        ? (shouldUseMockData ? mockParetoData : emptyParetoData)
         : paretoDataRaw;
 
     const isAnyLoading = isSummaryLoading || isTrendLoading || isYieldLoading || isParetoLoading;
-    const hasDataIssue = !useMockData && !isAnyLoading && (
+    const hasDataIssue = !shouldUseMockData && !isAnyLoading && (
         isSummaryError || isTrendError || isYieldError || isParetoError || !summaryData
     );
 

@@ -95,7 +95,9 @@ export function ReportQualityPage({
                                     </div>
                                     <div className="min-w-0 text-right">
                                         <p className="text-xs font-black text-red-600">{eq.yield}%</p>
-                                        <p className="text-[9px] text-zinc-500">{eq.majorDefect}</p>
+                                        <p className="ml-auto max-w-[3.75rem] text-[8px] leading-tight text-zinc-500 break-all line-clamp-2" title={eq.majorDefect}>
+                                            {eq.majorDefect}
+                                        </p>
                                     </div>
                                 </div>
                             ))}

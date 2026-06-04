@@ -45,6 +45,13 @@ export function formatEquipmentIdLines(value: string) {
     const equipmentId = value.trim();
     if (equipmentId.length <= 14) return [equipmentId];
 
+    if (/^[a-f0-9]{24,}$/i.test(equipmentId)) {
+        return [
+            equipmentId.slice(0, 12),
+            `...${equipmentId.slice(-10)}`,
+        ];
+    }
+
     const midpoint = Math.floor(equipmentId.length / 2);
     const candidates = Array.from(equipmentId.matchAll(/[-_\s]/g))
         .map((match) => match.index ?? -1)
@@ -123,7 +130,7 @@ export function getEstimatedMean(histogram: QualityDistribution["distributionCha
 }
 
 function getRangeMidpoint(range: string) {
-    const numbers = range.match(/\d+(?:\.\d)?/g)?.map(Number) || [];
+    const numbers = range.match(/\d+(?:\.\d+)?/g)?.map(Number) || [];
     if (numbers.length >= 2) return (numbers[0] + numbers[1]) / 2;
     if (numbers.length === 1) return numbers[0];
     return null;

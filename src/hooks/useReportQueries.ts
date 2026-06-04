@@ -25,6 +25,7 @@ import {
     emptyReportHeatmap,
     emptyReportSummary,
 } from "@/data/emptyData";
+import { isDemoMockDateRange } from "@/lib/demoMockDate";
 import { useAuthStore } from "@/store/useAuthStore";
 
 interface UseReportQueriesProps {
@@ -35,12 +36,14 @@ interface UseReportQueriesProps {
 
 export function useReportQueries({ appliedDate, reportMode, targetEq }: UseReportQueriesProps) {
     const useMockData = useAuthStore((state) => state.useMockData);
+    const forceMockData = isDemoMockDateRange(appliedDate);
+    const shouldUseMockData = useMockData || forceMockData;
     const fromStr = appliedDate?.from ? format(appliedDate.from, "yyyy-MM-dd") : "";
     const toStr = appliedDate?.to ? format(appliedDate.to, "yyyy-MM-dd") : fromStr;
     const isEnabled = !!appliedDate?.from && (reportMode !== "equipment" || targetEq.length > 0);
 
     const commonOptions = {
-        enabled: isEnabled,
+        enabled: isEnabled && !forceMockData,
         retry: false,
         staleTime: 1000 * 60 * 10,
         refetchOnMount: false,
@@ -50,7 +53,7 @@ export function useReportQueries({ appliedDate, reportMode, targetEq }: UseRepor
     const { data: equipmentOptionsData, isLoading: isEquipmentOptionsLoading, isError: isEquipmentOptionsError } = useQuery({
         queryKey: ["reportEquipmentOptions", appliedDate],
         queryFn: () => fetchReportEquipments(fromStr, toStr, "daily"),
-        enabled: !!appliedDate?.from,
+        enabled: !!appliedDate?.from && !forceMockData,
         retry: false,
         staleTime: 1000 * 60 * 10,
         refetchOnMount: false,
@@ -73,7 +76,7 @@ export function useReportQueries({ appliedDate, reportMode, targetEq }: UseRepor
         queryKey: ["reportHeatmap", appliedDate, reportMode, targetEq],
         queryFn: () => fetchReportHeatmap(fromStr, toStr, reportMode, targetEq),
         ...commonOptions,
-        enabled: !!appliedDate?.from && reportMode === "equipment" && targetEq.length > 0,
+        enabled: !!appliedDate?.from && reportMode === "equipment" && targetEq.length > 0 && !forceMockData,
     });
 
     const { data: defectData, isLoading: isDefectLoading, isError: isDefectError } = useQuery({
@@ -94,12 +97,12 @@ export function useReportQueries({ appliedDate, reportMode, targetEq }: UseRepor
         ...commonOptions,
     });
 
-    const safeReportData = (isReportError || !reportData) ? (useMockData ? mockReportSummary : emptyReportSummary) : reportData;
-    const safeQualityData = (isQualityError || !qualityData) ? (useMockData ? mockQualityDistribution : emptyQualityDistribution) : qualityData;
-    const safeHeatmapData = (isHeatmapError || !heatmapData) ? (useMockData ? mockReportHeatmap : emptyReportHeatmap) : heatmapData;
-    const safeDefectData = (isDefectError || !defectData || defectData.length === 0) ? (useMockData ? mockDefectStatsData : emptyDefectStatsData) : defectData;
-    const safeAlarmData = (isAlarmError || !alarmData) ? (useMockData ? mockReportAlarms : emptyReportAlarms) : alarmData;
-    const safeEquipmentData = (isEqError || !equipmentData) ? (useMockData ? mockEquipmentComparisonData : emptyEquipmentStatusData) : equipmentData;
+    const safeReportData = (forceMockData || isReportError || !reportData) ? (shouldUseMockData ? mockReportSummary : emptyReportSummary) : reportData;
+    const safeQualityData = (forceMockData || isQualityError || !qualityData) ? (shouldUseMockData ? mockQualityDistribution : emptyQualityDistribution) : qualityData;
+    const safeHeatmapData = (forceMockData || isHeatmapError || !heatmapData) ? (shouldUseMockData ? mockReportHeatmap : emptyReportHeatmap) : heatmapData;
+    const safeDefectData = (forceMockData || isDefectError || !defectData || defectData.length === 0) ? (shouldUseMockData ? mockDefectStatsData : emptyDefectStatsData) : defectData;
+    const safeAlarmData = (forceMockData || isAlarmError || !alarmData) ? (shouldUseMockData ? mockReportAlarms : emptyReportAlarms) : alarmData;
+    const safeEquipmentData = (forceMockData || isEqError || !equipmentData) ? (shouldUseMockData ? mockEquipmentComparisonData : emptyEquipmentStatusData) : equipmentData;
 
     const isAnyLoading = isReportLoading || isQualityLoading || (reportMode === "equipment" && isHeatmapLoading) || isDefectLoading || isAlarmLoading || isEqLoading || isEquipmentOptionsLoading;
 
@@ -107,12 +110,12 @@ export function useReportQueries({ appliedDate, reportMode, targetEq }: UseRepor
         ? equipmentOptionsData
         : equipmentData?.length
             ? equipmentData
-            : useMockData
+            : shouldUseMockData
                 ? mockEquipmentComparisonData
                 : emptyEquipmentStatusData
     ).map((eq) => eq.id);
 
-    const hasDataIssue = !useMockData && !isAnyLoading && (
+    const hasDataIssue = !shouldUseMockData && !isAnyLoading && (
         isEquipmentOptionsError || isReportError || isQualityError || isHeatmapError || isDefectError || isAlarmError || isEqError || !reportData
     );
 

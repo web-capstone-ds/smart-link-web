@@ -3,61 +3,58 @@
 // 1. KPI Summary Data
 export const mockDashboardSummary = {
     kpi: {
-        totalProduction: 24563,
-        uph: 2850,
-        totalYield: 96.4,
-        yieldTrend: -0.8,
-        passRate: 98.7,
-        cpk: 1.52,
-        cpkTrend: 0.04,
-        topDefect: "C-01",
-        availability: 87.3,
-        totalDowntimeMin: 257,
-        mtbfHours: 12.5,
-        activeEquipment: 4,
-        totalEquipment: 5
+        totalProduction: 24380,
+        uph: 2157.4,
+        totalYield: 96.8,
+        yieldTrend: 0,
+        passRate: 96.8,
+        cpk: 2.95,
+        cpkTrend: 0,
+        cpkReliable: true,
+        cpkSub: "표본 충분 · dimension_w_mm 기준 Cpk (USL 10.1 / LSL 9.9)",
+        topDefect: "SIDE_VISION_FAIL",
+        availability: 88.6,
+        totalDowntimeMin: 318.6,
+        mtbfHours: 8.8,
+        activeEquipment: 3,
+        totalEquipment: 4
     },
     status : {
-        run : 84.0,
-        idle: 11.5,
-        down: 4.5
+        run : 88.6,
+        idle: 7.4,
+        down: 4.0
     }
 };
 // 2. Defect Pareto Data
 export const mockParetoData = [
-  { defectCode: "C-01", defectName:"치핑", count: 342, cumulative: 45 },
-  { defectCode: "B-01", defectName:"마모", count: 185, cumulative: 69 },
-  { defectCode: "E-01", defectName:"오염", count: 89, cumulative: 81 },
-  { defectCode: "F-01", defectName:"절단", count: 45, cumulative: 87 },
-  { defectCode: "G-01", defectName:"기타", count: 99, cumulative: 100 },
+  { defectCode: "SIDE_VISION_FAIL", defectName:"SIDE 알고리즘 종합 실패", count: 294, cumulative: 42 },
+  { defectCode: "DIMENSION_OUT_OF_SPEC", defectName:"dimension_w_mm 규격 이탈", count: 184, cumulative: 68 },
+  { defectCode: "CHIPPING_EXCEED", defectName:"측면 칩핑 기준 초과", count: 132, cumulative: 87 },
+  { defectCode: "ET=30", defectName:"이미지 미취득 / CAM_TIMEOUT 전조", count: 91, cumulative: 100 },
 ];
 // 3. Trend Data 
 export const mockTrendData = [
-  { date: "05-01", production: 3100, yield: 95.1 },
-  { date: "05-02", production: 3400, yield: 96.2 },
-  { date: "05-03", production: 2800, yield: 93.8 },
-  { date: "05-04", production: 3500, yield: 97.1 },
-  { date: "05-05", production: 3600, yield: 98.4 },
-  { date: "05-06", production: 3900, yield: 99.1 },
-  { date: "05-07", production: 3400, yield: 96.1 },
-  { date: "05-08", production: 3650, yield: 97.6 },
-  { date: "05-09", production: 3820, yield: 98.2 },
-  { date: "05-10", production: 3550, yield: 97.4 },
-  { date: "05-11", production: 3320, yield: 96.8 },
-  { date: "05-12", production: 3710, yield: 98.0 },
-  { date: "05-13", production: 3880, yield: 98.5 },
-  { date: "05-14", production: 3460, yield: 97.2 }
+  { date: "05-17", production: 860, yield: 95.3 },
+  { date: "05-18", production: 910, yield: 95.8 },
+  { date: "05-19", production: 780, yield: 94.9 },
+  { date: "05-20", production: 835, yield: 95.1 },
+  { date: "05-21", production: 920, yield: 96.0 },
+  { date: "05-22", production: 745, yield: 94.7 },
+  { date: "05-23", production: 890, yield: 95.5 },
+  { date: "05-24", production: 810, yield: 95.2 },
+  { date: "05-25", production: 875, yield: 95.7 },
+  { date: "05-26", production: 925, yield: 96.1 },
+  { date: "05-27", production: 790, yield: 94.8 },
+  { date: "05-28", production: 880, yield: 95.9 },
+  { date: "05-29", production: 845, yield: 95.4 },
+  { date: "05-30", production: 865, yield: 95.6 }
 ];
 // 4-1. Line Yield Comparison Data
 export const mockLineYieldData = [
-  { name: "DS-VIS-001", yield: 96.4 },
-  { name: "DS-VIS-002", yield: 98.1 },
-  { name: "DS-VIS-003", yield: 94.2 },
-  { name: "DS-VIS-004", yield: 98.9 },
-  { name: "DS-VIS-005", yield: 97.6 },
-  { name: "DS-VIS-006", yield: 98.4 },
-  { name: "DS-VIS-007", yield: 97.9 },
-  { name: "DS-VIS-008", yield: 95.8 },
+  { name: "ae538c3fa024", yield: 98.1 },
+  { name: "5f60747251ed", yield: 97.6 },
+  { name: "b8f4d2c9a11e", yield: 97.2 },
+  { name: "d4a0e8c17b5f", yield: 94.2 },
 ];
 // 4-2. Equipment Yield Comparison Data
 export const mockEquipmentYieldData = [
@@ -73,191 +70,91 @@ export const mockEquipmentYieldData = [
 // 1. Downtime Trend Data (.data)
 export const mockDowntimeResponse = {
     success: true,
-    unit: "hr" as "hr" | "min",
+    unit: "min" as "hr" | "min",
     data: [
-        { label: "5/01", value: 22.5 }, 
-        { label: "5/02", value: 18.2 }, 
-        { label: "5/03", value: 28.5 },
-        { label: "5/04", value: 15.0 }, 
-        { label: "5/05", value: 12.5 }, 
-        { label: "5/06", value: 14.2 },
+        { label: "5/24", value: 188.5 },
+        { label: "5/25", value: 162.4 },
+        { label: "5/26", value: 231.0 },
+        { label: "5/27", value: 194.2 },
+        { label: "5/28", value: 207.8 },
+        { label: "5/29", value: 151.6 },
+        { label: "5/30", value: 318.6 },
     ]
 };
 // 2. Mtbf Data
 import type { MtbfDataPoint } from "@/type/equipmentType"
 export const mockMtbfData_All: MtbfDataPoint[] = [
-    { name: "DS-VIS-001", hours: 82 },
-    { name: "DS-VIS-002", hours: 115 },
-    { name: "DS-VIS-003", hours: 76 },
-    { name: "DS-VIS-004", hours: 94 },
+    { name: "ae538c3fa024", hours: 12.8 },
+    { name: "5f60747251ed", hours: 10.6 },
+    { name: "b8f4d2c9a11e", hours: 7.4 },
+    { name: "d4a0e8c17b5f", hours: 4.1 },
 ]; // ALL
 export const mockMtbfData_Single: MtbfDataPoint[] = [
-    { name: "05/01", hours: 45 },
-    { name: "05/02", hours: 52 },
-    { name: "05/03", hours: 48 },
-    { name: "05/04", hours: 61 },
-    { name: "05/05", hours: 55 },
+    { name: "05/26", hours: 5.2 },
+    { name: "05/27", hours: 4.8 },
+    { name: "05/28", hours: 4.1 },
+    { name: "05/29", hours: 5.0 },
+    { name: "05/30", hours: 8.8 },
 ]; // Single
 // 3. Defects Data + Report Defects Pareto
 export const mockDefectStatsData = [
-    { code: "C-01", name: "Chipping (치핑)", type: "공통 불량", count: 342, ratio: "45%", impact: "Package Size 이상치 발생" },
-    { code: "B-02", name: "Blade Wear (블레이드 마모)", type: "공통 불량", count: 185, ratio: "24%", impact: "절단면 품질 저하 및 부하" },
-    { code: "L-03", name: "Lens Contamination", type: "개별 불량", count: 89, ratio: "12%", impact: "비전 인식 오류" },
-    { code: "A-04", name: "Alignment Fail", type: "개별 불량", count: 45, ratio: "6%", impact: "자재 정렬 틀어짐" },
-    { code: "L-04", name: "Lens Contamination", type: "개별 불량", count: 89, ratio: "12%", impact: "비전 인식 오류" },
-    { code: "A-05", name: "Alignment Fail", type: "개별 불량", count: 45, ratio: "6%", impact: "자재 정렬 틀어짐" },
+    { code: "SIDE_VISION_FAIL", name: "SIDE 알고리즘 종합 실패", type: "SIDE", count: 294, ratio: "42%", impact: "side_result ET=52 계열 실패 증가" },
+    { code: "DIMENSION_OUT_OF_SPEC", name: "dimension_w_mm 규격 이탈", type: "PRS", count: 184, ratio: "26%", impact: "USL 10.1 / LSL 9.9 기준 산포 확인 필요" },
+    { code: "CHIPPING_EXCEED", name: "측면 칩핑 기준 초과", type: "SIDE", count: 132, ratio: "19%", impact: "블레이드 마모 또는 진공 흡착 불안정 가능" },
+    { code: "ET=30", name: "이미지 미취득", type: "CAMERA", count: 91, ratio: "13%", impact: "CAM_TIMEOUT_ERR 전조. GrabLink dequeue timeout 확인" },
 ];
 export const DEFECT_COLORS = ["#f59e0b", "#f97316", "#3b82f6", "#0ea5e9"]; // Pareto Pie Chart Color
 // 4. Equipment Status Data + Report Equipment Table
 import type { EquipmentStatus } from "@/type/equipmentType";
 export const mockEquipmentComparisonData: EquipmentStatus[] = [
     {
-        id: "DS-VIS-001",
-        recipe: "PKG_A12",
-        uptime: 82.5,
-        total: 24500,
-        fail: 850,
-        marginal: 320,
-        yield: 95.2,
-        majorDefect: "C-01 (Chipping)",
-        unresolvedAlert: true,
-        unresolvedAlertCount: 3,
-        yieldTrend: [98.0, 97.1, 96.0, 94.6, 92.8, 95.2]
-    },
-    {
-        id: "DS-VIS-002",
-        recipe: "PKG_B05",
-        uptime: 98.2,
-        total: 31200,
-        fail: 120,
-        marginal: 85,
-        yield: 99.3,
-        majorDefect: "-",
-        unresolvedAlert: false,
-        yieldTrend: [99.0, 99.1, 99.5, 99.2, 99.4, 99.3]
-    },
-    {
-        id: "DS-VIS-003",
-        recipe: "PKG_A12",
-        uptime: 92.5,
-        total: 18400,
-        fail: 450,
-        marginal: 210,
-        yield: 96.4,
-        majorDefect: "L-03 (Lens Contamination)",
-        unresolvedAlert: true,
-        unresolvedAlertCount: 1,
-        yieldTrend: [98.5, 98.0, 97.2, 96.8, 96.0, 96.4]
-    },
-    {
-        id: "DS-VIS-004",
-        recipe: "PKG_C01",
-        uptime: 96.5,
-        total: 42000,
-        fail: 310,
-        marginal: 150,
-        yield: 98.9,
-        majorDefect: "B-02 (Blade Wear)",
-        unresolvedAlert: false,
-        yieldTrend: [98.2, 98.5, 98.7, 99.0, 98.8, 98.9]
-    },
-    {
-        id: "DS-VIS-005",
-        recipe: "PKG_B05",
-        uptime: 88.0,
-        total: 15600,
-        fail: 180,
-        marginal: 95,
-        yield: 98.2,
-        majorDefect: "A-04 (Alignment Fail)",
-        unresolvedAlert: false,
-        yieldTrend: [98.0, 97.5, 98.1, 98.3, 98.0, 98.2]
-    },
-    {
-        id: "DS-VIS-006",
-        recipe: "PKG_D18",
-        uptime: 97.4,
-        total: 19800,
-        fail: 520,
-        marginal: 140,
-        yield: 98.4,
-        majorDefect: "F-07 (Foreign Material)",
-        unresolvedAlert: false,
-        yieldTrend: [98.8, 98.7, 98.6, 98.5, 98.4, 98.4]
-    },
-    {
-        id: "DS-VIS-007",
-        recipe: "PKG_C01",
-        uptime: 94.2,
-        total: 27600,
-        fail: 210,
-        marginal: 190,
+        id: "ae538c3fa024",
+        recipe: "RCP-fc12a043",
+        uptime: 98.4,
+        total: 7420,
+        fail: 141,
+        marginal: 42,
         yield: 98.1,
-        majorDefect: "-",
+        majorDefect: "SIDE_VISION_FAIL",
         unresolvedAlert: false,
-        yieldTrend: [98.3, 98.2, 98.2, 98.0, 98.1, 98.1]
+        yieldTrend: [97.6, 97.8, 98.0, 98.1, 98.2, 98.1]
     },
     {
-        id: "DS-VIS-008",
-        recipe: "PKG_A12",
-        uptime: 99.1,
-        total: 22100,
-        fail: 90,
-        marginal: 70,
-        yield: 97.9,
-        majorDefect: "M-02 (Marginal Edge)",
+        id: "5f60747251ed",
+        recipe: "RCP-9a17dbbc",
+        uptime: 96.8,
+        total: 6820,
+        fail: 164,
+        marginal: 42,
+        yield: 97.6,
+        majorDefect: "DIMENSION_OUT_OF_SPEC",
+        unresolvedAlert: false,
+        yieldTrend: [97.0, 97.2, 97.4, 97.5, 97.7, 97.6]
+    },
+    {
+        id: "b8f4d2c9a11e",
+        recipe: "RCP-0f55d0d4",
+        uptime: 93.2,
+        total: 5140,
+        fail: 144,
+        marginal: 58,
+        yield: 97.2,
+        majorDefect: "ET=30",
+        unresolvedAlert: false,
+        yieldTrend: [97.8, 97.5, 97.3, 97.0, 97.1, 97.2]
+    },
+    {
+        id: "d4a0e8c17b5f",
+        recipe: "RCP-7c76149f",
+        uptime: 86.0,
+        total: 4980,
+        fail: 279,
+        marginal: 89,
+        yield: 94.2,
+        majorDefect: "CAM_TIMEOUT_ERR",
         unresolvedAlert: true,
         unresolvedAlertCount: 2,
-        yieldTrend: [99.2, 99.0, 98.8, 98.4, 98.0, 97.9]
-    },
-    {
-        id: "DS-VIS-009",
-        recipe: "PKG_E22",
-        uptime: 91.2,
-        total: 30200,
-        fail: 210,
-        marginal: 115,
-        yield: 98.7,
-        majorDefect: "T-11 (Transfer Delay)",
-        unresolvedAlert: false,
-        yieldTrend: [97.5, 97.9, 98.1, 98.3, 98.5, 98.7]
-    },
-    {
-        id: "DS-VIS-010",
-        recipe: "PKG_B05",
-        uptime: 97.8,
-        total: 15800,
-        fail: 70,
-        marginal: 55,
-        yield: 99.0,
-        majorDefect: "-",
-        unresolvedAlert: false,
-        yieldTrend: [99.0, 99.0, 99.1, 99.0, 99.0, 99.0]
-    },
-    {
-        id: "DS-VIS-011",
-        recipe: "PKG_D18",
-        uptime: 85.6,
-        total: 12400,
-        fail: 620,
-        marginal: 280,
-        yield: 94.6,
-        majorDefect: "S-09 (Sensor Drift)",
-        unresolvedAlert: true,
-        unresolvedAlertCount: 4,
-        yieldTrend: [98.7, 97.8, 96.5, 95.2, 94.8, 94.6]
-    },
-    {
-        id: "DS-VIS-012",
-        recipe: "PKG_E22",
-        uptime: 95.4,
-        total: 36200,
-        fail: 560,
-        marginal: 260,
-        yield: 98.0,
-        majorDefect: "B-02 (Blade Wear)",
-        unresolvedAlert: false,
-        yieldTrend: [97.2, 97.4, 97.7, 97.9, 98.0, 98.0]
+        yieldTrend: [96.0, 95.5, 95.0, 94.5, 94.0, 94.2]
     }
 ];
 
@@ -267,43 +164,41 @@ export const mockEquipmentComparisonData: EquipmentStatus[] = [
 import type { EquipmentSummary } from "@/type/equipmentDetailType";
 export const mockEquipmentSummary: EquipmentSummary = {
     info: {
-        recipe: "PKG_DICE_C15",
-        currentLot: "a3f2b1c8", // 8자리 해시 적용
+        recipe: "RCP-7c76149f",
+        currentLot: "d4a0e8c1",
         status: "Critical"
     },
     aiInsight: {
-        title: "AI 징후 예측 (Pattern Detected)",
-        description: "비전 검사 히트맵 분석 결과, 슬롯 6~7에 ET=12 집중 패턴이 발견되었습니다. 해당 구간의 절단 압력 정밀 점검을 권장합니다."
+        title: "CAM_TIMEOUT_ERR 및 EAP_DISCONNECTED 연쇄 감지",
+        description: "ET=30 이미지 미취득 발생 후 GrabLinkGrabber dequeue timeout이 반복되었습니다. EAP process terminated unexpectedly 이력이 있어 카메라 Grabber와 EAP 프로세스 상태를 우선 확인하십시오."
     },
     uptime: {
-        totalRate: 82.5,
-        runHour: 6.6,
-        idleHour: 0.2,
-        downHour: 1.2,
+        totalRate: 86.0,
+        runHour: 20.6,
+        idleHour: 1.8,
+        downHour: 1.6,
         timeline: [
-            { status: "run", start: "08:00", end: "10:24", ratio: 30 },
-            { status: "idle", start: "10:24", end: "10:48", ratio: 5 },
-            { status: "run", start: "10:48", end: "14:00", ratio: 40 },
-            { status: "error", start: "14:00", end: "15:12", ratio: 15 },
-            { status: "run", start: "15:12", end: "16:00", ratio: 10 }
+            { status: "run", start: "00:00", end: "20:38", ratio: 86.0 },
+            { status: "idle", start: "20:38", end: "22:24", ratio: 7.4 },
+            { status: "error", start: "22:24", end: "24:00", ratio: 6.6 }
         ]
     },
     parameters: [
         {
-            name: "Chipping_Bottom",
-            avg: 12.4,
-            max: 28.7,
-            usl: 25.0,
-            zScore: 3.42,
+            name: "dimension_w_mm",
+            avg: 10.04,
+            max: 10.12,
+            usl: 10.1,
+            zScore: 2.18,
             isError: true
         },
         {
-            name: "Blade_Vibration",
-            avg: 0.42,
-            max: 0.85,
-            usl: 1.20,
-            zScore: 1.15,
-            isError: false
+            name: "camera_dequeue_timeout_ms",
+            avg: 1530,
+            max: 5000,
+            usl: 3000,
+            zScore: 3.88,
+            isError: true
         }
     ]
 };
@@ -312,38 +207,38 @@ import type { DowntimeTrendResponse } from "@/type/equipmentType";
 export const mockEquipmentDowntimeTrend: DowntimeTrendResponse = {
     unit: "min",
     data: [
-        { label: "05/14", value: 45 },  // 🌟 date -> label, downtime -> value 복구
-        { label: "05/15", value: 15 },
-        { label: "05/16", value: 0 },
-        { label: "05/17", value: 120 },
-        { label: "05/18", value: 30 },
-        { label: "05/19", value: 8 },
-        { label: "05/20", value: 55 },
+        { label: "05/24", value: 48.5 },
+        { label: "05/25", value: 62.4 },
+        { label: "05/26", value: 91.0 },
+        { label: "05/27", value: 74.2 },
+        { label: "05/28", value: 107.8 },
+        { label: "05/29", value: 85.6 },
+        { label: "05/30", value: 96.0 },
     ]
 };
 // 3. SPC Trend Data
 export const mockEquipmentSPCTrend = [
-    { lot: "a3f2b1c8", yield: 98.5, equipAvg: 97.2, lcl: 95.0 },
-    { lot: "b7e4d2a1", yield: 98.2, equipAvg: 97.4, lcl: 95.0 },
-    { lot: "c9f1a5d3", yield: 97.1, equipAvg: 97.5, lcl: 95.0 },
-    { lot: "d2c8b4e6", yield: 96.5, equipAvg: 97.3, lcl: 95.0 },
-    { lot: "e5f3a1b7", yield: 94.2, equipAvg: 97.6, lcl: 95.0 }, // 수율 하락 시작
-    { lot: "f8d2e4c1", yield: 92.1, equipAvg: 97.5, lcl: 95.0 }, // LCL(하한선) 이탈 - 에러 발생 지점
-    { lot: "g1b7a3f2", yield: 98.5, equipAvg: 97.7, lcl: 95.0 }, // 조치 후 회복
+    { lot: "d4a0e8c1", yield: 96.0, equipAvg: 96.8, lcl: 95.0 },
+    { lot: "7c76149f", yield: 95.5, equipAvg: 96.6, lcl: 95.0 },
+    { lot: "e090493f", yield: 95.0, equipAvg: 96.3, lcl: 95.0 },
+    { lot: "f5f8890a", yield: 94.5, equipAvg: 96.0, lcl: 95.0 },
+    { lot: "f24fd4c2", yield: 94.0, equipAvg: 95.8, lcl: 95.0 },
+    { lot: "8b7a8b4c", yield: 94.1, equipAvg: 95.5, lcl: 95.0 },
+    { lot: "6f1be924", yield: 94.2, equipAvg: 95.3, lcl: 95.0 },
 ];
 // 4. Heatmap Data
 import type { EquipmentHeatmap } from "@/type/equipmentDetailType";
 export const mockEquipmentHeatmap: EquipmentHeatmap = {
-    patternName: "슬롯 6~7 ET=12 집중",
+    patternName: "CAM_TIMEOUT_ERR 및 ET=30 집중",
     slots: [
-        { zAxisNum: 0, passCount: 245, failCount: 3,   dominantError: null, severity: "normal" },
-        { zAxisNum: 1, passCount: 240, failCount: 8,   dominantError: "ET=52", severity: "warning" },
-        { zAxisNum: 2, passCount: 252, failCount: 0,   dominantError: null, severity: "normal" },
-        { zAxisNum: 3, passCount: 249, failCount: 1,   dominantError: null, severity: "normal" },
-        { zAxisNum: 4, passCount: 241, failCount: 4,   dominantError: "ET=05", severity: "normal" },
-        { zAxisNum: 5, passCount: 238, failCount: 7,   dominantError: "ET=05", severity: "normal" },
-        { zAxisNum: 6, passCount: 120, failCount: 128, dominantError: "ET=12", severity: "critical" }, // 명세서 불량 슬롯
-        { zAxisNum: 7, passCount: 115, failCount: 133, dominantError: "ET=12", severity: "critical" }  // 명세서 불량 슬롯
+        { zAxisNum: 0, passCount: 245, failCount: 6, dominantError: "SIDE_VISION_FAIL", severity: "normal" },
+        { zAxisNum: 1, passCount: 240, failCount: 9, dominantError: "DIMENSION_OUT_OF_SPEC", severity: "warning" },
+        { zAxisNum: 2, passCount: 252, failCount: 5, dominantError: null, severity: "normal" },
+        { zAxisNum: 3, passCount: 249, failCount: 11, dominantError: "CHIPPING_EXCEED", severity: "warning" },
+        { zAxisNum: 4, passCount: 241, failCount: 18, dominantError: "ET=30", severity: "warning" },
+        { zAxisNum: 5, passCount: 238, failCount: 36, dominantError: "ET=30", severity: "warning" },
+        { zAxisNum: 6, passCount: 120, failCount: 72, dominantError: "ET=30", severity: "critical" },
+        { zAxisNum: 7, passCount: 115, failCount: 84, dominantError: "CAM_TIMEOUT_ERR", severity: "critical" }
     ]
 };
 // 5. History Data
@@ -352,90 +247,90 @@ export const mockEquipmentHistory: EquipmentHistory[] = [
     {
         id: "H-001",
         status: "unresolved",
-        time: "14:00",
-        title: "Chipping 한계치 초과 발생",
-        description: "하부 edge 영역에서 C-01 불량이 연속 검출되었습니다. 블레이드 교체 대기 중.",
+        time: "14:31:56.033",
+        title: "CAM_TIMEOUT_ERR 경보 발생",
+        description: "GrabLinkGrabber failed to dequeue image within timeout. CancellationToken triggered. (GVisionWpf.Cameras.Grabber.GrabLinkGrabber:58 -> CameraBase.cs:97)",
         worker: null,
         yieldChange: null
     },
     {
         id: "H-002",
         status: "unresolved",
-        time: "13:20",
-        title: "센서 드리프트 재확인 필요",
-        description: "Z축 슬롯 6~7에서 ET=12 패턴이 반복되고 있습니다.",
-        worker: "박엔지니어",
+        time: "14:30:11.904",
+        title: "EAP_DISCONNECTED 경보 발생",
+        description: "EAP process terminated unexpectedly.",
+        worker: null,
         yieldChange: null
     },
     {
         id: "H-003",
         status: "resolved",
-        time: "10:48",
-        title: "Z축 얼라인먼트 재보정",
-        description: "센서 오염 확인 후 클리닝 및 Z축 0점 세팅 완료.",
+        time: "14:24:02.118",
+        title: "ET=30 연속 발생 확인",
+        description: "INSPECTION_RESULT에서 ET=30이 연속 검출되어 카메라 acquisition timeout 전조로 분류했습니다.",
         worker: "김엔지니어",
-        yieldChange: { before: 92.1, after: 98.5 }
+        yieldChange: { before: 94.8, after: 95.6 }
     },
     {
         id: "H-004",
         status: "resolved",
-        time: "09:15",
-        title: "조명 캘리브레이션",
-        description: "검사 조명 편차를 보정하고 기준 이미지를 재등록했습니다.",
+        time: "13:48:35.440",
+        title: "SIDE_VISION_FAIL 증가 확인",
+        description: "SIDE 알고리즘 종합 실패가 동일 recipe에서 반복되어 기준 이미지와 조명 조건을 재확인했습니다.",
         worker: "이엔지니어",
-        yieldChange: { before: 96.8, after: 98.1 }
+        yieldChange: { before: 95.1, after: 95.6 }
     },
     {
         id: "H-005",
         status: "resolved",
-        time: "08:40",
-        title: "블레이드 마모 점검",
-        description: "절단면 거칠기 증가 이슈로 블레이드 사용 시간을 확인하고 교체 주기를 앞당겼습니다.",
+        time: "12:15:09.732",
+        title: "DIMENSION_OUT_OF_SPEC 샘플 확인",
+        description: "dimension_w_mm 측정값을 USL 10.1 / LSL 9.9 기준으로 재검증했습니다.",
         worker: "최엔지니어",
-        yieldChange: { before: 95.6, after: 97.4 }
+        yieldChange: { before: 95.4, after: 95.6 }
     },
     {
         id: "H-006",
         status: "resolved",
-        time: "08:05",
-        title: "레시피 파라미터 롤백",
-        description: "PKG_DICE_C15 조건 변경 후 marginal 증가가 확인되어 직전 안정 레시피로 복구했습니다.",
+        time: "11:42:18.208",
+        title: "CHIPPING_EXCEED 발생 LOT 격리",
+        description: "측면 칩핑 기준 초과 LOT를 분리하고 블레이드 사용 시간과 척 진공 압력을 확인했습니다.",
         worker: "정엔지니어",
-        yieldChange: { before: 94.9, after: 96.7 }
+        yieldChange: { before: 95.0, after: 95.5 }
     },
     {
         id: "H-007",
         status: "unresolved",
-        time: "07:35",
-        title: "LOT 투입 전 기준 이미지 재검증 필요",
-        description: "야간조 마지막 LOT에서 기준 이미지 대비 edge contrast 편차가 확인되었습니다.",
+        time: "10:28:44.551",
+        title: "Grabber queue 지연 재현 필요",
+        description: "CAM_TIMEOUT_ERR 복구 후에도 intermittent dequeue delay가 관찰되어 GrabLink 설정 재확인이 필요합니다.",
         worker: null,
         yieldChange: null
     },
     {
         id: "H-008",
         status: "resolved",
-        time: "06:50",
-        title: "척 진공 압력 확인",
-        description: "슬롯 6 흡착 압력 저하 알람 후 진공 라인 누설 여부를 점검했습니다.",
+        time: "09:16:02.774",
+        title: "EAP 프로세스 재기동",
+        description: "EAP process terminated unexpectedly 이후 프로세스 재기동 및 retained alarm 상태를 확인했습니다.",
         worker: "박엔지니어",
-        yieldChange: { before: 96.1, after: 97.0 }
+        yieldChange: null
     },
     {
         id: "H-009",
         status: "resolved",
-        time: "05:55",
-        title: "카메라 포커스 재설정",
-        description: "Lens Contamination 오검출 가능성을 줄이기 위해 포커스와 노출 값을 재보정했습니다.",
+        time: "08:03:27.012",
+        title: "카메라 연결 상태 점검",
+        description: "CameraBase timeout 이후 케이블 연결과 GrabLink board 상태를 점검했습니다.",
         worker: "김엔지니어",
-        yieldChange: { before: 95.8, after: 97.6 }
+        yieldChange: null
     },
     {
         id: "H-010",
         status: "unresolved",
-        time: "04:30",
-        title: "냉각수 유량 저하 확인",
-        description: "절단 온도 상승 징후가 있어 냉각수 필터 상태 확인이 필요합니다.",
+        time: "07:41:50.665",
+        title: "ET=30 발생률 추적 필요",
+        description: "PRS/SIDE ET=30 발생률이 기준보다 높아 CAM_TIMEOUT_ERR 재발 가능성을 모니터링해야 합니다.",
         worker: null,
         yieldChange: null
     }
@@ -447,37 +342,51 @@ export const mockEquipmentHistory: EquipmentHistory[] = [
 import type { ReportSummary } from "@/type/reportType";
 export const mockReportSummary: ReportSummary = {
     kpi: {
-        totalProduction: 24563,
-        yield: 98.7,
-        cpk: 1.52,
-        availability: 87.3,
+        totalProduction: 48620,
+        yield: 96.2,
+        cpk: 2.95,
+        cpkTrend: 0,
+        cpkReliable: true,
+        cpkSub: "표본 충분 · dimension_w_mm 기준 Cpk (USL 10.1 / LSL 9.9)",
+        availability: 92.8,
         activeAlerts: 4,
-        mtbf: 91.6
+        mtbf: 8.8
     },
-    aiMessage: "금일 가동 결과, 전체 생산량 24,563 유닛 중 수율 98.7%로 안정적입니다. 다만 DS-VIS-001에서 chipping_bottom 경고가 지속되고 있어 선제적 블레이드 교체를 권장합니다. 전반적인 라인 가동률은 전일 대비 2.1% 상승했습니다.",
+    aiMessage: "금일 생산량은 48,620 EA, 종합 수율은 96.2%입니다. 가동률은 92.8%로 안정권에 진입했지만 비가동 시간이 318.6분 발생했습니다. SIDE_VISION_FAIL과 ET=30 계열 이벤트, CAM_TIMEOUT_ERR 및 EAP_DISCONNECTED 조치 여부를 우선 확인해야 합니다.",
     operationTimeline: {
-        runHour: 102.5,
-        downHour: 3.2,
-        mtbf: 42.5,
-        uph: 2850,
+        runHour: 22.3,
+        downHour: 0.9,
+        mtbf: 8.8,
+        uph: 4314.8,
         timeline: [
-            { status: "run", start: "08:00", end: "10:24", ratio: 20 },
-            { status: "run", start: "10:24", end: "14:00", ratio: 30 },
-            { status: "error", start: "14:00", end: "15:12", ratio: 8 },
-            { status: "run", start: "15:12", end: "17:00", ratio: 15 }
+            { status: "run", start: "00:00", end: "22:16", ratio: 92.8 },
+            { status: "idle", start: "22:16", end: "23:08", ratio: 3.6 },
+            { status: "error", start: "23:08", end: "24:00", ratio: 3.6 }
         ]
     },
     actionPlans: [
         {
             priority: 1,
-            title: "DS-VIS-001 블레이드 상태 점검",
-            description: "chipping_bottom 경고 지속. Rule R14 WARNING 구간 진입.",
+            title: "CAM_TIMEOUT_ERR 미조치 확인",
+            description: "GrabLinkGrabber dequeue timeout과 CameraBase timeout 경로를 확인하고 카메라 acquisition 재발 여부를 점검.",
             isCritical: true
         },
         {
             priority: 2,
-            title: "라인 B 세정액 필터 교체",
-            description: "수압 저하 징후 포착. 익일 예방 정비 스케줄에 추가 요망.",
+            title: "EAP_DISCONNECTED 원인 확인",
+            description: "EAP process terminated unexpectedly 이후 프로세스 재기동 로그와 Will 메시지 상태를 확인.",
+            isCritical: true
+        },
+        {
+            priority: 3,
+            title: "SIDE_VISION_FAIL 샘플 재검증",
+            description: "SIDE 알고리즘 종합 실패가 집중된 LOT의 기준 이미지와 조명 조건을 재확인.",
+            isCritical: false
+        },
+        {
+            priority: 4,
+            title: "dimension_w_mm Cpk 기록 보존",
+            description: "Cpk 2.95로 우수 상태이나 DIMENSION_OUT_OF_SPEC 샘플과 USL/LSL 기준 계산 근거를 함께 보존.",
             isCritical: false
         }
     ]
@@ -486,44 +395,45 @@ export const mockReportSummary: ReportSummary = {
 import type { QualityDistribution } from "@/type/reportType";
 export const mockQualityDistribution: QualityDistribution = {
     summary: {
-        passRate: 99.2,
-        passRateSub: "목표 99.0% (초과 달성)",
-        cpk: 1.38,
-        cpkSub: "상한계(USL) 방향 편차 발생 중",
-        status: "warning"
+        passRate: 96.2,
+        passRateSub: "W/H 치수 합격률 96.2%",
+        cpk: 2.95,
+        cpkSub: "표본 충분 · dimension_w_mm 기준 Cpk (USL 10.1 / LSL 9.9)",
+        status: "normal",
+        cpkReliable: true
     },
     distributionChart: {
-        guidelines: { lsl: 11.96, target: 12.00, usl: 12.04 },
+        guidelines: { lsl: 9.9, target: 10.0, usl: 10.1 },
         histogram: [
-            { range: "11.96 미만", count: 10, isWarning: false },
-            { range: "11.96-11.99", count: 45, isWarning: false },
-            { range: "11.99-12.00", count: 75, isWarning: false },
-            { range: "12.00-12.04", count: 150, isWarning: false },
-            { range: "12.04-12.05", count: 15, isWarning: true }
+            { range: "9.90 미만", count: 8, isWarning: true },
+            { range: "9.90-9.97", count: 72, isWarning: false },
+            { range: "9.97-10.03", count: 420, isWarning: false },
+            { range: "10.03-10.10", count: 91, isWarning: false },
+            { range: "10.10 초과", count: 10, isWarning: true }
         ]
     },
     aiInference: {
         hasAlert: true,
-        title: "AI 치수 이상 원인 추론",
-        description: "분석 결과, 절단 폭(Width)이 USL 방향으로 지속 이동 중입니다. Rule R13 chipping_top WARNING 구간 진입. 블레이드 장력 저하가 의심되므로 점검을 요합니다."
+        title: "dimension_w_mm 공정능력 우수, 카메라 계열 알람 우선",
+        description: "dimension_w_mm 기준 Cpk는 2.95로 Excellent 상태입니다. 품질 산포보다는 SIDE_VISION_FAIL, ET=30, CAM_TIMEOUT_ERR 계열의 이미지 취득 실패가 수율과 가동률 저하에 더 큰 영향을 준 것으로 추정됩니다."
     }
 };
 // 3. Report Heat Map data
 import type { ReportHeatmap } from "@/type/reportType";
 export const mockReportHeatmap: ReportHeatmap = {
     aiAnalysis: {
-        title: "슬롯 6~7 ET=12 집중 패턴 감지",
-        description: "비전 검사 데이터 분석 결과, ZAxisNum 6~7에 ET=12(Chipping) 결함이 집중되어 있습니다. 해당 슬롯의 척(Chuck) 진공 흡착 불량 또는 블레이드 수평 틀어짐을 점검하십시오."
+        title: "ET=30 및 SIDE_VISION_FAIL 집중 패턴 감지",
+        description: "비전 검사 데이터 분석 결과, 슬롯 5~7에 ET=30 및 SIDE_VISION_FAIL이 집중되어 있습니다. CAM_TIMEOUT_ERR와 연관된 GrabLink dequeue timeout 경로를 우선 점검하십시오."
     },
     slots: [
-        { zAxisNum: 0, passCount: 245, failCount: 3, dominantError: null, severity: "info" },
-        { zAxisNum: 1, passCount: 240, failCount: 8, dominantError: "ET=52", severity: "warning" },
-        { zAxisNum: 2, passCount: 250, failCount: 1, dominantError: null, severity: "info" },
-        { zAxisNum: 3, passCount: 248, failCount: 2, dominantError: null, severity: "info" },
-        { zAxisNum: 4, passCount: 242, failCount: 5, dominantError: "ET=05", severity: "info" },
-        { zAxisNum: 5, passCount: 239, failCount: 7, dominantError: "ET=05", severity: "info" },
-        { zAxisNum: 6, passCount: 120, failCount: 128, dominantError: "ET=12", severity: "critical" },
-        { zAxisNum: 7, passCount: 115, failCount: 133, dominantError: "ET=12", severity: "critical" }
+        { zAxisNum: 0, passCount: 245, failCount: 8, dominantError: "SIDE_VISION_FAIL", severity: "warning" },
+        { zAxisNum: 1, passCount: 240, failCount: 12, dominantError: "DIMENSION_OUT_OF_SPEC", severity: "warning" },
+        { zAxisNum: 2, passCount: 252, failCount: 4, dominantError: null, severity: "info" },
+        { zAxisNum: 3, passCount: 249, failCount: 6, dominantError: "CHIPPING_EXCEED", severity: "info" },
+        { zAxisNum: 4, passCount: 241, failCount: 10, dominantError: "SIDE_VISION_FAIL", severity: "warning" },
+        { zAxisNum: 5, passCount: 238, failCount: 14, dominantError: "ET=30", severity: "warning" },
+        { zAxisNum: 6, passCount: 120, failCount: 86, dominantError: "ET=30", severity: "critical" },
+        { zAxisNum: 7, passCount: 115, failCount: 92, dominantError: "CAM_TIMEOUT_ERR", severity: "critical" }
     ]
 };
 // 4. Report Alarm Data
@@ -532,21 +442,101 @@ export const mockReportAlarms: ReportAlarm[] = [
     {
         id: "A-001",
         severity: "critical",
-        eq: "DS-VIS-001",
-        message: "chipping_bottom 50μm 초과 (Rule R14 CRITICAL)",
-        time: "14:23:10",
+        eq: "ae538c3fa024",
+        message: "CAM_TIMEOUT_ERR 경보 발생. GrabLinkGrabber failed to dequeue image within timeout.",
+        time: "14:31:56.033",
         status: "미조치",
         action: "-",
         worker: "-"
     },
     {
         id: "A-002",
+        severity: "critical",
+        eq: "ae538c3fa024",
+        message: "EAP_DISCONNECTED 경보 발생. EAP process terminated unexpectedly.",
+        time: "14:30:11.904",
+        status: "미조치",
+        action: "-",
+        worker: "-"
+    },
+    {
+        id: "A-003",
         severity: "warning",
-        eq: "DS-VIS-002",
-        message: "Vision 검사 조명 조도 저하 (Rule R02 WARNING)",
-        time: "11:05:22",
+        eq: "b8f4d2c9a11e",
+        message: "ET=30 연속 발생. 이미지 미취득 및 CAM_TIMEOUT 전조 감지",
+        time: "14:24:02.118",
         status: "조치완료",
-        action: "조명 캘리브레이션",
+        action: "INSPECTION_RESULT ET=30 연속 검출 확인",
+        worker: "김엔지니어"
+    },
+    {
+        id: "A-004",
+        severity: "warning",
+        eq: "ae538c3fa024",
+        message: "SIDE_VISION_FAIL 증가. SIDE 알고리즘 종합 실패 반복",
+        time: "13:48:35.440",
+        status: "조치완료",
+        action: "기준 이미지 및 조명 조건 재확인",
         worker: "이엔지니어"
+    },
+    {
+        id: "A-005",
+        severity: "warning",
+        eq: "5f60747251ed",
+        message: "DIMENSION_OUT_OF_SPEC 샘플 확인. dimension_w_mm 규격 재검증",
+        time: "12:15:09.732",
+        status: "조치완료",
+        action: "USL 10.1 / LSL 9.9 기준 측정값 재검증",
+        worker: "최엔지니어"
+    },
+    {
+        id: "A-006",
+        severity: "warning",
+        eq: "d4a0e8c17b5f",
+        message: "CHIPPING_EXCEED 발생 LOT 격리",
+        time: "11:42:18.208",
+        status: "조치완료",
+        action: "블레이드 사용 시간 및 척 진공 압력 확인",
+        worker: "정엔지니어"
+    },
+    {
+        id: "A-007",
+        severity: "warning",
+        eq: "ae538c3fa024",
+        message: "Grabber queue 지연 재현 필요",
+        time: "10:28:44.551",
+        status: "미조치",
+        action: "-",
+        worker: "-"
+    },
+    {
+        id: "A-008",
+        severity: "critical",
+        eq: "ae538c3fa024",
+        message: "EAP 프로세스 재기동 및 retained alarm 상태 확인",
+        time: "09:16:02.774",
+        status: "조치완료",
+        action: "EAP process restart 및 Will 상태 확인",
+        worker: "박엔지니어"
+    },
+    {
+        id: "A-009",
+        severity: "info",
+        eq: "ae538c3fa024",
+        message: "CameraBase timeout 이후 카메라 연결 상태 점검",
+        time: "08:03:27.012",
+        status: "조치완료",
+        action: "케이블 연결 및 GrabLink board 상태 확인",
+        worker: "김엔지니어"
+    },
+    {
+        id: "A-010",
+        severity: "warning",
+        eq: "b8f4d2c9a11e",
+        message: "PRS/SIDE ET=30 발생률 기준 초과 모니터링 필요",
+        time: "07:41:50.665",
+        status: "미조치",
+        action: "-",
+        worker: "-"
     }
 ];

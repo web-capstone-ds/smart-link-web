@@ -21,14 +21,14 @@ export function DefectCodeTable({ data = [], className, isLoading }: DefectCodeT
                 <CardTitle className="text-sm font-bold">주요 불량 코드 분석</CardTitle>
             </CardHeader>
 
-            <CardContent className="p-0 overflow-x-auto">
-                <Table>
+            <CardContent className="p-0 overflow-hidden">
+                <Table className="w-full table-fixed">
                     <TableHeader className="bg-muted/30">
                         <TableRow className="hover:bg-transparent border-border/50">
-                            <TableHead className="h-9 px-4 py-2 text-xs">코드명</TableHead>
-                            <TableHead className="h-9 py-2 text-xs">구분</TableHead>
-                            <TableHead className="h-9 py-2 text-xs text-right">발생 (비율)</TableHead>
-                            <TableHead className="h-9 py-2 text-xs pl-6">문제 현상 요약</TableHead>
+                            <TableHead className="h-9 w-[28%] px-4 py-2 text-xs">코드명</TableHead>
+                            <TableHead className="h-9 w-[14%] py-2 text-xs">구분</TableHead>
+                            <TableHead className="h-9 w-[18%] py-2 text-xs text-right">발생 (비율)</TableHead>
+                            <TableHead className="h-9 w-[40%] py-2 pl-4 text-xs">문제 현상 요약</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -44,21 +44,21 @@ export function DefectCodeTable({ data = [], className, isLoading }: DefectCodeT
                         ) : (
                             data.map((defect) => (
                                 <TableRow key={defect.code} className="border-border/50">
-                                    <TableCell className="px-4 py-2 font-medium">
-                                        <div className="flex flex-col">
-                                            <span className="text-sm">{defect.code}</span>
-                                            <span className="text-[10px] text-muted-foreground">{defect.name}</span>
+                                    <TableCell className="px-4 py-2 font-medium align-top">
+                                        <div className="flex min-w-0 flex-col">
+                                            <span className="break-all text-sm leading-tight">{defect.code}</span>
+                                            <span className="mt-0.5 break-words text-[10px] leading-tight text-muted-foreground">{defect.name}</span>
                                         </div>
                                     </TableCell>
-                                    <TableCell className="py-2">
+                                    <TableCell className="py-2 align-top">
                                         <Badge variant="outline" className={`text-[9px] font-normal px-1.5 py-0 h-4 ${defect.type === '공통 불량' ? 'border-amber-500/50 text-amber-500' : 'border-blue-500/50 text-blue-500'}`}>
                                             {defect.type}
                                         </Badge>
                                     </TableCell>
-                                    <TableCell className="py-2 text-right font-bold text-sm">
+                                    <TableCell className="py-2 text-right align-top text-sm font-bold">
                                         {defect.count} <span className="text-[10px] text-muted-foreground font-normal">({defect.ratio})</span>
                                     </TableCell>
-                                    <TableCell className="py-2 text-[11px] text-muted-foreground pl-6">
+                                    <TableCell className="py-2 pl-4 align-top text-[11px] leading-snug text-muted-foreground whitespace-normal break-words">
                                         {defect.impact}
                                     </TableCell>
                                 </TableRow>
