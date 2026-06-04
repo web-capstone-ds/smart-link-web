@@ -52,8 +52,7 @@ export function ReportQualityPage({
                         {topDefects.map((defect, index) => (
                             <div key={defect.code || defect.name} className="grid min-w-0 grid-cols-[5rem_minmax(0,1fr)_3rem] items-center gap-3">
                                 <div className="min-w-0">
-                                    <p className="text-[10px] font-black text-zinc-900 truncate">{defect.code}</p>
-                                    <p className="text-[9px] text-zinc-500 leading-snug break-words min-w-0">{defect.name}</p>
+                                    <p className="text-[10px] font-black text-zinc-900 truncate">{formatDefectLabel(defect)}</p>
                                 </div>
                                 <div className="min-w-0 h-4 bg-zinc-100 rounded-sm overflow-hidden">
                                     <div
@@ -92,7 +91,7 @@ export function ReportQualityPage({
                                 <div key={eq.id} className="grid grid-cols-[minmax(0,1fr)_3.75rem] items-center gap-2 border-b border-zinc-100 pb-2 last:border-0">
                                     <div className="min-w-0">
                                         <EquipmentIdText value={eq.id} className="text-[10px] font-bold text-zinc-900" />
-                                        <p className="text-[9px] text-zinc-500">{eq.recipe}</p>
+                                        <RecipeIdText value={eq.recipe} />
                                     </div>
                                     <div className="min-w-0 text-right">
                                         <p className="text-xs font-black text-red-600">{eq.yield}%</p>
@@ -132,6 +131,20 @@ export function ReportQualityPage({
     );
 }
 
+function formatDefectLabel(defect: DefectStat) {
+    const code = defect.code?.trim();
+    const name = defect.name?.trim();
+    if (!code) return name || "-";
+    if (!name || name === code) return code;
+
+    const duplicateParenPattern = new RegExp(`\\s*\\(${escapeRegExp(code)}\\)\\s*$`);
+    return code.replace(duplicateParenPattern, "");
+}
+
+function escapeRegExp(value: string) {
+    return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 function EquipmentIdText({ value, className = "" }: { value: string; className?: string }) {
     return (
         <span className={`inline-flex max-w-full flex-col leading-[1.05] ${className}`} title={value}>
@@ -139,6 +152,16 @@ function EquipmentIdText({ value, className = "" }: { value: string; className?:
                 <span key={line} className="whitespace-nowrap">{line}</span>
             ))}
         </span>
+    );
+}
+
+function RecipeIdText({ value }: { value: string }) {
+    return (
+        <p className="text-[9px] text-zinc-500 leading-tight" title={value}>
+            {formatEquipmentIdLines(value).map((line) => (
+                <span key={line} className="block">{line}</span>
+            ))}
+        </p>
     );
 }
 

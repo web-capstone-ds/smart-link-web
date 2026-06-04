@@ -39,13 +39,25 @@ export const mockTrendData = [
   { date: "05-04", production: 3500, yield: 97.1 },
   { date: "05-05", production: 3600, yield: 98.4 },
   { date: "05-06", production: 3900, yield: 99.1 },
-  { date: "05-07", production: 3400, yield: 96.1 }
+  { date: "05-07", production: 3400, yield: 96.1 },
+  { date: "05-08", production: 3650, yield: 97.6 },
+  { date: "05-09", production: 3820, yield: 98.2 },
+  { date: "05-10", production: 3550, yield: 97.4 },
+  { date: "05-11", production: 3320, yield: 96.8 },
+  { date: "05-12", production: 3710, yield: 98.0 },
+  { date: "05-13", production: 3880, yield: 98.5 },
+  { date: "05-14", production: 3460, yield: 97.2 }
 ];
 // 4-1. Line Yield Comparison Data
 export const mockLineYieldData = [
   { name: "DS-VIS-001", yield: 96.4 },
   { name: "DS-VIS-002", yield: 98.1 },
   { name: "DS-VIS-003", yield: 94.2 },
+  { name: "DS-VIS-004", yield: 98.9 },
+  { name: "DS-VIS-005", yield: 97.6 },
+  { name: "DS-VIS-006", yield: 98.4 },
+  { name: "DS-VIS-007", yield: 97.9 },
+  { name: "DS-VIS-008", yield: 95.8 },
 ];
 // 4-2. Equipment Yield Comparison Data
 export const mockEquipmentYieldData = [
@@ -372,6 +384,60 @@ export const mockEquipmentHistory: EquipmentHistory[] = [
         description: "검사 조명 편차를 보정하고 기준 이미지를 재등록했습니다.",
         worker: "이엔지니어",
         yieldChange: { before: 96.8, after: 98.1 }
+    },
+    {
+        id: "H-005",
+        status: "resolved",
+        time: "08:40",
+        title: "블레이드 마모 점검",
+        description: "절단면 거칠기 증가 이슈로 블레이드 사용 시간을 확인하고 교체 주기를 앞당겼습니다.",
+        worker: "최엔지니어",
+        yieldChange: { before: 95.6, after: 97.4 }
+    },
+    {
+        id: "H-006",
+        status: "resolved",
+        time: "08:05",
+        title: "레시피 파라미터 롤백",
+        description: "PKG_DICE_C15 조건 변경 후 marginal 증가가 확인되어 직전 안정 레시피로 복구했습니다.",
+        worker: "정엔지니어",
+        yieldChange: { before: 94.9, after: 96.7 }
+    },
+    {
+        id: "H-007",
+        status: "unresolved",
+        time: "07:35",
+        title: "LOT 투입 전 기준 이미지 재검증 필요",
+        description: "야간조 마지막 LOT에서 기준 이미지 대비 edge contrast 편차가 확인되었습니다.",
+        worker: null,
+        yieldChange: null
+    },
+    {
+        id: "H-008",
+        status: "resolved",
+        time: "06:50",
+        title: "척 진공 압력 확인",
+        description: "슬롯 6 흡착 압력 저하 알람 후 진공 라인 누설 여부를 점검했습니다.",
+        worker: "박엔지니어",
+        yieldChange: { before: 96.1, after: 97.0 }
+    },
+    {
+        id: "H-009",
+        status: "resolved",
+        time: "05:55",
+        title: "카메라 포커스 재설정",
+        description: "Lens Contamination 오검출 가능성을 줄이기 위해 포커스와 노출 값을 재보정했습니다.",
+        worker: "김엔지니어",
+        yieldChange: { before: 95.8, after: 97.6 }
+    },
+    {
+        id: "H-010",
+        status: "unresolved",
+        time: "04:30",
+        title: "냉각수 유량 저하 확인",
+        description: "절단 온도 상승 징후가 있어 냉각수 필터 상태 확인이 필요합니다.",
+        worker: null,
+        yieldChange: null
     }
 ];
 

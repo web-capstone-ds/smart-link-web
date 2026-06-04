@@ -17,9 +17,9 @@ interface ProductionTrendChartProps {
 
 export function TrendChart({ data, trendUnit, onTrendUnitChange, className, isLoading }: ProductionTrendChartProps) {
 
-    const isForcedRange = data?.length === 7;
+    const isForcedRange = data?.length === 7 || data?.length === 14;
     const unitText = trendUnit === "daily" ? "일별" : "주별";
-    const chartTitle = isForcedRange ? `최근 7${unitText.charAt(0)} 트렌드` : `조회 기간 내 ${unitText} 트렌드`;
+    const chartTitle = isForcedRange ? `최근 ${data.length}${unitText.charAt(0)} 트렌드` : `조회 기간 내 ${unitText} 트렌드`;
 
     const minYield = data && data.length > 0 
         ? Math.floor(Math.min(...data.map(d => d.yield))) - 1

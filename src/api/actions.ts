@@ -43,6 +43,35 @@ export async function fetchPendingActions(date: DateRange | undefined): Promise<
 
     const startDate = date?.from ? format(date.from, "yyyy-MM-dd") : "";
     const endDate = date?.to ? format(date.to, "yyyy-MM-dd") : startDate;
+    const range = toBackendDateRange(startDate, endDate);
+    const openStatusResponses = await Promise.allSettled([
+        apiClient.get("/api/v1/actions", {
+            params: {
+                status: "PENDING",
+                page: 1,
+                size: 100,
+                from: range.from,
+                to: range.to,
+            },
+        }),
+        apiClient.get("/api/v1/actions", {
+            params: {
+                status: "IN_PROGRESS",
+                page: 1,
+                size: 100,
+                from: range.from,
+                to: range.to,
+            },
+        }),
+    ]);
+
+    const openActions = openStatusResponses.flatMap((result) => (
+        result.status === "fulfilled" ? normalizeActions(unwrapArray(result.value.data)) : []
+    ));
+    if (openActions.length > 0) {
+        return summarizePendingActions(openActions);
+    }
+
     const response = await apiClient.get("/api/v1/actions/pending", {
         params: {
             startDate,
@@ -55,18 +84,7 @@ export async function fetchPendingActions(date: DateRange | undefined): Promise<
         return normalizePendingSummaries(pendingRows);
     }
 
-    const range = toBackendDateRange(startDate, endDate);
-    const fallbackResponse = await apiClient.get("/api/v1/actions", {
-        params: {
-            status: "PENDING",
-            page: 1,
-            size: 100,
-            from: range.from,
-            to: range.to,
-        },
-    });
-
-    return summarizePendingActions(normalizeActions(unwrapArray(fallbackResponse.data)));
+    return [];
 }
 
 export async function createAction(payload: CreateActionPayload): Promise<ActionItem> {

@@ -118,7 +118,7 @@ function RiskEquipmentTable({ title, equipments }: { title: string; equipments: 
                                         <span key={line} className="block">{line}</span>
                                     ))}
                                 </p>
-                                <p className="text-[9px] text-zinc-500">{eq.recipe}</p>
+                                <RecipeIdText value={eq.recipe} />
                             </td>
                             <td className="py-2 px-2 text-center">
                                 <RiskBadge eq={eq} />
@@ -131,6 +131,16 @@ function RiskEquipmentTable({ title, equipments }: { title: string; equipments: 
                 </tbody>
             </table>
         </div>
+    );
+}
+
+function RecipeIdText({ value }: { value: string }) {
+    return (
+        <p className="text-[9px] text-zinc-500 leading-tight" title={value}>
+            {formatEquipmentIdLines(value).map((line) => (
+                <span key={line} className="block">{line}</span>
+            ))}
+        </p>
     );
 }
 

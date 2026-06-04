@@ -51,7 +51,7 @@ export function Header({ isSidebarOpen, setIsSidebarOpen, onOpenEquipmentDetail 
     const [errorMessage, setErrorMessage] = useState("");
 
     const { data: pendingActionsRes, isLoading: isPendingLoading } = useQuery({
-        queryKey: ["headerPendingActions", appliedDate],
+        queryKey: ["pendingActions", appliedDate],
         queryFn: () => fetchPendingActions(appliedDate),
         enabled: isAuthenticated && !!appliedDate?.from && !isMockMode,
         retry: false,

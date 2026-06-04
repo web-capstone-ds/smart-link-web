@@ -10,7 +10,7 @@ export interface AIInsight {
 }
 
 export interface UptimeTimeline {
-    status: "run" | "idle" | "error";
+    status: "run" | "idle" | "down" | "error" | string;
     start: string;
     end: string;
     ratio: number;

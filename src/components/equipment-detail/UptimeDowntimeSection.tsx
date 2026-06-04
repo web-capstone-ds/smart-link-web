@@ -99,7 +99,8 @@ function UptimeSkeleton() {
 }
 
 function UptimeCard({ summaryData }: { summaryData: EquipmentSummary }) {
-    const downSegments = summaryData.uptime.timeline.filter((segment) => segment.status === "error");
+    const timelineSegments = normalizeTimelineSegments(summaryData.uptime.timeline);
+    const downSegments = summaryData.uptime.timeline.filter((segment) => isDownStatus(segment.status));
 
     return (
         <Card className="border-border animate-in fade-in duration-500">
@@ -134,7 +135,7 @@ function UptimeCard({ summaryData }: { summaryData: EquipmentSummary }) {
                 </div>
 
                 <div className="h-8 flex rounded-md overflow-hidden border border-border/50 relative group">
-                    {summaryData.uptime.timeline.map((segment, index) => (
+                    {timelineSegments.map((segment, index) => (
                         <TimelineSegment key={index} segment={segment} />
                     ))}
                 </div>
@@ -155,7 +156,33 @@ function UptimeCard({ summaryData }: { summaryData: EquipmentSummary }) {
     );
 }
 
-function TimelineSegment({ segment }: { segment: UptimeTimeline }) {
+type DisplayTimelineSegment = UptimeTimeline & {
+    displayRatio: number;
+};
+
+function normalizeTimelineSegments(timeline: UptimeTimeline[]): DisplayTimelineSegment[] {
+    const segments = timeline.filter((segment) => segment.ratio > 0);
+    const totalRatio = segments.reduce((sum, segment) => sum + segment.ratio, 0);
+
+    if (segments.length === 0 || totalRatio <= 0) return [];
+
+    let usedRatio = 0;
+    return segments.map((segment, index) => {
+        const displayRatio = index === segments.length - 1
+            ? Math.max(0, 100 - usedRatio)
+            : (segment.ratio / totalRatio) * 100;
+
+        usedRatio += displayRatio;
+        return { ...segment, displayRatio };
+    });
+}
+
+function isDownStatus(status: UptimeTimeline["status"] | string) {
+    const normalized = status.toLowerCase();
+    return normalized === "down" || normalized === "error";
+}
+
+function TimelineSegment({ segment }: { segment: DisplayTimelineSegment }) {
     const isRun = segment.status === "run";
     const isIdle = segment.status === "idle";
     const bgClass = isRun
@@ -163,12 +190,12 @@ function TimelineSegment({ segment }: { segment: UptimeTimeline }) {
         : isIdle
             ? "bg-amber-400 hover:brightness-110"
             : "bg-destructive hover:brightness-110 animate-pulse";
-    const statusText = isRun ? "정상 가동" : isIdle ? "대기/휴지" : "정지";
+    const statusText = isRun ? "정상 가동" : isIdle ? "대기/휴지" : isDownStatus(segment.status) ? "정지" : segment.status;
 
     return (
         <div
             className={`${bgClass} h-full transition-all cursor-help relative`}
-            style={{ width: `${segment.ratio}%` }}
+            style={{ width: `${segment.displayRatio}%` }}
             title={`${segment.start} - ${segment.end} (${statusText})`}
         />
     );
