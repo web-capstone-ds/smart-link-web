@@ -1,15 +1,16 @@
 import type { EquipmentStatus } from "@/type/equipmentType";
+import type { ReactNode } from "react";
 import type { QualityDistribution, ReportAlarm, ReportSummary } from "@/type/reportType";
 import { EmptyBox, KpiTile, PriorityLine, ReportFooter, ReportMasthead, ReportSheet, RiskBadge, SectionTitle } from "@/components/report-document/ReportLayout";
-import { formatCpk, getShiftVerdict, isCpkWarning } from "@/components/report-document/utils";
+import { formatCpk, formatEquipmentIdLines, getShiftVerdict, isCpkWarning } from "@/components/report-document/utils";
 
 interface ReportOverviewPageProps {
     isLoading: boolean;
-    reportTitle: string;
-    reportSubtitle: string;
+    reportTitle: ReactNode;
+    reportSubtitle: ReactNode;
     issueDateTime: string;
     periodText: string;
-    targetText: string;
+    targetText: ReactNode;
     isEquipmentReport: boolean;
     reportData: ReportSummary;
     qualityData: QualityDistribution;
@@ -101,7 +102,7 @@ function RiskEquipmentTable({ title, equipments }: { title: string; equipments: 
             <table className="w-full text-[10px] border-collapse bg-white">
                 <thead>
                     <tr className="border-y-2 border-zinc-900 bg-zinc-50 text-zinc-600">
-                        <th className="py-2 px-2 text-left">장비</th>
+                        <th className="w-[7.5rem] py-2 px-2 text-left">장비</th>
                         <th className="py-2 px-2 text-center">Risk</th>
                         <th className="py-2 px-2 text-right">가동률</th>
                         <th className="py-2 px-2 text-right">수율</th>
@@ -111,8 +112,12 @@ function RiskEquipmentTable({ title, equipments }: { title: string; equipments: 
                 <tbody className="divide-y divide-zinc-200">
                     {equipments.map((eq) => (
                         <tr key={eq.id}>
-                            <td className="py-2 px-2">
-                                <p className="font-bold text-zinc-900">{eq.id}</p>
+                            <td className="w-[7.5rem] py-2 px-2 align-top">
+                                <p className="font-bold leading-tight text-zinc-900 break-words" title={eq.id}>
+                                    {formatEquipmentIdLines(eq.id).map((line) => (
+                                        <span key={line} className="block">{line}</span>
+                                    ))}
+                                </p>
                                 <p className="text-[9px] text-zinc-500">{eq.recipe}</p>
                             </td>
                             <td className="py-2 px-2 text-center">

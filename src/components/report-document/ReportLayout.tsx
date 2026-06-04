@@ -29,23 +29,23 @@ export function ReportMasthead({
     targetText,
     pageLabel,
 }: {
-    title: string;
-    subtitle: string;
+    title: ReactNode;
+    subtitle: ReactNode;
     issueDateTime: string;
     periodText: string;
-    targetText: string;
+    targetText: ReactNode;
     pageLabel: string;
 }) {
     return (
         <header className="flex justify-between items-start mb-5 relative z-10">
-            <div>
+            <div className="min-w-0 max-w-[35rem]">
                 <h1 className="text-3xl font-black tracking-tight text-zinc-900">{title}</h1>
                 <p className="text-sm font-bold text-zinc-500 mt-1">{subtitle}</p>
                 <div className="grid grid-cols-2 gap-x-8 gap-y-1.5 text-xs text-zinc-600 mt-4">
                     <p><span className="font-bold text-zinc-400 mr-2">발행 일시</span>{issueDateTime}</p>
                     <p><span className="font-bold text-zinc-400 mr-2">작성자</span>Smart Link AI</p>
                     <p><span className="font-bold text-zinc-400 mr-2">집계 기간</span>{periodText}</p>
-                    <p><span className="font-bold text-zinc-400 mr-2">대상</span>{targetText}</p>
+                    <p className="min-w-0"><span className="font-bold text-zinc-400 mr-2">대상</span>{targetText}</p>
                 </div>
             </div>
             <div className="flex border border-zinc-300 text-center text-[10px] bg-white">
@@ -63,7 +63,7 @@ export function ReportMasthead({
     );
 }
 
-export function ReportSectionHeader({ index, title }: { index: string; title: string }) {
+export function ReportSectionHeader({ index, title }: { index: string; title: ReactNode }) {
     return (
         <div className="mb-4 z-10">
             <h2 className="text-2xl font-black text-zinc-900 border-b-2 border-zinc-900 pb-2 flex items-center gap-2">

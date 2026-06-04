@@ -4,7 +4,7 @@ import type { DateRange } from "react-day-picker";
 import { ReportOperationsPage } from "@/components/report-document/ReportOperationsPage";
 import { ReportOverviewPage } from "@/components/report-document/ReportOverviewPage";
 import { ReportQualityPage } from "@/components/report-document/ReportQualityPage";
-import { formatPeriod, isUnresolved, riskScore } from "@/components/report-document/utils";
+import { formatEquipmentIdLines, formatPeriod, isUnresolved, riskScore } from "@/components/report-document/utils";
 import type { DefectStat, EquipmentStatus } from "@/type/equipmentType";
 import type { QualityDistribution, ReportAlarm, ReportHeatmap, ReportSummary } from "@/type/reportType";
 
@@ -40,11 +40,16 @@ export function ReportDocument({
             ? "PERIOD OPERATIONS REVIEW"
             : "DAILY OPERATIONS REVIEW";
     const reportSubtitle = isEquipmentReport
-        ? `${targetEq} 장비 일일 리뷰`
+        ? (
+            <span className="inline-flex max-w-full flex-wrap items-baseline gap-x-1" title={targetEq}>
+                <EquipmentIdText value={targetEq} className="text-zinc-700" />
+                <span>장비 일일 리뷰</span>
+            </span>
+        )
         : "일일 생산, 품질, 가동 및 조치 인수인계";
     const periodText = formatPeriod(appliedDate);
     const issueDateTime = format(new Date(), "yyyy.MM.dd HH:mm");
-    const targetText = isEquipmentReport ? targetEq : "전체 설비";
+    const targetText = isEquipmentReport ? <EquipmentIdText value={targetEq} className="align-top" /> : "전체 설비";
 
     const equipmentRows = isEquipmentReport
         ? safeEquipmentData.filter((eq) => eq.id === targetEq || safeEquipmentData.length === 1)
@@ -98,5 +103,15 @@ export function ReportDocument({
                 topActions={topActions}
             />
         </>
+    );
+}
+
+function EquipmentIdText({ value, className = "" }: { value: string; className?: string }) {
+    return (
+        <span className={`inline-flex max-w-[19rem] flex-col leading-tight ${className}`} title={value}>
+            {formatEquipmentIdLines(value).map((line) => (
+                <span key={line} className="whitespace-nowrap">{line}</span>
+            ))}
+        </span>
     );
 }

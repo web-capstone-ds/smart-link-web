@@ -75,6 +75,7 @@ export async function createAction(payload: CreateActionPayload): Promise<Action
         equipmentId: payload.equipmentId,
         alarmId: payload.alarmId ?? null,
         actionType: payload.title || payload.action || "OPERATOR_ACTION",
+        actionStatus: payload.status ? toBackendActionStatus(payload.status) : undefined,
         performedAt: new Date().toISOString(),
         resultBefore: payload.resultBefore ?? null,
         resultAfter: payload.resultAfter ?? null,
@@ -89,7 +90,10 @@ export async function updateActionStatus(id: string, payload: UpdateActionPayloa
         await apiClient.put(`/api/v1/actions/${id}`, { actionStatus: "IN_PROGRESS" });
     }
 
-    const response = await apiClient.put(`/api/v1/actions/${id}`, { actionStatus });
+    const response = await apiClient.put(`/api/v1/actions/${id}`, {
+        actionStatus,
+        note: payload.action,
+    });
     return normalizeActions([unwrapObject(response.data)])[0];
 }
 

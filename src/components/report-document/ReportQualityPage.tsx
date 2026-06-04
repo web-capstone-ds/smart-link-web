@@ -2,7 +2,7 @@ import type { DefectStat, EquipmentStatus } from "@/type/equipmentType";
 import type { QualityDistribution, ReportHeatmap } from "@/type/reportType";
 import { Histogram } from "@/components/report-document/Histogram";
 import { QualityTile, ReportFooter, ReportSectionHeader, ReportSheet, SectionTitle, SlotCell } from "@/components/report-document/ReportLayout";
-import { formatCpk, isCpkWarning, normalizeRatio } from "@/components/report-document/utils";
+import { formatCpk, formatEquipmentIdLines, isCpkWarning, normalizeRatio } from "@/components/report-document/utils";
 
 interface ReportQualityPageProps {
     isLoading: boolean;
@@ -25,7 +25,15 @@ export function ReportQualityPage({
 }: ReportQualityPageProps) {
     return (
         <ReportSheet isLoading={isLoading} className="mt-8">
-            <ReportSectionHeader index="02" title={isEquipmentReport ? `${targetEq} 품질 원인 분석` : "품질 및 수율 원인 분석"} />
+            <ReportSectionHeader
+                index="02"
+                title={isEquipmentReport ? (
+                    <span className="inline-flex max-w-full flex-wrap items-baseline gap-x-2">
+                        <EquipmentIdText value={targetEq} className="text-zinc-900" />
+                        <span>품질 원인 분석</span>
+                    </span>
+                ) : "품질 및 수율 원인 분석"}
+            />
 
             <section className="grid grid-cols-[0.88fr_1.12fr] gap-4 mb-5 z-10">
                 <div className="border border-zinc-200 rounded-sm p-3 bg-zinc-50">
@@ -81,12 +89,12 @@ export function ReportQualityPage({
                         <SectionTitle index="03" title="하위 장비 Recipe 영향" />
                         <div className="space-y-2.5">
                             {riskEquipments.slice(0, 4).map((eq) => (
-                                <div key={eq.id} className="flex items-center justify-between border-b border-zinc-100 pb-2 last:border-0">
-                                    <div>
-                                        <p className="text-xs font-bold">{eq.id}</p>
+                                <div key={eq.id} className="grid grid-cols-[minmax(0,1fr)_3.75rem] items-center gap-2 border-b border-zinc-100 pb-2 last:border-0">
+                                    <div className="min-w-0">
+                                        <EquipmentIdText value={eq.id} className="text-[10px] font-bold text-zinc-900" />
                                         <p className="text-[9px] text-zinc-500">{eq.recipe}</p>
                                     </div>
-                                    <div className="text-right">
+                                    <div className="min-w-0 text-right">
                                         <p className="text-xs font-black text-red-600">{eq.yield}%</p>
                                         <p className="text-[9px] text-zinc-500">{eq.majorDefect}</p>
                                     </div>
@@ -121,6 +129,16 @@ export function ReportQualityPage({
 
             <ReportFooter pageLabel="Page 02" />
         </ReportSheet>
+    );
+}
+
+function EquipmentIdText({ value, className = "" }: { value: string; className?: string }) {
+    return (
+        <span className={`inline-flex max-w-full flex-col leading-[1.05] ${className}`} title={value}>
+            {formatEquipmentIdLines(value).map((line) => (
+                <span key={line} className="whitespace-nowrap">{line}</span>
+            ))}
+        </span>
     );
 }
 

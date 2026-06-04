@@ -41,6 +41,25 @@ export function formatCpk(cpk: number | null | undefined) {
     return typeof cpk === "number" ? cpk.toFixed(2) : "N/A";
 }
 
+export function formatEquipmentIdLines(value: string) {
+    const equipmentId = value.trim();
+    if (equipmentId.length <= 14) return [equipmentId];
+
+    const midpoint = Math.floor(equipmentId.length / 2);
+    const candidates = Array.from(equipmentId.matchAll(/[-_\s]/g))
+        .map((match) => match.index ?? -1)
+        .filter((index) => index > 0 && index < equipmentId.length - 1);
+
+    const splitIndex = candidates.length > 0
+        ? candidates.reduce((best, index) => Math.abs(index - midpoint) < Math.abs(best - midpoint) ? index : best)
+        : midpoint;
+
+    return [
+        equipmentId.slice(0, splitIndex + 1).trim(),
+        equipmentId.slice(splitIndex + 1).trim(),
+    ].filter(Boolean).slice(0, 2);
+}
+
 export function isCpkWarning(cpk: number | null | undefined) {
     return typeof cpk === "number" && cpk < 1.33;
 }
