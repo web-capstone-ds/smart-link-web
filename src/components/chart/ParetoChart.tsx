@@ -43,7 +43,7 @@ export function ParetoChart({ data, className, isLoading }: DefectParetoChartPro
                                 axisLine={false} 
                                 tickFormatter={(value) => {
                                     const currentItem = data.find(item => item.defectCode === value);
-                                    return currentItem ? `${value} (${currentItem.defectName})` : value;
+                                    return currentItem?.defectName || value;
                                 }}
                             />
                             <YAxis yAxisId="left" tick={{ fontSize: 9, fill: 'var(--muted-foreground)' }} tickLine={false} axisLine={false} />

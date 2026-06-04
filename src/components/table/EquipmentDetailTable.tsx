@@ -119,6 +119,7 @@ export function EquipmentDetailTable({
                                 (eq) => {
                                     const risk = getRiskMeta(eq);
                                     const yieldDelta = getYieldDelta(eq);
+                                    const equipmentIdLines = formatEquipmentIdLines(eq.id);
 
                                     return (
                                     <TableRow 
@@ -142,7 +143,13 @@ export function EquipmentDetailTable({
                                         {/* 2. 장비 ID & 레시피 */}
                                         <TableCell className="py-2.5 font-semibold text-foreground text-sm">
                                             <div className="flex flex-col gap-0.5">
-                                                <span>{eq.id}</span>
+                                                <span className="max-w-36 text-[12px] leading-tight" title={eq.id}>
+                                                    {equipmentIdLines.map((line) => (
+                                                        <span key={line} className="block break-all">
+                                                            {line}
+                                                        </span>
+                                                    ))}
+                                                </span>
                                                 <Badge variant="secondary" className="w-fit text-[9px] px-1 py-0 h-3.5 font-normal bg-secondary/50">
                                                     {eq.recipe}
                                                 </Badge>
@@ -334,6 +341,26 @@ function getRecommendedAction(eq: EquipmentStatus) {
     if (eq.uptime < 95) return "가동률 저하 구간 확인 및 예방 정비 검토";
     if (eq.majorDefect !== "-") return "주요 불량 추이 모니터링 및 재발 방지 항목 등록";
     return "정상 범위 유지, 정기 모니터링";
+}
+
+function formatEquipmentIdLines(value: string) {
+    const equipmentId = value.trim();
+    if (equipmentId.length <= 14) return [equipmentId];
+
+    const midpoint = Math.floor(equipmentId.length / 2);
+    const candidates = Array.from(equipmentId.matchAll(/[-_\s]/g))
+        .map((match) => match.index ?? 0)
+        .filter((index) => index > 0 && index < equipmentId.length - 1);
+    const splitIndex = candidates.length > 0
+        ? candidates.reduce((best, current) => (
+            Math.abs(current - midpoint) < Math.abs(best - midpoint) ? current : best
+        ), candidates[0])
+        : midpoint;
+
+    return [
+        equipmentId.slice(0, splitIndex + 1).trim(),
+        equipmentId.slice(splitIndex + 1).trim(),
+    ].filter(Boolean);
 }
 
 function escapeHtml(value: unknown) {

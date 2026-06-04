@@ -19,6 +19,7 @@ export function KpiSummaryCards({ isSingleDay, data, isLoading }: KpiSummaryCard
     const hasCpkTrend = typeof cpkTrend === "number";
     const cpkGrade = getCpkGrade(cpkValue); // 산업 표준 4단계 등급 (부적합/경고/안정/우수)
     const topDefect = data?.kpi.topDefect || "-";
+    const cpkSpecLines = formatCpkSpec(data?.kpi.cpkSub);
 
     return (
         <div>
@@ -89,9 +90,15 @@ export function KpiSummaryCards({ isSingleDay, data, isLoading }: KpiSummaryCard
                                 {cpkGrade ? cpkGrade.label : "계산 불가"}
                             </span>
                         </div>
-                        <div className="flex justify-between">
+                        <div className="flex items-start justify-between gap-3">
                             <span>산포 관리 기준</span>
-                            <span className="text-muted-foreground">{data.kpi.cpkSub ?? "USL / LSL 이내"}</span>
+                            <span className="max-w-39 text-right text-[10px] leading-tight text-muted-foreground">
+                                {cpkSpecLines.map((line) => (
+                                    <span key={line} className="block">
+                                        {line}
+                                    </span>
+                                ))}
+                            </span>
                         </div>
                     </BaseKpiCard>
 
@@ -122,4 +129,13 @@ export function KpiSummaryCards({ isSingleDay, data, isLoading }: KpiSummaryCard
             )}
         </div>
     )
+}
+
+function formatCpkSpec(value: string | null | undefined) {
+    const spec = value?.trim() || "USL / LSL 이내";
+    const match = spec.match(/^(.*?)(\s*\(.*\))$/);
+
+    if (!match) return [spec];
+
+    return [match[1].trim(), match[2].trim()];
 }
